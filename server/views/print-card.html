@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Cetak Kartu AR — {{MODEL_NAME}} | Magic AR Edu</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Quicksand Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary": "#705d00",
+            "surface-bright": "#f4faff",
+            "primary-fixed-dim": "#cdbdff",
+            "secondary-fixed": "#ffe170",
+            "on-primary-fixed-variant": "#4f00d0",
+            "surface-container-low": "#e7f6ff",
+            "surface-tint": "#6833ea",
+            "on-primary-fixed": "#20005f",
+            "on-secondary-container": "#6f5c00",
+            "primary": "#632ce5",
+            "on-background": "#0d1e25",
+            "outline": "#7a7487",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "surface-variant": "#d4e5ef",
+            "primary-container": "#7c4dff",
+            "secondary-container": "#fdd400",
+            "on-tertiary": "#ffffff",
+            "background": "#f4faff",
+            "surface-dim": "#cbdde7",
+            "on-secondary-fixed": "#221b00",
+            "on-surface": "#0d1e25",
+            "on-error": "#ffffff",
+            "inverse-on-surface": "#e2f3fd",
+            "tertiary-fixed-dim": "#00daf3",
+            "inverse-primary": "#cdbdff",
+            "tertiary-fixed": "#9cf0ff",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#494455",
+            "on-primary": "#ffffff",
+            "on-secondary": "#ffffff",
+            "primary-fixed": "#e8deff",
+            "surface": "#f4faff",
+            "surface-container-highest": "#d4e5ef",
+            "on-tertiary-container": "#ebfcff",
+            "on-tertiary-fixed": "#001f24",
+            "on-secondary-fixed-variant": "#544600",
+            "outline-variant": "#cac3d8",
+            "tertiary-container": "#007e8d",
+            "secondary-fixed-dim": "#e9c400",
+            "on-primary-container": "#fcf6ff",
+            "tertiary": "#00636f",
+            "surface-container": "#dff1fb",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed-variant": "#004f58",
+            "inverse-surface": "#23333a",
+            "surface-container-high": "#d9ebf5"
+          },
+          "fontFamily": {
+            "button-text": ["Quicksand"],
+            "display-lg": ["Quicksand"],
+            "body-md": ["Quicksand"],
+            "label-bold": ["Quicksand"],
+            "headline-md": ["Quicksand"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Quicksand', sans-serif; }
+    .chunky-button { box-shadow: 0 4px 0 0 rgba(0,0,0,0.1); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .chunky-button:active { transform: translateY(4px); box-shadow: 0 0 0 0 rgba(0,0,0,0.1); }
+    .magic-card { box-shadow: 0 10px 25px -5px rgba(99, 44, 229, 0.1); }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+
+    /* ── PRINT STYLES ────────────────────────────────────── */
+    @media print {
+      body {
+        background: #fff !important;
+        padding: 0 !important;
+        color: #000 !important;
+      }
+      .no-print { display: none !important; }
+      .print-card-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .print-card {
+        width: 148mm; /* A5 half width */
+        border-radius: 4mm;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+        page-break-inside: avoid;
+      }
+      .print-exact { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen py-12 px-6 flex flex-col items-center">
+
+  <!-- Header (Screen Only) -->
+  <div class="text-center mb-10 no-print max-w-2xl w-full">
+    <div class="inline-flex items-center gap-2 mb-4 bg-primary-container/10 px-4 py-2 rounded-full text-primary font-bold">
+      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
+      Magic AR Edu
+    </div>
+    <h1 class="font-display-lg text-4xl text-primary mb-3">Kartu AR Ajaib</h1>
+    <p class="font-body-md text-on-surface-variant text-lg">Cetak kartu ini. Scan QR Code untuk membuka AR Viewer, lalu arahkan kamera ke gambar QR ini untuk melihat model 3D!</p>
+  </div>
+
+  <!-- How to use steps (Screen Only) -->
+  <div class="flex flex-wrap justify-center items-center gap-4 mb-10 no-print">
+    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
+      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+      <span class="font-label-bold">Cetak Kartu</span>
+    </div>
+    <span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
+    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
+      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+      <span class="font-label-bold">Scan QR Code</span>
+    </div>
+    <span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
+    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
+      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+      <span class="font-label-bold">Arahkan ke Gambar QR</span>
+    </div>
+  </div>
+
+  <!-- THE PRINTABLE CARD -->
+  <div class="print-card-wrap w-full max-w-md mx-auto mb-10">
+    <div class="print-card bg-white rounded-3xl overflow-hidden magic-card border-2 border-primary/10 mx-auto print-exact">
+      
+      <!-- Top Band -->
+      <div class="bg-primary print-exact px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-white">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
+          <span class="font-bold text-lg">Magic AR Edu</span>
+        </div>
+        <div class="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-bold print-exact">Kartu AR NFT</div>
+      </div>
+
+      <!-- Card Body: Single QR Code (Marker + Link) -->
+      <div class="p-8 flex flex-col items-center border-b-2 border-dashed border-outline-variant/30 text-center">
+        <div class="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+          Scan & Image Tracking Marker
+        </div>
+        <div class="w-48 h-48 border-4 border-primary/20 rounded-2xl flex items-center justify-center bg-white p-2 mb-4 shadow-sm">
+          <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
+        </div>
+        <div class="text-sm text-on-surface font-bold max-w-xs leading-snug">
+          Scan QR ini untuk membuka AR, lalu arahkan kamera ke gambar QR ini untuk melihat model 3D
+        </div>
+      </div>
+
+      <!-- Card Footer -->
+      <div class="bg-surface-container-lowest px-6 py-4 flex items-center justify-between">
+        <div>
+          <div class="font-bold text-on-surface text-sm max-w-[200px] truncate" title="{{MODEL_NAME}}">{{MODEL_NAME}}</div>
+          <div class="text-[10px] text-on-surface-variant mt-0.5">{{UPLOAD_DATE}}</div>
+        </div>
+        <div class="bg-secondary-container text-on-secondary-container w-8 h-8 rounded-full flex items-center justify-center print-exact">
+          <span class="material-symbols-outlined text-sm">3d_rotation</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Actions (Screen Only) -->
+  <div class="flex flex-wrap justify-center gap-4 no-print w-full max-w-lg">
+    <button class="bg-primary-container text-white font-button-text py-4 px-8 rounded-xl chunky-button flex items-center gap-2 flex-1 min-w-[200px]" onclick="window.print()">
+      <span class="material-symbols-outlined">print</span> Cetak Sekarang
+    </button>
+    <a href="/ar/{{ASSET_ID}}" class="bg-secondary-container text-on-secondary-container font-button-text py-4 px-8 rounded-xl chunky-button flex items-center justify-center gap-2 flex-1 min-w-[200px]" target="_blank">
+      <span class="material-symbols-outlined">visibility</span> Buka AR Viewer
+    </a>
+  </div>
+  <div class="mt-4 no-print">
+    <a href="/" class="text-on-surface-variant font-medium hover:text-primary flex items-center gap-1 transition-colors">
+      <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Beranda
+    </a>
+  </div>
+
+</body>
+</html>

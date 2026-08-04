@@ -1,0 +1,11 @@
+{
+  "name": "ar-edu-qr",
+  "version": "1.0.0",
+  "description": "AR Edu QR — Generator QR Code untuk Konten Augmented Reality 3D",
+  "scripts": {
+    "start": "node server/index.js",
+    "postinstall": "cd server && npm install",
+    "setup": "cd server && npm install"
+  },
+  "keywords": ["ar", "qrcode", "3d", "augmented-reality", "webxr", "glb", "model-viewer"]
+}
