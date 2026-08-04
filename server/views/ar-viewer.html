@@ -283,25 +283,17 @@
 <a-scene
   id="ar-scene"
   embedded
-  arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+  arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
   gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
   renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
   vr-mode-ui="enabled: false"
   loading-screen="enabled: false"
 >
-  <!-- NFT Image Tracking Marker -->
-  <a-nft
-    id="main-marker"
-    type="nft"
-    url="{{NFT_MARKER_BASE}}"
-    smooth="true"
-    smoothCount="10"
-    smoothTolerance="0.01"
-    smoothThreshold="5"
-  >
+  <!-- Fast & Reliable Pattern Marker -->
+  <a-marker id="main-marker" type="pattern" url="{{MARKER_PATT_URL}}" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
     <a-entity id="model-entity" gltf-model="{{MODEL_URL}}" position="0 0 0" scale="1.2 1.2 1.2"></a-entity>
     <a-entity id="ann-dots-3d"></a-entity>
-  </a-nft>
+  </a-marker>
 
   <a-entity camera></a-entity>
 </a-scene>

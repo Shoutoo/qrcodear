@@ -117,7 +117,7 @@
       Magic AR Edu
     </div>
     <h1 class="font-display-lg text-4xl text-primary mb-3">Kartu AR Ajaib</h1>
-    <p class="font-body-md text-on-surface-variant text-lg">Cetak kartu ini. Scan QR Code untuk membuka AR Viewer, lalu arahkan kamera ke gambar QR ini untuk melihat model 3D!</p>
+    <p class="font-body-md text-on-surface-variant text-lg">Cetak kartu ini. Scan QR Code untuk membuka AR Viewer, lalu arahkan kamera ke Marker AR pada kartu ini!</p>
   </div>
 
   <!-- How to use steps (Screen Only) -->
@@ -134,7 +134,7 @@
     <span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
     <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
       <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-      <span class="font-label-bold">Arahkan ke Gambar QR</span>
+      <span class="font-label-bold">Arahkan ke Marker</span>
     </div>
   </div>
 
@@ -148,21 +148,30 @@
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
           <span class="font-bold text-lg">Magic AR Edu</span>
         </div>
-        <div class="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-bold print-exact">Kartu AR NFT</div>
+        <div class="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-bold print-exact">Kartu AR</div>
       </div>
 
-      <!-- Card Body: Single QR Code (Marker + Link) -->
-      <div class="p-8 flex flex-col items-center border-b-2 border-dashed border-outline-variant/30 text-center">
-        <div class="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
-          Scan & Image Tracking Marker
+      <!-- Card Body: Marker + QR (Single Unified Card) -->
+      <div class="flex items-stretch border-b-2 border-dashed border-outline-variant/30">
+        
+        <!-- Left: Marker AR -->
+        <div class="flex-1 p-5 flex flex-col items-center border-r-2 border-dashed border-outline-variant/30">
+          <div class="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">① Marker AR</div>
+          <div class="w-32 h-32 border-4 border-on-background rounded-lg flex items-center justify-center bg-white p-1 mb-2">
+            <img class="w-full h-full object-contain" src="{{MARKER_IMAGE_URL}}" alt="Marker AR" crossorigin="anonymous" />
+          </div>
+          <div class="text-xs text-on-surface-variant text-center leading-tight">Sorot kamera AR ke marker ini</div>
         </div>
-        <div class="w-48 h-48 border-4 border-primary/20 rounded-2xl flex items-center justify-center bg-white p-2 mb-4 shadow-sm">
-          <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
+
+        <!-- Right: QR Code -->
+        <div class="flex-1 p-5 flex flex-col items-center">
+          <div class="text-[10px] font-bold text-outline uppercase tracking-wider mb-2">② Scan Disini</div>
+          <div class="w-32 h-32 border-2 border-surface-container-high rounded-lg flex items-center justify-center bg-white p-1 mb-2">
+            <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
+          </div>
+          <div class="text-xs text-on-surface-variant text-center leading-tight">Scan untuk membuka AR Viewer</div>
         </div>
-        <div class="text-sm text-on-surface font-bold max-w-xs leading-snug">
-          Scan QR ini untuk membuka AR, lalu arahkan kamera ke gambar QR ini untuk melihat model 3D
-        </div>
+
       </div>
 
       <!-- Card Footer -->
