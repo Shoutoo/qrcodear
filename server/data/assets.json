@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "o4Um0_Xwv6",
+    "name": "Model Edukasi AR",
+    "description": "Model 3D Interaktif untuk Uji Coba",
+    "annotations": [],
+    "filename": "o4Um0_Xwv6.glb",
+    "originalName": "draco_test.glb",
+    "size": 2356664,
+    "mimetype": "application/octet-stream",
+    "viewerUrl": "http://localhost:3001/ar/o4Um0_Xwv6",
+    "printUrl": "http://localhost:3001/print/o4Um0_Xwv6",
+    "qrFilename": "o4Um0_Xwv6_qr.png",
+    "nftMarkerBase": "/assets/markers/o4Um0_Xwv6_nft",
+    "uploadedAt": "2026-08-04T22:52:18.361Z"
+  }
+]

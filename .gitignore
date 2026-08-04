@@ -3,5 +3,6 @@ node_modules/
 *.log
 server/uploads/*
 !server/uploads/.gitkeep
-server/uploads/markers/*
+!server/uploads/markers/custom-marker.patt
+!server/uploads/markers/custom-marker.png
 !server/uploads/markers/.gitkeep
