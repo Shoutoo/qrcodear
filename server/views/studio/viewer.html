@@ -296,7 +296,7 @@
 
     async function onSessionStarted(session) {
       document.getElementById('start-ar-btn').style.display = 'none';
-      document.getElementById('instruction-text').textContent = 'Arahkan kamera ke permukaan meja/lantai lalu tap layar';
+      document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan & mengunci scene 3D';
 
       // Try local-floor for real-world floor tracking, fallback to local
       try {
@@ -343,24 +343,35 @@
         const hitPos = new THREE.Vector3();
         hitPos.setFromMatrixPosition(reticle.matrix.elements[0] ? reticle.matrix : lastValidMatrix);
 
-        // Lock sceneGroup at exact 3D world position
         sceneGroup.position.copy(hitPos);
 
-        // Turn scene to face user camera upright in world space
         const camPos = new THREE.Vector3();
         camera.getWorldPosition(camPos);
         sceneGroup.lookAt(camPos.x, sceneGroup.position.y, camPos.z);
-
-        sceneGroup.visible = true;
-        isPlaced = true;
-        if (reticle) reticle.visible = false;
-
-        const instr = document.getElementById('instruction-text');
-        if (instr) instr.textContent = '✨ Scene terkunci di posisi 3D nyata! Anda dapat berjalan keliling 360°.';
       } else {
-        const instr = document.getElementById('instruction-text');
-        if (instr) instr.textContent = 'Gerakkan kamera perlahan untuk memindai lantai/meja...';
+        // Zero-scan instant placement: 1.2m in front of camera at table height
+        const camPos = new THREE.Vector3();
+        camera.getWorldPosition(camPos);
+
+        const camDir = new THREE.Vector3();
+        camera.getWorldDirection(camDir);
+        camDir.y = 0;
+        camDir.normalize();
+
+        const targetPos = camPos.clone().add(camDir.multiplyScalar(1.2));
+        targetPos.y = camPos.y - 0.3; // Sit at comfortable height in 3D world space
+
+        sceneGroup.position.copy(targetPos);
+        sceneGroup.rotation.set(0, camera.rotation.y, 0);
       }
+
+      // Freeze & Lock scene permanently in 3D world space
+      sceneGroup.visible = true;
+      isPlaced = true;
+      if (reticle) reticle.visible = false;
+
+      const instrContainer = document.getElementById('tap-instruction');
+      if (instrContainer) instrContainer.style.display = 'none'; // Hide banner after tap
     }
 
     function render(timestamp, frame) {
