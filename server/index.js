@@ -73,8 +73,8 @@ function saveEcosystemPresets(presets) {
 const ECOSYSTEM_MODEL_LIBRARY_FILE = path.join(__dirname, 'data', 'ecosystem-model-library.json');
 
 // ─── THREE.js & Server Auto-Bake Engine ─────────────────────────────────────────
-const THREE = require('./node_modules/three');
-const { GLTFExporter } = require('./node_modules/three/examples/jsm/exporters/GLTFExporter.js');
+const THREE = require('three');
+const { GLTFExporter } = require('three/examples/jsm/exporters/GLTFExporter.js');
 const { Blob } = require('buffer');
 global.Blob = Blob;
 global.FileReader = class FileReader {

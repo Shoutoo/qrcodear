@@ -16,8 +16,8 @@
 
 const path  = require('path');
 const fs    = require('fs');
-const THREE = require('./node_modules/three');
-const { GLTFExporter } = require('./node_modules/three/examples/jsm/exporters/GLTFExporter.js');
+const THREE = require('three');
+const { GLTFExporter } = require('three/examples/jsm/exporters/GLTFExporter.js');
 
 const { Blob } = require('buffer');
 global.Blob = Blob;

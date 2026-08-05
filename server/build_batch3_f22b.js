@@ -15,8 +15,8 @@
 
 const path  = require('path');
 const fs    = require('fs');
-const THREE = require('./node_modules/three');
-const { GLTFExporter } = require('./node_modules/three/examples/jsm/exporters/GLTFExporter.js');
+const THREE = require('three');
+const { GLTFExporter } = require('three/examples/jsm/exporters/GLTFExporter.js');
 
 // Polyfills
 const { Blob } = require('buffer');
@@ -419,4 +419,14 @@ async function main() {
   console.log('\nBatch 3 completed successfully!\n');
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+module.exports = {
+  buildIkanKecilToy,
+  buildIkanBesarToy,
+  buildHiuToy,
+  buildElangToy,
+  buildBurungToy
+};
+
+if (require.main === module) {
+  main().catch(e => { console.error(e); process.exit(1); });
+}
