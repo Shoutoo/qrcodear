@@ -8,7 +8,7 @@
   <!-- Tailwind CSS & Material Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 
   <!-- Google <model-viewer> Library -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
@@ -26,6 +26,40 @@
       border: 2px solid #ffffff; z-index: 20;
     }
     .ar-custom-btn:active { transform: translateX(-50%) scale(0.95); }
+
+    /* 3D Hotspot Species Labels */
+    .species-hotspot {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border: 2px solid #632ce5;
+      border-radius: 14px;
+      padding: 6px 14px;
+      box-shadow: 0 8px 20px rgba(99, 44, 229, 0.2);
+      font-family: 'Quicksand', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0d1e25;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .species-hotspot:hover {
+      transform: scale(1.08);
+      background: #632ce5;
+      color: #ffffff;
+    }
+    .species-role-badge {
+      background: #fdd400;
+      color: #0d1e25;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -40,7 +74,7 @@
         <div>
           <h1 class="font-bold text-slate-800 text-base leading-tight">{{ECOSYSTEM_NAME}}</h1>
           <p class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
-            <span class="material-symbols-outlined text-[14px]">verified</span> Preset Rantai Makanan (Reliable AR)
+            <span class="material-symbols-outlined text-[14px]">verified</span> Siklus Rantai Makanan & AR Viewer
           </p>
         </div>
       </div>
@@ -50,7 +84,7 @@
     </div>
   </header>
 
-  <!-- Google <model-viewer> Native AR Engine -->
+  <!-- Google <model-viewer> Native AR Engine with 3D Hotspot Labels & Arrows -->
   <model-viewer
     id="eco-viewer"
     src="{{ECOSYSTEM_GLB_URL}}"
@@ -64,6 +98,42 @@
     loading="eager"
     auto-rotate
   >
+    <!-- Slot 0 Hotspot -->
+    <button slot="hotspot-0" class="species-hotspot" data-position="2.2 0.9 0" data-normal="0 1 0">
+      <span>{{SLOT_0_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_0_ROLE}}</span>
+    </button>
+
+    <!-- Slot 1 Hotspot -->
+    <button slot="hotspot-1" class="species-hotspot" data-position="1.1 0.9 1.9" data-normal="0 1 0">
+      <span>{{SLOT_1_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_1_ROLE}}</span>
+    </button>
+
+    <!-- Slot 2 Hotspot -->
+    <button slot="hotspot-2" class="species-hotspot" data-position="-1.1 0.9 1.9" data-normal="0 1 0">
+      <span>{{SLOT_2_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_2_ROLE}}</span>
+    </button>
+
+    <!-- Slot 3 Hotspot -->
+    <button slot="hotspot-3" class="species-hotspot" data-position="-2.2 0.9 0" data-normal="0 1 0">
+      <span>{{SLOT_3_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_3_ROLE}}</span>
+    </button>
+
+    <!-- Slot 4 Hotspot -->
+    <button slot="hotspot-4" class="species-hotspot" data-position="-1.1 0.9 -1.9" data-normal="0 1 0">
+      <span>{{SLOT_4_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_4_ROLE}}</span>
+    </button>
+
+    <!-- Slot 5 Hotspot -->
+    <button slot="hotspot-5" class="species-hotspot" data-position="1.1 0.9 -1.9" data-normal="0 1 0">
+      <span>{{SLOT_5_LABEL}}</span>
+      <span class="species-role-badge">{{SLOT_5_ROLE}}</span>
+    </button>
+
     <button slot="ar-button" id="ar-btn" class="ar-custom-btn">
       <span class="material-symbols-outlined text-xl">view_in_ar</span> Mulai AR Rantai Makanan
     </button>

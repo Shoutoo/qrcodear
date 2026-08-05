@@ -666,20 +666,20 @@
         const fileSizeMB = (glbBlob.size / (1024 * 1024)).toFixed(2);
         statusEl.textContent = `Bake Berhasil! Ukuran: ${fileSizeMB} MB. Mengunggah ke server...`;
 
-        const formData = new FormData();
-        formData.append('bakedGlb', glbBlob, 'baked_ecosystem.glb');
-        if (currentActivePreset) {
-          formData.append('presetId', currentActivePreset.id);
-          formData.append('presetName', currentActivePreset.name);
-        }
+        const payload = {
+          presetId: currentActivePreset ? currentActivePreset.id : 'preset-darat',
+          presetName: currentActivePreset ? currentActivePreset.name : 'Rantai Makanan AR'
+        };
 
         const res = await fetch('/api/ecosystem/publish', {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
 
         const data = await res.json();
         if (res.ok && data.success) {
+          window.lastPublishedEcosystem = data;
           statusEl.textContent = `Publish Berhasil! File GLB (${fileSizeMB} MB) Siap Dipakai ✨`;
           if (typeof showPublishModal === 'function') {
             showPublishModal(data);
@@ -1538,30 +1538,32 @@
     }
 
     // ─── Print Barcode / QR Code Modal Handler ─────────────────
-    function openPrintBarcodeModal() {
+    async function openPrintBarcodeModal() {
       const modal = document.getElementById('modal-print-barcode');
       const qrImg = document.getElementById('studio-qr-img');
       const printBtn = document.getElementById('studio-print-card-btn');
       const openArBtn = document.getElementById('studio-open-ar-btn');
 
-      let activeAsset = null;
-      if (typeof loadedSceneObjects !== 'undefined' && loadedSceneObjects.length) {
-        const found = loadedSceneObjects.find(o => o.assetData);
-        if (found) activeAsset = found.assetData;
-      }
-      if (!activeAsset && typeof allAssets !== 'undefined' && allAssets.length) {
-        activeAsset = allAssets[0];
-      }
+      const activeId = (window.lastPublishedEcosystem && window.lastPublishedEcosystem.id)
+        ? window.lastPublishedEcosystem.id
+        : (currentActivePreset ? currentActivePreset.id : 'preset-darat');
 
-      if (activeAsset) {
-        const qrName = activeAsset.qrFilename || `${activeAsset.id}_qr.png`;
-        qrImg.src = `/assets/${qrName}`;
-        printBtn.href = `/print/${activeAsset.id}`;
-        openArBtn.href = `/ar/${activeAsset.id}`;
-      } else {
-        qrImg.src = '/assets/markers/custom-marker.png';
-        printBtn.href = '#';
-        openArBtn.href = '#';
+      try {
+        const res = await fetch(`/api/assets/${activeId}/qr`);
+        const data = await res.json();
+        if (data.qrDataUrl) {
+          qrImg.src = data.qrDataUrl;
+          printBtn.href = data.printUrl || `/print/${activeId}`;
+          openArBtn.href = data.viewerUrl || `/ecosystem/view/${activeId}`;
+        } else {
+          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/ecosystem/view/' + activeId)}`;
+          printBtn.href = `/print/${activeId}`;
+          openArBtn.href = `/ecosystem/view/${activeId}`;
+        }
+      } catch (e) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/ecosystem/view/' + activeId)}`;
+        printBtn.href = `/print/${activeId}`;
+        openArBtn.href = `/ecosystem/view/${activeId}`;
       }
 
       modal.classList.remove('hidden');

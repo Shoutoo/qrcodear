@@ -1,10 +1,14 @@
 node_modules/
+**/node_modules/
+dist/
+**/dist/
 .env
 *.log
+scratch/
 server/uploads/*
 !server/uploads/.gitkeep
 !server/uploads/markers/custom-marker.patt
 !server/uploads/markers/custom-marker.png
 !server/uploads/markers/.gitkeep
 !server/uploads/ecosystem-models/**
-
+!server/uploads/eco_*_baked.glb

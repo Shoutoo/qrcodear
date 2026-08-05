@@ -1,910 +1,693 @@
 <!DOCTYPE html>
 <html class="light" lang="id">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Magic AR Edu - Ubah Model 3D Jadi Ajaib!</title>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<!-- Material Symbols -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Quicksand Font -->
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "secondary": "#705d00",
-                    "surface-bright": "#f4faff",
-                    "primary-fixed-dim": "#cdbdff",
-                    "secondary-fixed": "#ffe170",
-                    "on-primary-fixed-variant": "#4f00d0",
-                    "surface-container-low": "#e7f6ff",
-                    "surface-tint": "#6833ea",
-                    "on-primary-fixed": "#20005f",
-                    "on-secondary-container": "#6f5c00",
-                    "primary": "#632ce5",
-                    "on-background": "#0d1e25",
-                    "outline": "#7a7487",
-                    "error-container": "#ffdad6",
-                    "on-error-container": "#93000a",
-                    "surface-variant": "#d4e5ef",
-                    "primary-container": "#7c4dff",
-                    "secondary-container": "#fdd400",
-                    "on-tertiary": "#ffffff",
-                    "background": "#f4faff",
-                    "surface-dim": "#cbdde7",
-                    "on-secondary-fixed": "#221b00",
-                    "on-surface": "#0d1e25",
-                    "on-error": "#ffffff",
-                    "inverse-on-surface": "#e2f3fd",
-                    "tertiary-fixed-dim": "#00daf3",
-                    "inverse-primary": "#cdbdff",
-                    "tertiary-fixed": "#9cf0ff",
-                    "surface-container-lowest": "#ffffff",
-                    "on-surface-variant": "#494455",
-                    "on-primary": "#ffffff",
-                    "on-secondary": "#ffffff",
-                    "primary-fixed": "#e8deff",
-                    "surface": "#f4faff",
-                    "surface-container-highest": "#d4e5ef",
-                    "on-tertiary-container": "#ebfcff",
-                    "on-tertiary-fixed": "#001f24",
-                    "on-secondary-fixed-variant": "#544600",
-                    "outline-variant": "#cac3d8",
-                    "tertiary-container": "#007e8d",
-                    "secondary-fixed-dim": "#e9c400",
-                    "on-primary-container": "#fcf6ff",
-                    "tertiary": "#00636f",
-                    "surface-container": "#dff1fb",
-                    "error": "#ba1a1a",
-                    "on-tertiary-fixed-variant": "#004f58",
-                    "inverse-surface": "#23333a",
-                    "surface-container-high": "#d9ebf5"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "16px",
-                    "xl": "24px",
-                    "full": "9999px"
-            },
-            "spacing": {
-                    "stack-sm": "12px",
-                    "unit": "8px",
-                    "gutter": "24px",
-                    "margin-page": "32px",
-                    "stack-lg": "48px",
-                    "stack-md": "24px",
-                    "container-padding": "24px"
-            },
-            "fontFamily": {
-                    "button-text": ["Quicksand"],
-                    "display-lg": ["Quicksand"],
-                    "body-md": ["Quicksand"],
-                    "label-bold": ["Quicksand"],
-                    "display-lg-mobile": ["Quicksand"],
-                    "headline-md": ["Quicksand"],
-                    "body-lg": ["Quicksand"]
-            },
-            "fontSize": {
-                    "button-text": ["18px", {"lineHeight": "24px", "fontWeight": "700"}],
-                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "500"}],
-                    "label-bold": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "700"}],
-                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
-                    "body-lg": ["20px", {"lineHeight": "30px", "fontWeight": "500"}]
-            }
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Magic AR Edu - Ubah Model 3D Jadi Ajaib!</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <!-- Quicksand Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&amp;display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary": "#705d00",
+            "surface-bright": "#f4faff",
+            "primary-fixed-dim": "#cdbdff",
+            "secondary-fixed": "#ffe170",
+            "on-primary-fixed-variant": "#4f00d0",
+            "surface-container-low": "#e7f6ff",
+            "surface-tint": "#6833ea",
+            "on-primary-fixed": "#20005f",
+            "on-secondary-container": "#6f5c00",
+            "primary": "#632ce5",
+            "on-background": "#0d1e25",
+            "outline": "#7a7487",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "surface-variant": "#d4e5ef",
+            "primary-container": "#7c4dff",
+            "secondary-container": "#fdd400",
+            "on-tertiary": "#ffffff",
+            "background": "#f4faff",
+            "surface-dim": "#cbdde7",
+            "on-secondary-fixed": "#221b00",
+            "on-surface": "#0d1e25",
+            "on-error": "#ffffff",
+            "inverse-on-surface": "#e2f3fd",
+            "tertiary-fixed-dim": "#00daf3",
+            "inverse-primary": "#cdbdff",
+            "tertiary-fixed": "#9cf0ff",
+            "surface-container-lowest": "#ffffff",
+            "on-surface-variant": "#494455",
+            "on-primary": "#ffffff",
+            "on-secondary": "#ffffff",
+            "primary-fixed": "#e8deff",
+            "surface": "#f4faff",
+            "surface-container-highest": "#d4e5ef",
+            "on-tertiary-container": "#ebfcff",
+            "on-tertiary-fixed": "#001f24",
+            "on-secondary-fixed-variant": "#544600",
+            "outline-variant": "#cac3d8",
+            "tertiary-container": "#007e8d",
+            "secondary-fixed-dim": "#e9c400",
+            "on-primary-container": "#fcf6ff",
+            "tertiary": "#00636f",
+            "surface-container": "#dff1fb",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed-variant": "#004f58",
+            "inverse-surface": "#23333a",
+            "surface-container-high": "#d9ebf5"
           },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "16px",
+            "xl": "24px",
+            "full": "9999px"
+          },
+          "spacing": {
+            "stack-sm": "12px",
+            "unit": "8px",
+            "gutter": "24px",
+            "margin-page": "32px",
+            "stack-lg": "48px",
+            "stack-md": "24px",
+            "container-padding": "24px"
+          },
+          "fontFamily": {
+            "button-text": ["Quicksand"],
+            "display-lg": ["Quicksand"],
+            "body-md": ["Quicksand"],
+            "label-bold": ["Quicksand"],
+            "display-lg-mobile": ["Quicksand"],
+            "headline-md": ["Quicksand"],
+            "body-lg": ["Quicksand"]
+          }
         },
-      }
-</script>
-<style>
-        body { font-family: 'Quicksand', sans-serif; }
-        .chunky-button {
-            box-shadow: 0 4px 0 0 rgba(0,0,0,0.1);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .chunky-button:active:not(:disabled) {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 0 rgba(0,0,0,0.1);
-        }
-        .chunky-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .magic-card {
-            box-shadow: 0 10px 25px -5px rgba(99, 44, 229, 0.1);
-            transition: transform 0.3s ease;
-        }
-        .magic-card:hover {
-            transform: translateY(-4px);
-        }
-        .drop-zone-active {
-            border-color: #705d00 !important;
-            background-color: #fdd40010 !important;
-            transform: scale(1.02);
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
-        }
-        
-        /* Hidden elements */
-        .hidden-el { display: none !important; }
-
-        /* Toast */
-        #toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120%); background: #23333a; border: 1px solid #7a7487; border-radius: 50px; padding: 12px 24px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); z-index: 1000; color: white; display: flex; align-items: center; gap: 8px; }
-        #toast.show { transform: translateX(-50%) translateY(0); }
-        #toast.error { background-color: #ba1a1a; color: white; border-color: #93000a; }
-        #toast.success { background-color: #00636f; color: white; border-color: #004f58; }
-
-        /* Spinner */
-        .spinner-sm { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Modal Overlay */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
-        .modal-overlay.show { display: flex; }
-        .modal-anim { animation: modalIn 0.3s cubic-bezier(0.4,0,0.2,1); }
-        @keyframes modalIn { from { opacity:0; transform:scale(0.92) translateY(20px); } }
-        
-        /* Annotation open transition */
-        .ann-body { display: none; }
-        .ann-body.open { display: block; }
-        .ann-chevron { transition: transform 0.25s; }
-        .ann-chevron.open { transform: rotate(180deg); }
-        
-        .progress-bar-bg { width: 100%; height: 8px; background: #e7f6ff; border-radius: 4px; overflow: hidden; margin-top: 12px; }
-        .progress-bar { height: 100%; background: #632ce5; width: 0%; transition: width 0.4s ease; }
-</style>
+      },
+    }
+  </script>
+  <style>
+    body { font-family: 'Quicksand', sans-serif; background-color: #f4faff; color: #0d1e25; }
+    .chunky-button {
+      box-shadow: 0 4px 0 0 rgba(0,0,0,0.1);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .chunky-button:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 0 rgba(0,0,0,0.1);
+    }
+    .magic-card {
+      background: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(99, 44, 229, 0.1);
+      transition: transform 0.3s ease;
+      border: 1px solid #d4e5ef;
+    }
+    .magic-card:hover {
+      transform: translateY(-4px);
+    }
+    .active-tab {
+      background-color: #632ce5 !important;
+      color: #ffffff !important;
+    }
+    #toast { position: fixed; bottom: 28px; right: 28px; background: #23333a; border: 1px solid #7a7487; border-radius: 50px; padding: 12px 24px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); z-index: 1000; color: white; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transform: translateY(20px); }
+    #toast.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  </style>
 </head>
-<body class="bg-background text-on-surface overflow-x-hidden min-h-screen">
-<!-- Toast -->
-<div id="toast"></div>
+<body class="min-h-screen flex flex-col justify-between selection:bg-secondary-container selection:text-on-surface">
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="bg-surface border border-outline-variant rounded-xl p-6 max-w-sm w-full modal-anim text-on-surface">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="font-headline-md text-headline-md" id="modalTitle">QR Code</h2>
-      <button class="hover:bg-surface-variant p-1 rounded transition-colors" onclick="closeModalDirect()">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-    <div class="bg-white p-4 rounded-xl flex justify-center mb-4 border-2 border-tertiary/10">
-      <img id="modalQrImg" src="" alt="QR Code" class="w-48 h-48 object-contain" />
-    </div>
-    <div class="w-full bg-surface-container-high border border-outline-variant rounded-lg p-3 flex items-center justify-center mb-4 overflow-hidden">
-      <a id="modalUrl" href="#" target="_blank" class="text-xs font-mono text-tertiary-container hover:underline truncate"></a>
-    </div>
-    <div class="grid grid-cols-2 gap-2">
-      <button class="bg-surface-container-highest font-button-text py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-dim transition-colors text-sm" onclick="downloadModalQR()">
-        <span class="material-symbols-outlined text-sm">download</span> Unduh
-      </button>
-      <a class="bg-primary-container text-white font-button-text py-2 rounded-lg flex items-center justify-center gap-2 chunky-button text-sm" id="modalViewerBtn" href="#" target="_blank">
-        <span class="material-symbols-outlined text-sm">visibility</span> AR
-      </a>
-      <a class="col-span-2 bg-secondary-container text-on-secondary-container font-button-text py-2 rounded-lg flex items-center justify-center gap-2 chunky-button text-sm" id="modalPrintBtn" href="#" target="_blank">
-        <span class="material-symbols-outlined text-sm">print</span> Cetak Kartu
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- Top Navigation Bar -->
-<nav class="flex justify-between items-center px-margin-page py-unit w-full max-w-7xl mx-auto bg-surface dark:bg-on-background shadow-sm fixed top-0 z-50">
-<div class="flex items-center gap-2">
-<div class="bg-primary-container p-2 rounded-lg">
-<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-</div>
-<a href="/" class="font-display-lg text-display-lg-mobile md:text-headline-md text-primary dark:text-primary-fixed tracking-tight hover:opacity-80">Magic AR Edu</a>
-</div>
-<div class="hidden md:flex gap-gutter items-center">
-<a class="text-primary dark:text-secondary-fixed border-b-4 border-secondary font-bold pb-1 transition-transform hover:scale-105" href="#">Create</a>
-<a class="text-primary font-bold hover:scale-105 flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full text-xs" href="/studio"><span class="material-symbols-outlined text-sm">view_in_ar</span> AR Studio 3D</a>
-<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary transition-transform hover:scale-105" href="#collection">Collection</a>
-</div>
-<div class="flex items-center gap-2">
-<a href="/studio" class="bg-secondary-container text-on-secondary-container font-button-text text-button-text px-4 py-2 rounded-full chunky-button text-xs font-bold flex items-center gap-1">
-  <span class="material-symbols-outlined text-sm">view_in_ar</span> Studio 3D
-</a>
-</div>
-</nav>
-<main class="pt-24 pb-20">
-<!-- Hero Section -->
-<section class="px-margin-page py-stack-lg max-w-7xl mx-auto text-center relative overflow-hidden">
-<div class="absolute -top-24 -left-24 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl"></div>
-<div class="absolute top-0 right-0 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl"></div>
-<div class="inline-flex items-center gap-2 bg-secondary-container text-on-secondary-container px-4 py-1 rounded-full text-label-bold font-label-bold mb-stack-md">
-<span class="material-symbols-outlined text-sm">arrow_back_ios_new</span>
-                GENERATOR QR AUGMENTED REALITY
-            </div>
-<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-stack-sm animate-bounce">
-                Ayo Buat Model 3D Jadi Ajaib!
-            </h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-stack-lg">
-                Upload model 3D Anda, cetak kartu AR-nya. Siapapun yang scan QR bisa langsung melihat model muncul di atas kartu dalam Augmented Reality — tanpa install aplikasi.
-            </p>
-<!-- How It Works -->
-<div class="flex flex-col md:flex-row justify-center items-center gap-gutter">
-<div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full">
-<span class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">1</span>
-<span class="font-label-bold text-on-surface">Upload model 3D</span>
-</div>
-<span class="hidden md:block material-symbols-outlined text-outline-variant">arrow_forward</span>
-<div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full">
-<span class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">2</span>
-<span class="font-label-bold text-on-surface">Cetak Kartu AR</span>
-</div>
-<span class="hidden md:block material-symbols-outlined text-outline-variant">arrow_forward</span>
-<div class="flex items-center gap-3 bg-surface-container px-4 py-2 rounded-full">
-<span class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">3</span>
-<span class="font-label-bold text-on-surface">Scan &amp; lihat ajaibnya</span>
-</div>
-</div>
-</section>
-
-<!-- AR Studio Feature Card Banner -->
-<section class="px-margin-page max-w-7xl mx-auto mb-stack-lg">
-  <div class="bg-gradient-to-r from-primary via-primary-container to-indigo-700 text-white rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border-2 border-white/10 relative overflow-hidden">
-    <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-    <div class="flex items-center gap-5 text-left z-10">
-      <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md shrink-0 border border-white/20">
-        <span class="material-symbols-outlined text-4xl text-white">view_in_ar</span>
-      </div>
-      <div>
-        <div class="inline-flex items-center gap-1.5 bg-secondary text-on-secondary px-3.5 py-1 rounded-full text-xs font-bold mb-2 shadow-sm">
-          <span class="material-symbols-outlined text-sm">auto_awesome</span> FITUR BARU: MULTI-OBJECT & TEXTURE
+  <!-- TOP NAVIGATION BAR (LEGACY LIGHT THEME) -->
+  <header class="bg-surface-lowest border-b-2 border-surface-variant px-6 py-4 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md">
+          <span class="material-symbols-outlined text-2xl">view_in_ar</span>
         </div>
-        <h2 class="text-2xl md:text-3xl font-bold text-white leading-tight">AR Scene Studio 3D</h2>
-        <p class="text-xs md:text-sm text-white/90 max-w-2xl font-medium mt-1 leading-relaxed">
-          Gabungkan banyak model 3D, gambar, video texture, shapes primitive &amp; text 3D dalam 1 scene interaktif! Lengkap dengan fitur cetak barcode &amp; kartu AR langsung dari Studio.
+        <div>
+          <h1 class="text-xl font-bold text-primary tracking-tight">Magic AR <span class="bg-secondary-container text-on-surface px-2 py-0.5 rounded-lg text-sm font-bold">Edu</span></h1>
+          <p class="text-xs text-outline font-semibold">Ubah Model 3D & Ekosistem Jadi Ajaib!</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-2 bg-surface-container p-1.5 rounded-2xl">
+        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="active-tab px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">dashboard</span> Beranda & Analytics
+        </button>
+        <button id="tab-btn-studio" onclick="switchTab('studio')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">view_in_ar</span> AR Studio
+        </button>
+        <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">quiz</span> Kuis Interaktif
+        </button>
+        <button id="tab-btn-unity" onclick="switchTab('unity')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">sports_esports</span> Unity Assemblr
+        </button>
+        <button id="tab-btn-logs" onclick="switchTab('logs')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">analytics</span> Activity Log
+        </button>
+      </nav>
+
+      <!-- Auth Controls -->
+      <div class="flex items-center space-x-3" id="auth-header-container">
+        <button onclick="openAuthModal('login')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
+          Masuk
+        </button>
+        <button onclick="openAuthModal('register')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
+          Daftar Siswa/Guru
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full space-y-8">
+
+    <!-- HERO SECTION (LIGHT THEME) -->
+    <section class="magic-card rounded-3xl p-8 bg-gradient-to-r from-surface-container-low via-surface to-surface-container relative overflow-hidden">
+      <div class="max-w-3xl space-y-4">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+          <span>EduAR Platform Enterprise • NestJS & PostgreSQL Active</span>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-tight">
+          Platform Pembelajaran <span class="text-primary">Augmented Reality</span> & Kuis Interaktif
+        </h2>
+        <p class="text-on-surface/80 text-sm md:text-base font-medium">
+          Upload model 3D, buat rantai makanan ekosistem ajaib, kerjakan kuis interaktif siswa, dan buat scene AR multi-objek setara Assemblr EDU!
         </p>
       </div>
-    </div>
-    <a href="/studio" class="z-10 bg-secondary text-on-secondary hover:bg-yellow-400 font-bold px-7 py-4 rounded-2xl shadow-xl flex items-center gap-2 text-sm shrink-0 hover:scale-105 transition-all border-2 border-white/30">
-      <span class="material-symbols-outlined">launch</span> Buka Studio 3D
-    </a>
-  </div>
-</section>
+    </section>
 
-<!-- Workspace Section -->
-<section class="px-margin-page max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-stack-lg mb-stack-lg">
-<!-- Upload Card -->
-<div class="bg-surface-container-lowest p-gutter rounded-xl magic-card border-2 border-primary/5 flex flex-col gap-stack-md relative">
-<div class="flex items-center gap-3">
-<div class="bg-primary-container/10 p-2 rounded-lg">
-<span class="material-symbols-outlined text-primary">upload_file</span>
-</div>
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface">Upload Model 3D</h2>
-<p class="font-body-md text-body-md text-on-surface-variant">Drag &amp; drop atau klik untuk pilih file</p>
-</div>
-</div>
-
-<!-- Drop Zone -->
-<div class="border-4 border-dashed border-outline-variant rounded-xl p-stack-lg flex flex-col items-center justify-center text-center gap-4 transition-all hover:border-primary group cursor-pointer relative" id="drop-zone">
-  <input type="file" id="fileInput" accept=".glb,.gltf,.usdz" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-  <div class="bg-secondary-container p-6 rounded-full group-hover:scale-110 transition-transform">
-    <span class="material-symbols-outlined text-4xl text-on-secondary-container">folder_open</span>
-  </div>
-  <div>
-    <p class="font-headline-md text-headline-md text-on-surface">Drop file di sini</p>
-    <p class="font-body-md text-body-md text-on-surface-variant">Format yang didukung: .GLB, .GLTF, .USDZ</p>
-    <p class="font-label-bold text-label-bold text-primary mt-2">Maks. 50 MB</p>
-  </div>
-</div>
-
-<!-- File Preview -->
-<div id="filePreview" class="hidden-el bg-primary-fixed p-4 rounded-lg flex justify-between items-center border border-primary/20">
-  <div class="flex items-center gap-3 overflow-hidden">
-    <span class="material-symbols-outlined text-primary" id="filePreviewIcon">3d_rotation</span>
-    <div class="overflow-hidden">
-      <div class="font-label-bold text-on-primary-fixed truncate w-48 sm:w-64" id="filePreviewName">filename.glb</div>
-      <div class="text-xs text-on-primary-fixed-variant" id="filePreviewSize">0 MB</div>
-    </div>
-  </div>
-  <button onclick="clearFile()" class="text-on-primary-fixed-variant hover:text-error hover:bg-error-container p-1 rounded transition-colors z-20">
-    <span class="material-symbols-outlined">close</span>
-  </button>
-</div>
-
-<!-- Form -->
-<div class="space-y-stack-sm">
-<div>
-<label class="font-label-bold text-label-bold text-on-surface uppercase mb-2 block">Nama Model</label>
-<input id="inputName" class="w-full bg-surface-container-low border-2 border-outline-variant rounded-lg p-4 focus:border-tertiary-container focus:ring-0 font-body-md" placeholder="cth: Anatomi Jantung Manusia" type="text" maxlength="80"/>
-</div>
-<div>
-<label class="font-label-bold text-label-bold text-on-surface uppercase mb-2 block">Deskripsi (Opsional)</label>
-<textarea id="inputDesc" class="w-full bg-surface-container-low border-2 border-outline-variant rounded-lg p-4 h-24 focus:border-tertiary-container focus:ring-0 font-body-md" placeholder="Tambahkan deskripsi singkat tentang model ini..." maxlength="200"></textarea>
-</div>
-<div>
-<label class="font-label-bold text-label-bold text-on-surface uppercase mb-2 block flex items-center justify-between">
-  <span>File USDZ (.usdz) untuk iOS</span>
-  <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2.5 py-0.5 rounded-full font-bold">iOS Safari AR</span>
-</label>
-<input id="inputUsdz" accept=".usdz" type="file" class="w-full bg-surface-container-low border-2 border-outline-variant rounded-lg p-3 text-sm font-body-md focus:border-tertiary-container focus:ring-0 cursor-pointer" />
-<p class="text-xs text-on-surface-variant mt-1 font-medium">Opsional. Diperlukan khusus agar AR Quick Look bisa terbuka di iPhone/iPad.</p>
-</div>
-</div>
-
-<!-- Annotation Section -->
-<div class="border-2 border-outline-variant rounded-lg overflow-hidden">
-  <button class="w-full bg-surface-container-low p-4 flex justify-between items-center hover:bg-surface-variant transition-colors" onclick="toggleAnn()">
-    <div class="flex items-center gap-2">
-      <span class="material-symbols-outlined text-secondary">label</span>
-      <span class="font-label-bold text-on-surface">Label Anotasi AR</span>
-      <span class="bg-secondary-container text-on-secondary-container text-xs px-2 py-0.5 rounded-full font-bold ml-2" id="annCount">0 label</span>
-    </div>
-    <span class="material-symbols-outlined text-outline-variant ann-chevron" id="annChevron">expand_more</span>
-  </button>
-  <div class="ann-body bg-surface-container-lowest p-4 border-t-2 border-outline-variant" id="annBody">
-    <p class="text-sm text-on-surface-variant mb-4">Tambahkan label mengambang di sekitar model (misal: "Akar", "Daun").</p>
-    <div id="annList" class="flex flex-col gap-3 mb-4"></div>
-    <button class="w-full border-2 border-dashed border-secondary text-secondary font-label-bold py-2 rounded-lg flex justify-center items-center gap-2 hover:bg-secondary-container hover:text-on-secondary-container transition-colors" onclick="addAnnotation()">
-      <span class="material-symbols-outlined text-sm">add</span> Tambah Label
-    </button>
-  </div>
-</div>
-
-<!-- Progress -->
-<div id="progressWrap" class="hidden-el text-center">
-  <div class="progress-bar-bg"><div id="progressBar" class="progress-bar"></div></div>
-  <p class="text-xs text-on-surface-variant mt-2 font-medium" id="progressText">Mengunggah...</p>
-</div>
-
-<!-- Submit -->
-<button id="uploadBtn" disabled onclick="handleUpload()" class="w-full bg-primary-container text-white font-button-text text-button-text py-4 rounded-xl chunky-button flex items-center justify-center gap-2">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;" id="uploadIcon">magic_button</span>
-<span id="uploadBtnText">Generate QR Code</span>
-</button>
-</div>
-
-<!-- Result Card -->
-<div class="bg-surface-container-low p-gutter rounded-xl magic-card border-2 border-tertiary/5 flex flex-col items-center justify-center text-center relative" style="min-height: 400px;">
-  
-  <!-- Placeholder -->
-  <div id="qrPlaceholder" class="flex flex-col items-center gap-4 text-outline-variant">
-    <span class="material-symbols-outlined text-6xl opacity-30">qr_code_scanner</span>
-    <p class="font-body-md text-on-surface-variant">QR code dan kartu AR akan muncul<br/>di sini setelah model diunggah.</p>
-  </div>
-
-  <!-- QR Result (Hidden by default) -->
-  <div id="qrResult" class="hidden-el w-full flex flex-col items-center gap-stack-md">
-    <div class="self-start flex items-center gap-3 w-full">
-      <div class="bg-tertiary-container/10 p-2 rounded-lg">
-      <span class="material-symbols-outlined text-tertiary">qr_code_2</span>
-      </div>
-      <div class="text-left flex-1">
-      <h2 class="font-headline-md text-headline-md text-on-surface">QR Code & Kartu</h2>
-      <p class="font-body-md text-body-md text-on-surface-variant">Scan QR atau cetak Kartu AR</p>
-      </div>
-    </div>
-    
-    <div class="bg-white p-6 rounded-xl shadow-lg relative group border-2 border-tertiary/10 mt-2">
-      <div class="absolute -top-3 -right-3 bg-tertiary text-white text-[12px] px-3 py-1 rounded-full font-bold shadow-md animate-pulse">Berhasil!</div>
-      <div class="w-56 h-56 flex items-center justify-center overflow-hidden">
-      <img id="qrImage" class="w-full h-full object-contain" src="" alt="QR Code" />
-      </div>
-    </div>
-    
-    <div class="w-full bg-white/50 border border-outline-variant rounded-lg p-3 flex items-center gap-2 overflow-hidden">
-      <span class="material-symbols-outlined text-on-surface-variant text-sm">link</span>
-      <a id="qrUrlText" class="text-sm font-mono text-tertiary-container hover:underline truncate" href="#" target="_blank"></a>
-    </div>
-
-    <!-- AR Info Banner -->
-    <div class="w-full bg-secondary-container/20 border-2 border-secondary-container rounded-lg p-3 flex items-start gap-3 text-left">
-      <span class="material-symbols-outlined text-on-secondary-container mt-1">print</span>
-      <p class="text-sm text-on-surface-variant"><strong>Tips:</strong> Cetak Kartu AR agar Anda bisa memunculkan model di atas kertas (Marker-Based AR).</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-stack-sm w-full">
-      <button class="bg-surface-container-highest text-on-surface font-button-text py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-surface-dim transition-colors text-sm" onclick="downloadQR()">
-      <span class="material-symbols-outlined text-sm">download</span> Unduh QR
-      </button>
-      <a id="openArBtn" class="bg-primary-container text-white font-button-text py-3 rounded-lg flex items-center justify-center gap-2 chunky-button text-sm" href="#" target="_blank">
-      <span class="material-symbols-outlined text-sm">visibility</span> AR Viewer
-      </a>
-      <a id="printCardBtn" class="col-span-2 bg-secondary-container text-on-secondary-container font-button-text py-3 rounded-lg flex items-center justify-center gap-2 chunky-button text-sm mt-1" href="#" target="_blank">
-        <span class="material-symbols-outlined text-sm">print</span> Cetak Kartu AR
-      </a>
-    </div>
-  </div>
-</div>
-</section>
-
-<!-- Koleksi Model Section -->
-<section id="collection" class="px-margin-page max-w-7xl mx-auto mb-stack-lg">
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-stack-md">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
-<h2 class="font-headline-md text-headline-md text-on-surface">Koleksi Model</h2>
-</div>
-<div class="flex items-center gap-3">
-<div id="assetCount" class="bg-surface-container-high px-4 py-1 rounded-full text-label-bold font-label-bold text-on-surface-variant">
-                    0 model
-                </div>
-<a href="/studio" class="bg-primary hover:bg-primary-container text-white font-bold text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shadow-md transition-all">
-  <span class="material-symbols-outlined text-sm">view_in_ar</span> Buka AR Studio 3D
-</a>
-</div>
-</div>
-
-<!-- Live Search & Filter Bar -->
-<div class="flex flex-col sm:flex-row gap-3 mb-6 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-  <div class="relative flex-1">
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-sm">search</span>
-    <input type="text" id="searchInput" placeholder="Cari nama atau deskripsi model..." class="w-full bg-white dark:bg-surface border border-outline-variant rounded-lg pl-9 pr-4 py-2 text-sm font-body-md focus:border-primary focus:ring-0" oninput="filterGallery()" />
-  </div>
-  <div class="flex items-center gap-2">
-    <span class="text-xs font-bold text-on-surface-variant uppercase whitespace-nowrap">Filter:</span>
-    <select id="formatFilter" class="bg-white dark:bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm font-body-md focus:border-primary focus:ring-0 cursor-pointer" onchange="filterGallery()">
-      <option value="all">Semua Model</option>
-      <option value="glb">GLB Format</option>
-      <option value="usdz">USDZ Ready (iOS)</option>
-      <option value="annotated">Dengan Anotasi 3D</option>
-    </select>
-  </div>
-</div>
-
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter" id="galleryGrid">
-  <!-- Dynamic cards here -->
-  <div class="col-span-full py-12 text-center text-on-surface-variant flex flex-col items-center">
-    <span class="material-symbols-outlined text-6xl opacity-30 mb-4">inventory</span>
-    <p class="font-body-lg">Memuat koleksi...</p>
-  </div>
-</div>
-</section>
-</main>
-
-<!-- Footer -->
-<footer class="bg-surface-container-high dark:bg-inverse-surface border-t-2 border-outline-variant dark:border-outline">
-<div class="flex flex-col md:flex-row justify-between items-center px-margin-page py-stack-md w-full max-w-7xl mx-auto gap-stack-sm">
-<div class="flex items-center gap-2">
-<div class="bg-primary p-1.5 rounded-lg">
-<span class="material-symbols-outlined text-white text-sm" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-</div>
-<span class="font-headline-md text-headline-md text-primary">Magic AR Edu</span>
-</div>
-<p class="font-body-md text-body-md text-on-surface-variant text-center md:text-left">
-                © 2024 Magic AR Edu - Sparking Curiosity in Every Child!
-            </p>
-<div class="flex gap-stack-md">
-<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary underline decoration-2" href="#">Privacy Policy</a>
-<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary underline decoration-2" href="#">Safety Guide</a>
-<a class="font-body-md text-body-md text-on-surface-variant hover:text-secondary underline decoration-2" href="#">Contact Us</a>
-</div>
-</div>
-</footer>
-
-<script>
-// ─── Constants & State ─────────────────────────────────────
-const POSITION_OPTIONS = [
-  { value: 'top',          label: 'Atas Tengah' },
-  { value: 'top-left',     label: 'Atas Kiri' },
-  { value: 'top-right',    label: 'Atas Kanan' },
-  { value: 'left',         label: 'Kiri' },
-  { value: 'right',        label: 'Kanan' },
-  { value: 'center-left',  label: 'Tengah Kiri' },
-  { value: 'center-right', label: 'Tengah Kanan' },
-  { value: 'bottom-left',  label: 'Bawah Kiri' },
-  { value: 'bottom-right', label: 'Bawah Kanan' },
-  { value: 'bottom',       label: 'Bawah Tengah' },
-];
-
-let selectedFile = null;
-let lastQRData   = null;
-let modalQRDataUrl = '';
-let modalQRFilename = '';
-let annItems = [];
-let annOpen = false;
-let annCounter = 0;
-
-// ─── Initialization ─────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  setupDropZone();
-  loadGallery();
-});
-
-// ─── Drop Zone Handling ─────────────────────────────────────
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('fileInput');
-
-function setupDropZone() {
-  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evName => {
-      dropZone.addEventListener(evName, preventDefaults, false);
-  });
-  function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-  ['dragenter', 'dragover'].forEach(evName => {
-      dropZone.addEventListener(evName, () => dropZone.classList.add('drop-zone-active'), false);
-  });
-  ['dragleave', 'drop'].forEach(evName => {
-      dropZone.addEventListener(evName, () => dropZone.classList.remove('drop-zone-active'), false);
-  });
-  dropZone.addEventListener('drop', (e) => {
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          setFile(e.dataTransfer.files[0]);
-      }
-  });
-  fileInput.addEventListener('change', () => {
-      if (fileInput.files.length > 0) setFile(fileInput.files[0]);
-  });
-}
-
-function setFile(file) {
-  const ext = file.name.split('.').pop().toLowerCase();
-  if (!['glb','gltf','usdz'].includes(ext)) { 
-      showToast('❌ Format tidak didukung. Gunakan .glb, .gltf, atau .usdz', 'error'); 
-      return; 
-  }
-  if (file.size > 50 * 1024 * 1024) { 
-      showToast('❌ File terlalu besar (maks. 50 MB)', 'error'); 
-      return; 
-  }
-  
-  selectedFile = file;
-  const icons = { glb: '3d_rotation', gltf: 'view_in_ar', usdz: 'phone_iphone' };
-  document.getElementById('filePreviewIcon').textContent = icons[ext] || 'inventory_2';
-  document.getElementById('filePreviewName').textContent = file.name;
-  document.getElementById('filePreviewSize').textContent = formatBytes(file.size);
-  
-  document.getElementById('filePreview').classList.remove('hidden-el');
-  document.getElementById('uploadBtn').disabled = false;
-  
-  if (!document.getElementById('inputName').value) {
-    document.getElementById('inputName').value = file.name.replace(/\.[^.]+$/, '');
-  }
-}
-
-function clearFile() {
-  selectedFile = null;
-  fileInput.value = '';
-  document.getElementById('filePreview').classList.add('hidden-el');
-  document.getElementById('uploadBtn').disabled = true;
-}
-
-// ─── Annotation Handling ────────────────────────────────────
-function toggleAnn() {
-  annOpen = !annOpen;
-  document.getElementById('annBody').classList.toggle('open', annOpen);
-  document.getElementById('annChevron').classList.toggle('open', annOpen);
-}
-
-function addAnnotation() {
-  const id = ++annCounter;
-  annItems.push({ id });
-  renderAnnList();
-}
-
-function removeAnnotation(id) {
-  annItems = annItems.filter(a => a.id !== id);
-  renderAnnList();
-}
-
-function renderAnnList() {
-  const list = document.getElementById('annList');
-  document.getElementById('annCount').textContent = `${annItems.length} label`;
-
-  if (!annItems.length) {
-    list.innerHTML = '';
-    return;
-  }
-
-  const posOpts = POSITION_OPTIONS.map(p =>
-    `<option value="${p.value}">${p.label}</option>`
-  ).join('');
-
-  list.innerHTML = annItems.map((ann, i) => `
-    <div class="bg-surface-container p-3 rounded-lg relative border border-outline-variant">
-      <button class="absolute top-2 right-2 text-on-surface-variant hover:text-error bg-surface-container-highest p-1 rounded transition-colors ann-item-remove" onclick="removeAnnotation(${ann.id})" title="Hapus">
-        <span class="material-symbols-outlined text-sm">close</span>
-      </button>
-      <div class="font-label-bold text-secondary mb-2 text-xs flex items-center gap-1">
-        <span class="material-symbols-outlined text-[14px]">sell</span> Label ${i + 1}
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-        <div>
-          <label class="text-[10px] uppercase font-bold text-outline">Nama Label</label>
-          <input id="ann-name-${ann.id}" class="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-sm focus:border-tertiary-container focus:ring-0 mt-1" type="text" placeholder="cth: Sayap" maxlength="60" />
+    <!-- LIVE METRICS CARDS (LEGACY LIGHT THEME) -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="magic-card p-6 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Scan QR</span>
+          <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">qr_code_scanner</span></div>
         </div>
-        <div>
-          <label class="text-[10px] uppercase font-bold text-outline">Posisi</label>
-          <select id="ann-pos-${ann.id}" class="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-sm focus:border-tertiary-container focus:ring-0 mt-1">${posOpts}</select>
+        <div class="text-3xl font-extrabold text-primary" id="metric-scans">--</div>
+        <p class="text-xs text-on-surface/70 font-semibold">Pemindaian QR code fisik & kartu cetak</p>
+      </div>
+
+      <div class="magic-card p-6 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-outline uppercase tracking-wider">Tampilan AR</span>
+          <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">visibility</span></div>
         </div>
+        <div class="text-3xl font-extrabold text-tertiary" id="metric-views">--</div>
+        <p class="text-xs text-on-surface/70 font-semibold">Interaksi halaman WebXR / Viewer 3D</p>
       </div>
-      <div>
-        <label class="text-[10px] uppercase font-bold text-outline">Deskripsi</label>
-        <input id="ann-desc-${ann.id}" class="w-full bg-surface-container-lowest border border-outline-variant rounded p-2 text-sm focus:border-tertiary-container focus:ring-0 mt-1" type="text" placeholder="Keterangan opsional..." maxlength="300" />
+
+      <div class="magic-card p-6 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-outline uppercase tracking-wider">Baked GLB Ekosistem</span>
+          <div class="w-9 h-9 rounded-xl bg-secondary-container/40 text-secondary flex items-center justify-center"><span class="material-symbols-outlined">3d_rotation</span></div>
+        </div>
+        <div class="text-3xl font-extrabold text-secondary" id="metric-bakes">--</div>
+        <p class="text-xs text-on-surface/70 font-semibold">Model gabungan rantai makanan AR</p>
+      </div>
+
+      <div class="magic-card p-6 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-outline uppercase tracking-wider">Kuis Diselesaikan</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">fact_check</span></div>
+        </div>
+        <div class="text-3xl font-extrabold text-emerald-700" id="metric-quizzes">--</div>
+        <p class="text-xs text-on-surface/70 font-semibold">Percobaan kuis siswa ter-scoring</p>
+      </div>
+    </section>
+
+    <!-- TABBED CONTENT SECTIONS -->
+
+    <!-- TAB 1: DASHBOARD OVERVIEW & PRESETS -->
+    <div id="section-dashboard" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem Rantai Makanan AR
+        </h3>
+        <a href="/studio" target="_blank" class="chunky-button px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary-container transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined">add_box</span> Buka AR Web Studio
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="presets-container">
+        <!-- Loaded Dynamically -->
       </div>
     </div>
-  `).join('');
-}
 
-function collectAnnotations() {
-  return annItems
-    .map(ann => ({
-      name:        (document.getElementById(`ann-name-${ann.id}`)?.value || '').trim(),
-      description: (document.getElementById(`ann-desc-${ann.id}`)?.value || '').trim(),
-      position:     document.getElementById(`ann-pos-${ann.id}`)?.value || 'right',
-    }))
-    .filter(a => a.name);
-}
-
-// ─── Upload Handling ────────────────────────────────────────
-async function handleUpload() {
-  if (!selectedFile) return;
-  const name = document.getElementById('inputName').value.trim() || selectedFile.name;
-  const desc = document.getElementById('inputDesc').value.trim();
-  const annotations = collectAnnotations();
-
-  const usdzInput = document.getElementById('inputUsdz');
-  const usdzFile  = usdzInput?.files?.[0];
-
-  const fd = new FormData();
-  fd.append('model', selectedFile);
-  if (usdzFile) {
-    fd.append('usdz', usdzFile);
-  }
-  fd.append('name', name);
-  fd.append('description', desc);
-  fd.append('annotations', JSON.stringify(annotations));
-
-  const btn = document.getElementById('uploadBtn');
-  btn.disabled = true;
-  document.getElementById('uploadIcon').classList.add('hidden-el');
-  document.getElementById('uploadBtnText').innerHTML = '<div class="spinner-sm inline-block align-middle mr-2"></div> Memproses...';
-  
-  document.getElementById('progressWrap').classList.remove('hidden-el');
-  simulateProgress();
-
-  try {
-    const res  = await fetch('/api/upload', { method: 'POST', body: fd });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Upload gagal');
-    lastQRData = data;
-    showQRResult(data);
-    loadGallery();
-    showToast('Ajaib! QR Code & Kartu AR berhasil dibuat ✨', 'success');
-    
-    // Reset form
-    clearFile();
-    document.getElementById('inputName').value = '';
-    document.getElementById('inputDesc').value = '';
-    if (usdzInput) usdzInput.value = '';
-    annItems = [];
-    renderAnnList();
-    if (annOpen) toggleAnn();
-  } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    document.getElementById('uploadIcon').classList.remove('hidden-el');
-    document.getElementById('uploadBtnText').innerHTML = 'Generate QR Code';
-    document.getElementById('progressWrap').classList.add('hidden-el');
-    document.getElementById('progressBar').style.width = '0%';
-  }
-}
-
-function simulateProgress() {
-  const bar  = document.getElementById('progressBar');
-  const text = document.getElementById('progressText');
-  let p = 0;
-  const msgs = ['Menyiapkan sihir...', 'Membangun jembatan ke dunia AR...', 'Membuat QR ajaib...'];
-  const iv = setInterval(() => {
-    if (document.getElementById('progressWrap').classList.contains('hidden-el')) { clearInterval(iv); return; }
-    p = Math.min(p + Math.random() * 14, 90);
-    bar.style.width = p + '%';
-    text.textContent = msgs[Math.floor(p / 33)] || msgs[2];
-  }, 350);
-}
-
-// ─── QR Result View ─────────────────────────────────────────
-function showQRResult(data) {
-  document.getElementById('qrPlaceholder').classList.add('hidden-el');
-  document.getElementById('qrResult').classList.remove('hidden-el');
-  
-  document.getElementById('qrImage').src = data.qrDataUrl;
-  
-  const viewerUrl = data.asset.viewerUrl;
-  const printUrl  = data.asset.printUrl || viewerUrl.replace('/ar/', '/print/');
-  
-  document.getElementById('qrUrlText').textContent = viewerUrl;
-  document.getElementById('qrUrlText').href = viewerUrl;
-  document.getElementById('openArBtn').href = viewerUrl;
-  document.getElementById('printCardBtn').href = printUrl;
-}
-
-function downloadQR() {
-  if (!lastQRData) return;
-  const link = document.createElement('a');
-  link.href = lastQRData.qrDataUrl;
-  link.download = `magic-ar-${lastQRData.asset.id}.png`;
-  link.click();
-}
-
-// ─── Gallery Handling ───────────────────────────────────────
-let allAssets = [];
-
-async function loadGallery() {
-  try {
-    const res  = await fetch('/api/assets');
-    const data = await res.json();
-    allAssets = data.assets || [];
-    filterGallery();
-  } catch {
-    allAssets = [];
-    renderGallery([]);
-  }
-}
-
-function filterGallery() {
-  const query  = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-  const format = document.getElementById('formatFilter')?.value || 'all';
-
-  const filtered = allAssets.filter(a => {
-    const nameMatch = (a.name || '').toLowerCase().includes(query) ||
-                      (a.originalName || '').toLowerCase().includes(query) ||
-                      (a.description || '').toLowerCase().includes(query);
-    if (!nameMatch) return false;
-
-    if (format === 'usdz') return !!a.usdzUrl;
-    if (format === 'glb') return (a.filename || '').endsWith('.glb');
-    if (format === 'annotated') return (a.annotations || []).length > 0;
-    return true;
-  });
-
-  renderGallery(filtered);
-}
-
-function renderGallery(assets) {
-  const grid  = document.getElementById('galleryGrid');
-  const count = document.getElementById('assetCount');
-  count.textContent = `${assets.length} model`;
-
-  // Add New button card
-  let html = `
-    <div class="border-2 border-dashed border-outline-variant rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 hover:border-primary group cursor-pointer hover:bg-primary/5 transition-all min-h-[250px]" onclick="window.scrollTo(0,0); document.getElementById('inputName').focus();">
-      <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-sm">
-        <span class="material-symbols-outlined text-3xl">add_circle</span>
-      </div>
-      <span class="font-label-bold text-on-surface text-lg mt-2">Buat Baru</span>
-      <p class="text-xs text-on-surface-variant">Upload model 3D lainnya</p>
-    </div>
-  `;
-
-  if (!assets.length) {
-    grid.innerHTML = html;
-    return;
-  }
-
-  const extMap = { 
-    glb: { class: 'bg-primary/10 text-primary', name: '.GLB' },
-    gltf: { class: 'bg-tertiary/10 text-tertiary', name: '.GLTF' },
-    usdz: { class: 'bg-secondary/10 text-secondary-container-on', name: '.USDZ' }
-  };
-
-  const cardsHtml = assets.map(a => {
-    const extKey = (a.filename || '').split('.').pop().toLowerCase();
-    const ext = extMap[extKey] || { class: 'bg-outline/10 text-outline', name: `.${extKey.toUpperCase()}` };
-    const date = new Date(a.uploadedAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
-    const size = formatBytes(a.size || 0);
-    const annLen = (a.annotations || []).length;
-    const views = a.viewCount || 0;
-    const printUrl = a.printUrl || `/print/${a.id}`;
-    
-    // SVG icon placeholder based on extension
-    const iconSym = extKey === 'glb' ? 'deployed_code' : (extKey === 'usdz' ? 'phone_iphone' : 'view_in_ar');
-
-    return `
-      <div class="bg-surface-container-lowest p-4 rounded-xl magic-card group flex flex-col" id="card-${a.id}">
-        <div class="relative w-full h-40 bg-surface-container rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-outline-variant/30">
-          <span class="material-symbols-outlined text-6xl text-primary/40 group-hover:scale-110 transition-transform">${iconSym}</span>
-          <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
-            <span class="${ext.class} text-[10px] px-2 py-0.5 rounded font-bold">${ext.name}</span>
-            ${a.usdzUrl ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[9px] px-1.5 py-0.5 rounded font-bold">iOS Ready</span>` : ''}
+    <!-- TAB 2: AR STUDIO -->
+    <div id="section-studio" class="hidden space-y-6">
+      <div class="magic-card p-8 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-on-surface">AR Web Creator Studio</h3>
+            <p class="text-on-surface/70 text-sm font-medium mt-1">Buat scene AR multi-objek interaktif langsung di browser menggunakan Three.js</p>
           </div>
-          ${annLen ? `<span class="absolute bottom-2 left-2 bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">sell</span> ${annLen} Hotspot</span>` : ''}
+          <a href="/studio" target="_blank" class="chunky-button px-6 py-3 rounded-xl font-bold bg-primary text-white shadow-md flex items-center gap-2 transition-all">
+            <span class="material-symbols-outlined">launch</span> Peluncur Studio Penuh
+          </a>
         </div>
-        <h3 class="font-label-bold text-on-surface truncate" title="${escHtml(a.name || a.originalName)}">${escHtml(a.name || a.originalName)}</h3>
-        <p class="text-xs text-on-surface-variant mb-3 line-clamp-2 min-h-[32px]">${a.description ? escHtml(a.description) : '<span class="italic">Tidak ada deskripsi</span>'}</p>
-        
-        <div class="flex items-center justify-between text-[10px] text-outline mb-4 mt-auto">
-          <span class="flex items-center gap-1" title="Jumlah tayangan AR"><span class="material-symbols-outlined text-[12px]">visibility</span> ${views} views</span>
-          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">database</span> ${size}</span>
-        </div>
-        
-        <div class="flex gap-1.5">
-          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" href="/editor/${a.id}" title="Editor Hotspot 3D">
-            <span class="material-symbols-outlined text-sm">edit_location_alt</span>
-          </a>
-          <button class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" onclick="viewQR('${a.id}')" title="Lihat QR Code">
-            <span class="material-symbols-outlined text-sm">qr_code</span>
-          </button>
-          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-secondary/10 transition-colors text-secondary" href="${escHtml(printUrl)}" target="_blank" title="Cetak Kartu AR">
-            <span class="material-symbols-outlined text-sm">print</span>
-          </a>
-          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-tertiary/10 transition-colors text-tertiary" href="${escHtml(a.viewerUrl)}" target="_blank" title="Buka AR Viewer">
-            <span class="material-symbols-outlined text-sm">open_in_new</span>
-          </a>
-          <button class="bg-error-container/40 text-error p-2 rounded hover:bg-error-container transition-colors" onclick="deleteAsset('${a.id}')" title="Hapus">
-            <span class="material-symbols-outlined text-sm">delete</span>
-          </button>
+        <div class="p-6 rounded-2xl bg-surface-container border border-surface-variant text-center space-y-3">
+          <span class="material-symbols-outlined text-4xl text-primary">view_in_ar</span>
+          <h4 class="text-lg font-bold text-on-surface">AR Multi-Object Web Creator Studio Aktif</h4>
+          <p class="text-sm text-on-surface/70 max-w-xl mx-auto font-medium">Klik tombol di atas untuk membuka editor 3D Web Studio lengkap dengan fitur Tap-to-Place, penataan posisi objek, dan publish QR Code.</p>
         </div>
       </div>
-    `;
-  }).join('');
+    </div>
 
-  grid.innerHTML = html + cardsHtml;
-}
+    <!-- TAB 3: KUIS INTERAKTIF SISWA -->
+    <div id="section-quiz" class="hidden space-y-6">
+      <div class="magic-card p-8 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-600">quiz</span> Kuis & Evaluasi Pembelajaran AR
+            </h3>
+            <p class="text-on-surface/70 text-sm font-medium mt-1">Uji pemahaman siswa mengenai rantai makanan dan ekosistem AR</p>
+          </div>
+        </div>
 
-// ─── Modal Handling ─────────────────────────────────────────
-async function viewQR(id) {
-  try {
-    const res  = await fetch(`/api/assets/${id}/qr`);
-    const data = await res.json();
-    modalQRDataUrl  = data.qrDataUrl;
-    modalQRFilename = `magic-ar-${id}.png`;
-    
-    document.getElementById('modalTitle').textContent  = data.asset?.name || 'QR Code';
-    document.getElementById('modalQrImg').src          = data.qrDataUrl;
-    document.getElementById('modalUrl').textContent    = data.viewerUrl;
-    document.getElementById('modalUrl').href           = data.viewerUrl;
-    document.getElementById('modalViewerBtn').href     = data.viewerUrl;
-    document.getElementById('modalPrintBtn').href      = data.printUrl || `/print/${id}`;
-    
-    document.getElementById('modalOverlay').classList.add('show');
-  } catch { 
-    showToast('Gagal memuat QR', 'error'); 
-  }
-}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Quiz List -->
+          <div class="lg:col-span-1 space-y-3" id="quiz-questions-list">
+            <!-- Loaded Dynamically -->
+          </div>
 
-function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalDirect(); }
-function closeModalDirect() { document.getElementById('modalOverlay').classList.remove('show'); }
+          <!-- Quiz Solver Box -->
+          <div class="lg:col-span-2 magic-card p-6 rounded-2xl space-y-6" id="quiz-solver-card">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Kuis Ekosistem</span>
+              <span class="text-xs font-bold text-primary" id="quiz-score-badge">Skor Anda: --</span>
+            </div>
 
-function downloadModalQR() {
-  if (!modalQRDataUrl) return;
-  const link = document.createElement('a');
-  link.href = modalQRDataUrl; link.download = modalQRFilename; link.click();
-}
+            <div class="space-y-4">
+              <h4 class="text-lg font-bold text-on-surface" id="quiz-question-title">Pilih kuis di sebelah kiri untuk mulai menjawab</h4>
+              <div class="space-y-3" id="quiz-options-container">
+                <p class="text-on-surface/60 text-sm font-medium">Jawaban pilihan ganda akan ditampilkan di sini.</p>
+              </div>
+            </div>
 
-// ─── Deletion ───────────────────────────────────────────────
-async function deleteAsset(id) {
-  if (!confirm('Apakah Anda yakin ingin menghapus model ajaib ini selamanya?')) return;
-  try {
-    const res = await fetch(`/api/assets/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error();
-    document.getElementById(`card-${id}`)?.remove();
-    loadGallery();
-    showToast('Model berhasil dihapus 🪄', 'success');
-  } catch { 
-    showToast('Gagal menghapus model', 'error'); 
-  }
-}
+            <button id="btn-submit-answer" disabled onclick="submitQuizAnswer()" class="chunky-button w-full py-3 rounded-xl font-bold bg-primary text-white disabled:bg-gray-200 disabled:text-gray-400 transition-all">
+              Jawab Pertanyaan
+            </button>
 
-// ─── Utilities ──────────────────────────────────────────────
-function formatBytes(b) {
-  if (b < 1024) return b + ' B';
-  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-  return (b / 1048576).toFixed(2) + ' MB';
-}
+            <div id="quiz-feedback-box" class="hidden p-4 rounded-xl text-sm font-bold"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+    <!-- TAB 4: UNITY ASSEMBLR EDU -->
+    <div id="section-unity" class="hidden space-y-6">
+      <div class="magic-card p-8 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">sports_esports</span> Unity Assemblr EDU Engine
+            </h3>
+            <p class="text-on-surface/70 text-sm font-medium mt-1">Editor 3D terstruktur, aturan Interaktivitas (Trigger → Target), dan 3 Mode Viewing AR</p>
+          </div>
+        </div>
 
-let toastTimer;
-function showToast(msg, type = '') {
-  const t = document.getElementById('toast');
-  t.innerHTML = `<span class="material-symbols-outlined">${type === 'error' ? 'error' : 'check_circle'}</span> ${msg}`; 
-  t.className = 'show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.className = type; }, 3800);
-}
-</script>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="magic-card p-6 rounded-2xl space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined text-2xl">3d_rotation</span></div>
+            <h4 class="text-base font-bold text-on-surface">1. Mode 3D Orbit View</h4>
+            <p class="text-on-surface/70 text-xs font-medium leading-relaxed">Menampilkan objek 3D interaktif di layar tanpa kamera AR. Pengguna dapat merotasi dan zoom secara manual.</p>
+          </div>
+
+          <div class="magic-card p-6 rounded-2xl space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined text-2xl">qr_code_2</span></div>
+            <h4 class="text-base font-bold text-on-surface">2. Mode Marker-based AR</h4>
+            <p class="text-on-surface/70 text-xs font-medium leading-relaxed">Pindai QR Code atau Custom Image Marker via ARTrackedImageManager. Konten 3D menempel tepat di atas gambar marker.</p>
+          </div>
+
+          <div class="magic-card p-6 rounded-2xl space-y-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined text-2xl">view_in_ar</span></div>
+            <h4 class="text-base font-bold text-on-surface">3. Mode World Tracking</h4>
+            <p class="text-on-surface/70 text-xs font-medium leading-relaxed">Pindai lantai/meja dengan ARPlaneManager. Tap pada reticle permukaan datar untuk menanam objek dan berjalan 360°.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: ACTIVITY LOG AUDIT TABLE -->
+    <div id="section-logs" class="hidden space-y-6">
+      <div class="magic-card p-8 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">analytics</span> Activity Log Audit Table
+            </h3>
+            <p class="text-on-surface/70 text-sm font-medium mt-1">Audit real-time aktivitas pemindaian QR Code, tampilan AR, auto-bake GLB, dan pengerjaan kuis</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-on-surface">
+            <thead class="bg-surface-container text-on-surface font-bold uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 rounded-l-xl">Aksi (Action)</th>
+                <th class="px-4 py-3">Tipe Entitas</th>
+                <th class="px-4 py-3">Pengguna</th>
+                <th class="px-4 py-3">IP Address</th>
+                <th class="px-4 py-3 rounded-r-xl">Waktu Log</th>
+              </tr>
+            </thead>
+            <tbody id="activity-logs-tbody" class="divide-y border-t border-surface-variant">
+              <!-- Logs Loaded Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t-2 border-surface-variant px-6 py-6 mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-on-surface/70">
+      <p>© 2026 Magic AR Edu — Powered by NestJS & PostgreSQL Enterprise</p>
+      <div class="flex items-center space-x-4">
+        <span>Arsitektur Micro-Services</span>
+        <span>•</span>
+        <span>S3 Hybrid Storage</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL POPUP (LIGHT THEME) -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="magic-card max-w-md w-full p-8 rounded-3xl space-y-6 relative border-2 border-primary/20">
+      <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-on-surface">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+
+      <div>
+        <h3 class="text-2xl font-bold text-primary" id="modal-title">Masuk ke Magic AR Edu</h3>
+        <p class="text-on-surface/70 text-xs font-semibold mt-1">Akses fitur terintegrasi platform pembelajaran AR</p>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div id="field-name-group" class="hidden space-y-1">
+          <label class="text-xs font-bold text-on-surface">Nama Lengkap</label>
+          <input type="text" id="auth-name" class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="Nama Anda"/>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface">Email</label>
+          <input type="email" id="auth-email" required class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="nama@eduar.com"/>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface">Kata Sandi</label>
+          <input type="password" id="auth-password" required class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="••••••••"/>
+        </div>
+
+        <div id="field-role-group" class="hidden space-y-1">
+          <label class="text-xs font-bold text-on-surface">Peran Pengguna (Role)</label>
+          <select id="auth-role" class="w-full px-4 py-2.5 rounded-xl bg-white border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-bold">
+            <option value="STUDENT">Siswa (Student)</option>
+            <option value="TEACHER">Guru (Teacher)</option>
+          </select>
+        </div>
+
+        <button type="submit" id="auth-submit-btn" class="chunky-button w-full py-3 rounded-xl font-bold bg-primary text-white hover:bg-primary-container transition-all">
+          Masuk Sekarang
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast">
+    <span class="material-symbols-outlined text-lg" id="toast-icon">info</span>
+    <span id="toast-msg">Notifikasi</span>
+  </div>
+
+  <!-- CLIENT SCRIPTS -->
+  <script>
+    let activeAuthMode = 'login';
+    let selectedQuizId = null;
+    let selectedAnswer = '';
+
+    function switchTab(tabName) {
+      const tabs = ['dashboard', 'studio', 'quiz', 'unity', 'logs'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const sec = document.getElementById(`section-${t}`);
+        if (t === tabName) {
+          btn?.classList.add('active-tab');
+          btn?.classList.remove('text-on-surface');
+          sec?.classList.remove('hidden');
+        } else {
+          btn?.classList.remove('active-tab');
+          btn?.classList.add('text-on-surface');
+          sec?.classList.add('hidden');
+        }
+      });
+    }
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = msg;
+      toastIcon.innerText = isError ? 'error' : 'check_circle';
+      toast.style.borderColor = isError ? '#ba1a1a' : '#632ce5';
+
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    }
+
+    function openAuthModal(mode) {
+      activeAuthMode = mode;
+      const modal = document.getElementById('auth-modal');
+      const title = document.getElementById('modal-title');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const fieldName = document.getElementById('field-name-group');
+      const fieldRole = document.getElementById('field-role-group');
+
+      if (mode === 'register') {
+        title.innerText = 'Daftar Akun Baru';
+        submitBtn.innerText = 'Daftar Sekarang';
+        fieldName.classList.remove('hidden');
+        fieldRole.classList.remove('hidden');
+      } else {
+        title.innerText = 'Masuk ke Magic AR Edu';
+        submitBtn.innerText = 'Masuk Sekarang';
+        fieldName.classList.add('hidden');
+        fieldRole.classList.add('hidden');
+      }
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const name = document.getElementById('auth-name').value;
+      const role = document.getElementById('auth-role').value;
+
+      try {
+        const endpoint = activeAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const body = activeAuthMode === 'register' 
+          ? { email, password, name, role }
+          : { email, password, device: 'web-dashboard' };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(activeAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!');
+          if (data.accessToken) localStorage.setItem('eduar_token', data.accessToken);
+          if (data.user) updateUserHeader(data.user);
+          closeAuthModal();
+        } else {
+          showToast(data.message || data.error || 'Gagal memproses autentikasi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      }
+    }
+
+    function updateUserHeader(user) {
+      const container = document.getElementById('auth-header-container');
+      container.innerHTML = `
+        <div class="flex items-center space-x-3 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-sm font-bold text-primary">${user.name}</span>
+          <span class="px-2 py-0.5 rounded bg-primary text-white text-xs font-bold">${user.role}</span>
+        </div>
+      `;
+    }
+
+    async function loadDashboardData() {
+      try {
+        // Fetch Metrics & Summary
+        const res = await fetch('/api/analytics/summary');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.summary) {
+            document.getElementById('metric-scans').innerText = data.summary.totalScans || 0;
+            document.getElementById('metric-views').innerText = data.summary.totalArViews || 0;
+            document.getElementById('metric-bakes').innerText = data.summary.totalBakes || 0;
+            document.getElementById('metric-quizzes').innerText = data.summary.totalQuizSubmissions || 0;
+          }
+        }
+
+        // Fetch Ecosystem Presets
+        const presetsRes = await fetch('/api/ecosystem/presets');
+        if (presetsRes.ok) {
+          const presetsData = await presetsRes.json();
+          renderPresets(presetsData.presets || []);
+        }
+
+        // Fetch Quizzes
+        const quizRes = await fetch('/api/lessons');
+        if (quizRes.ok) {
+          const lessonsData = await quizRes.json();
+          renderQuizzes(lessonsData.lessons || []);
+        }
+
+        // Fetch Activity Logs
+        const logsRes = await fetch('/api/analytics/logs');
+        if (logsRes.ok) {
+          const logsData = await logsRes.json();
+          renderActivityLogs(logsData.logs || []);
+        }
+
+      } catch (e) {
+        console.warn('Dashboard fetch error:', e);
+      }
+    }
+
+    function renderPresets(presets) {
+      const container = document.getElementById('presets-container');
+      if (!presets || presets.length === 0) return;
+
+      container.innerHTML = presets.map(p => `
+        <div class="magic-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">Preset AR</span>
+              <span class="text-xs font-bold text-outline">6 Spesies</span>
+            </div>
+            <h4 class="text-lg font-bold text-on-surface">${p.name}</h4>
+            <p class="text-xs text-on-surface/70 font-medium mt-1">Combined GLB auto-bake untuk rantai makanan ekosistem</p>
+          </div>
+          <a href="/ecosystem/view/${p.id}" target="_blank" class="chunky-button w-full py-2.5 rounded-xl font-bold bg-primary text-white hover:bg-primary-container text-center text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-base">ar_on_you</span> Tampilkan AR Viewer
+          </a>
+        </div>
+      `).join('');
+    }
+
+    function renderQuizzes(lessons) {
+      const listContainer = document.getElementById('quiz-questions-list');
+      if (!lessons || lessons.length === 0) return;
+
+      let html = '';
+      lessons.forEach(l => {
+        if (l.quizzes && l.quizzes.length > 0) {
+          l.quizzes.forEach(q => {
+            html += `
+              <div onclick="selectQuiz('${q.id}', '${q.question.replace(/'/g, "\\'")}', '${JSON.stringify(q.options).replace(/'/g, "\\'")}')" class="magic-card p-4 rounded-xl border border-surface-variant hover:border-primary cursor-pointer transition-all space-y-2">
+                <span class="text-xs font-bold text-primary">${l.title}</span>
+                <p class="text-sm font-bold text-on-surface line-clamp-2">${q.question}</p>
+              </div>
+            `;
+          });
+        }
+      });
+
+      if (html) listContainer.innerHTML = html;
+    }
+
+    function selectQuiz(id, question, optionsJson) {
+      selectedQuizId = id;
+      selectedAnswer = '';
+
+      document.getElementById('quiz-question-title').innerText = question;
+      const options = JSON.parse(optionsJson || '[]');
+      const container = document.getElementById('quiz-options-container');
+
+      container.innerHTML = options.map(opt => `
+        <label onclick="selectedAnswer = '${opt}'; document.getElementById('btn-submit-answer').disabled = false;" class="flex items-center space-x-3 p-3 rounded-xl bg-surface-container hover:bg-white border border-surface-variant cursor-pointer text-sm font-bold text-on-surface">
+          <input type="radio" name="quiz_opt" value="${opt}" class="text-primary focus:ring-primary"/>
+          <span>${opt}</span>
+        </label>
+      `).join('');
+
+      document.getElementById('btn-submit-answer').disabled = true;
+      document.getElementById('quiz-feedback-box').classList.add('hidden');
+    }
+
+    async function submitQuizAnswer() {
+      if (!selectedQuizId || !selectedAnswer) return;
+
+      try {
+        const token = localStorage.getItem('eduar_token') || '';
+        const res = await fetch(`/api/quizzes/${selectedQuizId}/attempt`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ answer: selectedAnswer })
+        });
+
+        const data = await res.json();
+        const feedback = document.getElementById('quiz-feedback-box');
+        feedback.classList.remove('hidden');
+
+        if (data.isCorrect) {
+          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+          feedback.innerText = '🎉 Jawaban Anda BENAR 100%! Sangat luar biasa.';
+        } else {
+          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-red-100 text-red-800 border border-red-300';
+          feedback.innerText = `❌ Jawaban kurang tepat. Jawaban yang benar: ${data.correctAnswer}`;
+        }
+
+      } catch (e) {
+        showToast('Error mengirim jawaban kuis', true);
+      }
+    }
+
+    function renderActivityLogs(logs) {
+      const tbody = document.getElementById('activity-logs-tbody');
+      if (!logs || logs.length === 0) return;
+
+      tbody.innerHTML = logs.map(l => `
+        <tr class="hover:bg-surface-container">
+          <td class="px-4 py-3 font-bold text-primary"><span class="px-2.5 py-1 rounded-md bg-primary/10 text-primary text-xs font-bold">${l.action}</span></td>
+          <td class="px-4 py-3 font-semibold text-on-surface">${l.entityType || '-'}</td>
+          <td class="px-4 py-3 font-semibold text-on-surface">${l.user ? l.user.name : 'Anonim / Publik'}</td>
+          <td class="px-4 py-3 font-mono text-xs font-semibold text-outline">${l.ipAddress || '127.0.0.1'}</td>
+          <td class="px-4 py-3 font-medium text-outline text-xs">${new Date(l.createdAt).toLocaleString('id-ID')}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Initialize on DOM Ready
+    window.addEventListener('DOMContentLoaded', loadDashboardData);
+  </script>
 </body>
 </html>

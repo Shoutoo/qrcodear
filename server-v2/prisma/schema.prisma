@@ -1,0 +1,253 @@
+// Prisma Schema for EduAR Platform (FASE R1)
+// PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  password_hash    String
+  role             Role              @default(STUDENT)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime          @default(now())
+  projects         Project[]
+  classesTaught    Class[]           @relation("TeacherClasses")
+  enrollments      ClassEnrollment[]
+  quizAttempts     QuizAttempt[]
+  refreshTokens    RefreshToken[]
+  activityLogs     ActivityLog[]
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  device    String?
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  assets      Asset[]
+  scenes      Scene[]
+  lessons     Lesson[]
+  createdAt   DateTime @default(now())
+}
+
+model Asset {
+  id          String    @id @default(uuid())
+  project     Project?  @relation(fields: [projectId], references: [id])
+  projectId   String?
+  type        AssetType
+  modelUrl    String
+  storageKey  String?
+  textureUrl  String?
+  label       String?
+  ecosystem   String?
+  role        String?
+  source      String?
+  license     String?
+  needsReview Boolean   @default(false)
+  sceneObjects SceneObject[]
+  createdAt   DateTime  @default(now())
+}
+
+enum AssetType {
+  LEGACY_SINGLE
+  STUDIO_OBJECT
+  ECOSYSTEM_MODEL
+}
+
+model Scene {
+  id              String          @id @default(uuid())
+  project         Project         @relation(fields: [projectId], references: [id])
+  projectId       String
+  format          SceneFormat     @default(LEGACY_BLOB)
+  data            Json?
+  order           Int             @default(0)
+  objects         SceneObject[]
+  interactivities Interactivity[]
+  published       PublishedExperience[]
+  createdAt       DateTime        @default(now())
+}
+
+enum SceneFormat {
+  LEGACY_BLOB
+  STRUCTURED
+}
+
+model SceneObject {
+  id          String          @id @default(uuid())
+  scene       Scene           @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  sceneId     String
+  asset       Asset?          @relation(fields: [assetId], references: [id])
+  assetId     String?
+  type        SceneObjectType
+  textContent String?
+  color       String?
+  positionX   Float           @default(0)
+  positionY   Float           @default(0)
+  positionZ   Float           @default(0)
+  rotationX   Float           @default(0)
+  rotationY   Float           @default(0)
+  rotationZ   Float           @default(0)
+  scaleX      Float           @default(1)
+  scaleY      Float           @default(1)
+  scaleZ      Float           @default(1)
+  triggerOf   Interactivity[] @relation("TriggerObject")
+  targetOf    Interactivity[] @relation("TargetObject")
+  createdAt   DateTime        @default(now())
+}
+
+enum SceneObjectType {
+  MODEL_3D
+  TEXT
+  IMAGE
+  VIDEO
+  ANNOTATION_POINT
+  ANNOTATION_LINE
+}
+
+model Interactivity {
+  id              String                  @id @default(uuid())
+  scene           Scene                   @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  sceneId         String
+  name            String?
+  triggerObject   SceneObject             @relation("TriggerObject", fields: [triggerObjectId], references: [id], onDelete: Cascade)
+  triggerObjectId String
+  targetObject    SceneObject             @relation("TargetObject", fields: [targetObjectId], references: [id], onDelete: Cascade)
+  targetObjectId  String
+  actionType      InteractivityActionType
+  params          Json
+  startTime       Float                   @default(0)
+  duration        Float                   @default(0)
+  easing          String?
+  autoTrigger     Boolean                 @default(false)
+  createdAt       DateTime                @default(now())
+}
+
+enum InteractivityActionType {
+  MOVE
+  ROTATE
+  SCALE
+  PLAY_ANIMATION
+  HIDE
+  SHOW
+  JUMP_SCENE
+  OPEN_URL
+  VIDEO_CONTROL
+  SOUND_EFFECT
+}
+
+model EcosystemPreset {
+  id        String                @id @default(uuid())
+  name      String
+  slots     Json
+  published PublishedExperience[]
+  createdAt DateTime              @default(now())
+}
+
+model PublishedExperience {
+  id                String           @id @default(uuid())
+  type              PublishType
+  sceneId           String?
+  scene             Scene?           @relation(fields: [sceneId], references: [id])
+  presetId          String?
+  preset            EcosystemPreset? @relation(fields: [presetId], references: [id])
+  bakedGlbUrl       String?
+  qrCodeUrl         String
+  viewUrl           String
+  allow3DView       Boolean          @default(true)
+  allowMarkerAR     Boolean          @default(true)
+  allowMarkerlessAR Boolean          @default(true)
+  customMarkerUrl   String?
+  createdAt         DateTime         @default(now())
+}
+
+enum PublishType {
+  STUDIO_SCENE
+  ECOSYSTEM_PRESET
+  LEGACY_SINGLE
+}
+
+model Lesson {
+  id        String   @id @default(uuid())
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  title     String
+  content   String
+  quizzes   Quiz[]
+}
+
+model Quiz {
+  id            String        @id @default(uuid())
+  lesson        Lesson        @relation(fields: [lessonId], references: [id])
+  lessonId      String
+  question      String
+  options       Json
+  correctAnswer String
+  attempts      QuizAttempt[]
+}
+
+model QuizAttempt {
+  id          String   @id @default(uuid())
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+  quizId      String
+  student     User     @relation(fields: [studentId], references: [id])
+  studentId   String
+  answer      String
+  isCorrect   Boolean
+  attemptedAt DateTime @default(now())
+}
+
+model Class {
+  id          String            @id @default(uuid())
+  className   String
+  teacher     User              @relation("TeacherClasses", fields: [teacherId], references: [id])
+  teacherId   String
+  enrollments ClassEnrollment[]
+}
+
+model ClassEnrollment {
+  id        String @id @default(uuid())
+  class     Class  @relation(fields: [classId], references: [id])
+  classId   String
+  student   User   @relation(fields: [studentId], references: [id])
+  studentId String
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+}
+

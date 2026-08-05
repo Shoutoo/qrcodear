@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "AR Edu QR — Generator QR Code untuk Konten Augmented Reality 3D",
   "scripts": {
-    "start": "node server/index.js",
-    "postinstall": "cd server && npm install",
-    "setup": "cd server && npm install"
+    "start": "cd server-v2 && npm run start:prod",
+    "dev": "cd server-v2 && npm run start:dev",
+    "build": "cd server-v2 && npm run build",
+    "postinstall": "cd server-v2 && npm install && npx prisma generate",
+    "start:legacy": "node server/index.js"
   },
   "dependencies": {
     "three": "^0.160.0"
