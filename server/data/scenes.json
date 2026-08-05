@@ -52,5 +52,36 @@
     ],
     "isPublished": true,
     "publishedAt": "2026-08-05T15:11:37.583Z"
+  },
+  {
+    "id": "studio_1785942965881",
+    "sceneId": "studio_1785942965881",
+    "name": "AR Studio Multi-Object Scene",
+    "updatedAt": "2026-08-05T15:16:05.882Z",
+    "objects": [
+      {
+        "id": "obj_1_gYSKlQfeBd",
+        "name": "1785607610_53769615 #1",
+        "type": "model",
+        "src": "/assets/gYSKlQfeBd.glb",
+        "position": [
+          0,
+          1.2398502083197396,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "isPublished": true,
+    "publishedAt": "2026-08-05T15:16:05.937Z"
   }
 ]
