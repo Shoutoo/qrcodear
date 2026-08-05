@@ -73,15 +73,22 @@
       </a>
     </div>
 
-    <!-- Real-time Debug HUD Overlay (For XRAnchor verification) -->
-    <div id="debug-hud" class="bg-black/85 text-emerald-400 font-mono text-[10px] p-3 rounded-2xl border border-emerald-500/40 shadow-2xl pointer-events-auto max-w-xs space-y-1 my-2">
-      <div class="font-bold text-white border-b border-emerald-500/30 pb-1 flex justify-between items-center">
+    <!-- Real-time Debug HUD Overlay (For XRAnchor verification & Hit-test timing diagnosis) -->
+    <div id="debug-hud" class="bg-black/90 text-emerald-400 font-mono text-[9px] p-2.5 rounded-2xl border border-emerald-500/40 shadow-2xl pointer-events-auto max-w-xs space-y-1 my-1">
+      <div class="font-bold text-white border-b border-emerald-500/30 pb-1 flex justify-between items-center text-[10px]">
         <span>🔍 XRANCHOR DEBUG HUD</span>
-        <span class="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700">LIVE</span>
+        <span class="text-[8px] bg-emerald-950 text-emerald-300 px-1 py-0.5 rounded border border-emerald-700">LIVE</span>
       </div>
       <div>Anchors Granted: <span id="hud-anchors-granted" class="text-amber-300 font-bold">Checking...</span></div>
+      <div>HitTestSource: <span id="hud-hittest-source" class="text-amber-300 font-bold">Not requested</span></div>
+      <div>HitTest Hits: <span id="hud-hittest-hits" class="text-cyan-300 font-bold">0 hits (Frame #0)</span></div>
+      <div>Last Hit Assigned: <span id="hud-last-hit-time" class="text-slate-300">Never</span></div>
+      <div class="border-t border-slate-700/80 pt-1 text-white font-bold">Status At Tap Event:</div>
+      <div>Tap Trigger: <span id="hud-tap-event" class="text-yellow-300 font-bold">No tap yet</span></div>
+      <div>Reticle Visible at Tap: <span id="hud-tap-reticle" class="text-yellow-300 font-bold">--</span></div>
+      <div>lastHitTestResult at Tap: <span id="hud-tap-result" class="text-yellow-300 font-bold">--</span></div>
       <div>createAnchor(): <span id="hud-create-anchor" class="text-amber-300 font-bold">Not called yet</span></div>
-      <div>Active Anchor: <span id="hud-active-anchor" class="text-cyan-300 font-bold">None</span></div>
+      <div class="border-t border-slate-700/80 pt-1">Active Anchor: <span id="hud-active-anchor" class="text-cyan-300 font-bold">None</span></div>
       <div>Anchor Pose: <span id="hud-anchor-pose" class="text-slate-300">--</span></div>
       <div>Pose Updates: <span id="hud-pose-count" class="text-purple-300 font-bold">0</span></div>
     </div>
@@ -125,9 +132,20 @@
     let lastHitTestResult = null;
     let hasValidHit = false;
 
+    let totalRenderFrames = 0;
+    let totalHitTestHits = 0;
+    let lastHitAssignedFrame = 0;
+    let lastHitAssignedTime = 'Never';
+
     // Real-time Debug HUD State
     let debugState = {
       anchorsGranted: 'Checking...',
+      hitTestSource: 'Not requested',
+      hitTestHits: '0 hits (Frame #0)',
+      lastHitTime: 'Never',
+      tapTrigger: 'No tap yet',
+      tapReticleVisible: '--',
+      tapResultStatus: '--',
       createStatus: 'Not called yet',
       createError: '',
       activeStatus: 'None',
@@ -137,6 +155,12 @@
 
     function updateDebugHUD() {
       const gEl = document.getElementById('hud-anchors-granted');
+      const srcEl = document.getElementById('hud-hittest-source');
+      const hitsEl = document.getElementById('hud-hittest-hits');
+      const timeEl = document.getElementById('hud-last-hit-time');
+      const tapEvtEl = document.getElementById('hud-tap-event');
+      const tapRetEl = document.getElementById('hud-tap-reticle');
+      const tapResEl = document.getElementById('hud-tap-result');
       const cEl = document.getElementById('hud-create-anchor');
       const aEl = document.getElementById('hud-active-anchor');
       const pEl = document.getElementById('hud-anchor-pose');
@@ -145,6 +169,18 @@
       if (gEl) {
         gEl.textContent = debugState.anchorsGranted;
         gEl.className = debugState.anchorsGranted.includes('TRUE') ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+      }
+      if (srcEl) srcEl.textContent = debugState.hitTestSource;
+      if (hitsEl) hitsEl.textContent = debugState.hitTestHits;
+      if (timeEl) timeEl.textContent = debugState.lastHitTime;
+      if (tapEvtEl) tapEvtEl.textContent = debugState.tapTrigger;
+      if (tapRetEl) {
+        tapRetEl.textContent = debugState.tapReticleVisible;
+        tapRetEl.className = debugState.tapReticleVisible === 'true' ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+      }
+      if (tapResEl) {
+        tapResEl.textContent = debugState.tapResultStatus;
+        tapResEl.className = debugState.tapResultStatus.includes('EXISTS') ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
       }
       if (cEl) {
         if (debugState.createError) {
@@ -377,6 +413,7 @@
       } else {
         debugState.anchorsGranted = 'Unknown (session.enabledFeatures missing)';
       }
+      debugState.hitTestSource = 'Requesting source...';
       updateDebugHUD();
 
       try {
@@ -388,7 +425,7 @@
       renderer.xr.setSession(session);
 
       controller = renderer.xr.getController(0);
-      controller.addEventListener('select', onSelect);
+      controller.addEventListener('select', (e) => onSelect(e));
       scene.add(controller);
 
       // Window tap fallback listener for WebXR
@@ -414,8 +451,19 @@
       sceneGroup.visible = false;
 
       // Reset HUD Debug State
+      totalRenderFrames = 0;
+      totalHitTestHits = 0;
+      lastHitAssignedFrame = 0;
+      lastHitAssignedTime = 'Never';
+
       debugState = {
         anchorsGranted: 'Checking...',
+        hitTestSource: 'Not requested',
+        hitTestHits: '0 hits (Frame #0)',
+        lastHitTime: 'Never',
+        tapTrigger: 'No tap yet',
+        tapReticleVisible: '--',
+        tapResultStatus: '--',
         createStatus: 'Not called yet',
         createError: '',
         activeStatus: 'None',
@@ -437,12 +485,19 @@
       // Don't trigger tap placement if user clicked Reset button
       if (e.target && e.target.closest('#reset-ar-btn')) return;
       if (renderer.xr.isPresenting && !isPlaced) {
-        onSelect();
+        onSelect(e);
       }
     }
 
-    async function onSelect() {
+    async function onSelect(evt) {
       if (isPlaced) return;
+
+      // Record exact state at tap moment for debugging
+      const triggerType = evt ? (evt.type || 'select') : 'unknown';
+      debugState.tapTrigger = `${triggerType} @ Frame #${totalRenderFrames}`;
+      debugState.tapReticleVisible = String(reticle ? reticle.visible : false);
+      debugState.tapResultStatus = lastHitTestResult ? `EXISTS (Frame #${lastHitAssignedFrame})` : 'NULL / MISSING';
+      updateDebugHUD();
 
       // Try creating WebXR XRAnchor if hit test result available
       if (lastHitTestResult) {
@@ -530,6 +585,7 @@
 
     function render(timestamp, frame) {
       if (frame) {
+        totalRenderFrames++;
         const referenceSpace = renderer.xr.getReferenceSpace();
         const session = renderer.xr.getSession();
 
@@ -552,10 +608,21 @@
 
         // 2. Request HitTestSource if not requested yet
         if (hitTestSourceRequested === false) {
+          debugState.hitTestSource = 'Requesting...';
+          updateDebugHUD();
+
           session.requestReferenceSpace('viewer').then((viewerSpace) => {
             session.requestHitTestSource({ space: viewerSpace }).then((source) => {
               hitTestSource = source;
+              debugState.hitTestSource = 'READY (Source Created)';
+              updateDebugHUD();
+            }).catch(err => {
+              debugState.hitTestSource = 'ERROR: ' + err.message;
+              updateDebugHUD();
             });
+          }).catch(err => {
+            debugState.hitTestSource = 'REF SPACE ERR: ' + err.message;
+            updateDebugHUD();
           });
 
           hitTestSourceRequested = true;
@@ -568,15 +635,24 @@
           if (hitTestResults.length > 0) {
             const hit = hitTestResults[0];
             lastHitTestResult = hit;
-            const pose = hit.getPose(referenceSpace);
+            totalHitTestHits++;
+            lastHitAssignedFrame = totalRenderFrames;
+            lastHitAssignedTime = new Date().toLocaleTimeString();
 
+            debugState.hitTestHits = `${totalHitTestHits} hits (Frame #${totalRenderFrames})`;
+            debugState.lastHitTime = `Frame #${lastHitAssignedFrame} @ ${lastHitAssignedTime}`;
+
+            const pose = hit.getPose(referenceSpace);
             if (pose) {
               reticle.visible = true;
               reticle.matrix.fromArray(pose.transform.matrix);
               hasValidHit = true;
             }
+            updateDebugHUD();
           } else {
             reticle.visible = false;
+            debugState.hitTestHits = `${totalHitTestHits} hits (Frame #${totalRenderFrames}: 0 hits)`;
+            updateDebugHUD();
           }
         }
       }
