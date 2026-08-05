@@ -35,5 +35,42 @@
         "modelSrc": "/uploads/ecosystem-models/library/darat/jamur.glb"
       }
     ]
+  },
+  {
+    "id": "preset-hutan",
+    "name": "Ekosistem Hutan",
+    "description": "Rantai makanan siklus ekosistem hutan (Pohon → Ulat → Burung → Ular → Elang → Jamur)",
+    "slots": [
+      {
+        "role": "produsen",
+        "label": "Pohon",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/pohon.glb"
+      },
+      {
+        "role": "konsumen_primer",
+        "label": "Ulat",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/ulat.glb"
+      },
+      {
+        "role": "konsumen_sekunder",
+        "label": "Burung Pemakan Serangga",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/burung.glb"
+      },
+      {
+        "role": "konsumen_tersier",
+        "label": "Ular",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/ular.glb"
+      },
+      {
+        "role": "konsumen_final",
+        "label": "Elang",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/elang.glb"
+      },
+      {
+        "role": "decomposer",
+        "label": "Jamur",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/jamur.glb"
+      }
+    ]
   }
 ]

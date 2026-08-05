@@ -483,15 +483,17 @@
     }
 
     function filterLibraryCategory(category) {
-      const tabDarat = document.getElementById('tab-darat');
-      const tabAll = document.getElementById('tab-all');
-      if (category === 'darat') {
-        if (tabDarat) tabDarat.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
-        if (tabAll) tabAll.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
-      } else {
-        if (tabAll) tabAll.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
-        if (tabDarat) tabDarat.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
-      }
+      const tabs = ['darat', 'hutan', 'all'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) {
+          if (t === category) {
+            btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
+          } else {
+            btn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
+          }
+        }
+      });
       renderLibraryGrid(category);
     }
 
@@ -1759,8 +1761,9 @@
       <!-- Search & Category Tabs -->
       <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
         <!-- Tabs -->
-        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto" id="lib-category-tabs">
+        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto" id="lib-category-tabs">
           <button onclick="filterLibraryCategory('darat')" id="tab-darat" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm">🌱 Darat</button>
+          <button onclick="filterLibraryCategory('hutan')" id="tab-hutan" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌳 Hutan</button>
           <button onclick="filterLibraryCategory('all')" id="tab-all" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">📦 Semua</button>
         </div>
 

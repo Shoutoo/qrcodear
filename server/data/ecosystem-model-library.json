@@ -70,5 +70,77 @@
         "license": "CC0"
       }
     ]
+  },
+  {
+    "ecosystem": "hutan",
+    "name": "Ekosistem Hutan",
+    "items": [
+      {
+        "id": "lib-hutan-pohon",
+        "name": "Pohon",
+        "role": "produsen",
+        "icon": "park",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/pohon.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/pohon-thumb.png",
+        "source": "Poly Pizza / Low-Poly Forest",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-hutan-ulat",
+        "name": "Ulat",
+        "role": "konsumen_primer",
+        "icon": "bug_report",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/ulat.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/ulat-thumb.png",
+        "source": "Poly Pizza / Low-Poly Insect",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-hutan-burung",
+        "name": "Burung Pemakan Serangga",
+        "role": "konsumen_sekunder",
+        "icon": "flutter",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/burung.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/burung-thumb.png",
+        "source": "Poly Pizza / Low-Poly Bird",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-hutan-ular",
+        "name": "Ular",
+        "role": "konsumen_tersier",
+        "icon": "waves",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/ular.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/ular-thumb.png",
+        "source": "Poly Pizza / Low-Poly Reptile",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-hutan-elang",
+        "name": "Elang",
+        "role": "konsumen_final",
+        "icon": "flight",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/elang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/elang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Bird",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-hutan-jamur",
+        "name": "Jamur",
+        "role": "decomposer",
+        "icon": "forest",
+        "modelSrc": "/uploads/ecosystem-models/library/hutan/jamur.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/hutan/jamur-thumb.png",
+        "source": "Poly Pizza / Low-Poly Fungi",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      }
+    ]
   }
 ]
