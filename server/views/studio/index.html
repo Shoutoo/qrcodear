@@ -30,6 +30,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 select-none">
 
@@ -98,6 +99,11 @@
       <div id="ecosystem-slots-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
         <div class="text-xs text-slate-400 text-center py-2">Memuat slot preset...</div>
       </div>
+
+      <!-- Bake & Publish Button (FASE P4) -->
+      <button onclick="publishBakedEcosystem()" class="w-full mt-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95">
+        <span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB (Reliable AR)
+      </button>
     </div>
     <div class="p-3 border-b border-slate-200/80">
       <div class="flex items-center justify-between mb-1.5">
@@ -437,6 +443,75 @@
         statusEl.textContent = 'Gagal upload model';
       } finally {
         input.value = '';
+      }
+    }
+
+    // ─── FASE P4: Bake Scene to Single GLB File ────────────────────
+    function bakeEcosystemToGLB() {
+      return new Promise((resolve, reject) => {
+        if (!ecosystemGroup) {
+          return reject(new Error('Scene preset ekosistem belum dimuat di canvas'));
+        }
+
+        const exporter = new THREE.GLTFExporter();
+        const options = {
+          binary: true,
+          embedImages: true,
+          onlyVisible: true
+        };
+
+        exporter.parse(
+          ecosystemGroup,
+          (gltfArrayBuffer) => {
+            const blob = new Blob([gltfArrayBuffer], { type: 'model/gltf-binary' });
+            resolve(blob);
+          },
+          (error) => {
+            console.error('GLTFExporter Error:', error);
+            reject(error);
+          },
+          options
+        );
+      });
+    }
+
+    async function publishBakedEcosystem() {
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = 'Membake Scene 3D ke file GLB...';
+
+      try {
+        const glbBlob = await bakeEcosystemToGLB();
+        const fileSizeMB = (glbBlob.size / (1024 * 1024)).toFixed(2);
+        statusEl.textContent = `Bake Berhasil! Ukuran: ${fileSizeMB} MB. Mengunggah ke server...`;
+
+        const formData = new FormData();
+        formData.append('bakedGlb', glbBlob, 'baked_ecosystem.glb');
+        if (currentActivePreset) {
+          formData.append('presetId', currentActivePreset.id);
+          formData.append('presetName', currentActivePreset.name);
+        }
+
+        const res = await fetch('/api/ecosystem/publish', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          statusEl.textContent = `Publish Berhasil! File GLB (${fileSizeMB} MB) Siap Dipakai ✨`;
+          if (typeof showPublishModal === 'function') {
+            showPublishModal(data);
+          } else {
+            alert(`Publish Berhasil! Direct URL: ${data.directUrl}`);
+          }
+        } else {
+          alert('Gagal publish GLB: ' + (data.error || 'Unknown error'));
+          statusEl.textContent = 'Gagal publish GLB';
+        }
+      } catch (err) {
+        console.error('Failed to bake & publish ecosystem:', err);
+        alert('Gagal membake scene ke GLB: ' + err.message);
+        statusEl.textContent = 'Gagal bake GLB';
       }
     }
 

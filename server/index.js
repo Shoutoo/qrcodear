@@ -634,6 +634,78 @@ app.post('/api/ecosystem/presets/:id/slot', upload.single('model'), (req, res) =
   }
 });
 
+const ECOSYSTEM_PUBLISHED_FILE = path.join(__dirname, 'data', 'ecosystem-published.json');
+
+function loadEcosystemPublished() {
+  if (!fs.existsSync(ECOSYSTEM_PUBLISHED_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(ECOSYSTEM_PUBLISHED_FILE, 'utf8')); }
+  catch { return []; }
+}
+
+function saveEcosystemPublished(published) {
+  fs.writeFileSync(ECOSYSTEM_PUBLISHED_FILE, JSON.stringify(published, null, 2), 'utf8');
+}
+
+const ecoBakeStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, ASSETS_DIR),
+  filename: (req, file, cb) => {
+    const id = 'eco_' + nanoid(10);
+    cb(null, `${id}.glb`);
+  }
+});
+
+const uploadEcoBake = multer({
+  storage: ecoBakeStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+
+app.post('/api/ecosystem/publish', uploadEcoBake.single('bakedGlb'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'File GLB hasil bake tidak ditemukan' });
+
+    const { presetId, presetName } = req.body;
+    const id = path.parse(req.file.filename).name;
+    const hostHeader = req.get('host') || 'localhost:3001';
+    const protocol = req.protocol || 'http';
+    const host = protocol + '://' + hostHeader;
+    const directUrl = `${host}/ecosystem/view/${id}`;
+
+    // Generate QR Code PNG
+    const qrFilename = `${id}_qr.png`;
+    const qrPath = path.join(ASSETS_DIR, qrFilename);
+    await qrcode.toFile(qrPath, directUrl, { margin: 2, width: 400 });
+    const qrCodeDataUrl = await qrcode.toDataURL(directUrl, { margin: 2, width: 400 });
+
+    const publishedItem = {
+      id,
+      presetId: presetId || 'preset-darat',
+      name: presetName || 'Rantai Makanan AR',
+      filename: req.file.filename,
+      glbUrl: `/assets/${req.file.filename}`,
+      size: req.file.size,
+      directUrl,
+      qrFilename,
+      qrCodeDataUrl,
+      publishedAt: new Date().toISOString()
+    };
+
+    const list = loadEcosystemPublished();
+    list.unshift(publishedItem);
+    saveEcosystemPublished(list);
+
+    res.json({
+      success: true,
+      id,
+      item: publishedItem,
+      directUrl,
+      qrCodeDataUrl
+    });
+  } catch (err) {
+    console.error('Error publishing ecosystem GLB:', err);
+    res.status(500).json({ error: 'Gagal publish ecosystem GLB: ' + err.message });
+  }
+});
+
 // ─── Catch-all: serve frontend ────────────────────────────────────────────────
 app.get('*', (req, res) => {
   const indexPath = path.join(CLIENT_DIR, 'index.html');
