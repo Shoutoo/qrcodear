@@ -225,6 +225,9 @@
       });
     }
 
+    let lastValidMatrix = new THREE.Matrix4();
+    let hasValidHit = false;
+
     async function setupARButton() {
       const arBtn = document.getElementById('start-ar-btn');
       const instructionText = document.getElementById('instruction-text');
@@ -247,12 +250,12 @@
       function objSrc(o) { return o.src || (o.assetData ? `/assets/${o.assetData.filename}` : null); }
 
       if (isWebXRSupported) {
-        instructionText.textContent = 'Tekan "Lihat dalam AR" untuk memindai ruangan (Tap-to-Place)';
+        instructionText.textContent = 'Tekan "Lihat dalam AR" untuk memindai ruangan';
         arBtn.addEventListener('click', async () => {
           try {
             const session = await navigator.xr.requestSession('immersive-ar', {
               requiredFeatures: ['hit-test'],
-              optionalFeatures: ['dom-overlay'],
+              optionalFeatures: ['dom-overlay', 'local-floor'],
               domOverlay: { root: document.getElementById('overlay-ui') }
             });
             onSessionStarted(session);
@@ -291,11 +294,17 @@
       }
     }
 
-    function onSessionStarted(session) {
+    async function onSessionStarted(session) {
       document.getElementById('start-ar-btn').style.display = 'none';
-      document.getElementById('instruction-text').textContent = 'Tap titik di meja/lantai untuk menempelkan scene';
+      document.getElementById('instruction-text').textContent = 'Arahkan kamera ke permukaan meja/lantai lalu tap layar';
 
-      renderer.xr.setReferenceSpaceType('local');
+      // Try local-floor for real-world floor tracking, fallback to local
+      try {
+        await renderer.xr.setReferenceSpaceType('local-floor');
+      } catch (e) {
+        await renderer.xr.setReferenceSpaceType('local');
+      }
+
       renderer.xr.setSession(session);
 
       controller = renderer.xr.getController(0);
@@ -314,6 +323,7 @@
     function onSessionEnded() {
       hitTestSourceRequested = false;
       hitTestSource = null;
+      hasValidHit = false;
       window.removeEventListener('click', onWindowTap);
       window.removeEventListener('touchstart', onWindowTap);
       document.getElementById('start-ar-btn').style.display = 'flex';
@@ -329,34 +339,28 @@
     function onSelect() {
       if (isPlaced) return;
 
-      if (reticle && reticle.visible) {
+      if (hasValidHit || (reticle && reticle.visible)) {
         const hitPos = new THREE.Vector3();
-        hitPos.setFromMatrixPosition(reticle.matrix);
+        hitPos.setFromMatrixPosition(reticle.matrix.elements[0] ? reticle.matrix : lastValidMatrix);
 
+        // Lock sceneGroup at exact 3D world position
         sceneGroup.position.copy(hitPos);
 
-        // Turn scene to face user camera naturally
+        // Turn scene to face user camera upright in world space
         const camPos = new THREE.Vector3();
         camera.getWorldPosition(camPos);
         sceneGroup.lookAt(camPos.x, sceneGroup.position.y, camPos.z);
+
+        sceneGroup.visible = true;
+        isPlaced = true;
+        if (reticle) reticle.visible = false;
+
+        const instr = document.getElementById('instruction-text');
+        if (instr) instr.textContent = '✨ Scene terkunci di posisi 3D nyata! Anda dapat berjalan keliling 360°.';
       } else {
-        // Fallback: position scene 1.5m in front of camera
-        const dir = new THREE.Vector3();
-        camera.getWorldDirection(dir);
-        dir.y = 0;
-        dir.normalize();
-
-        sceneGroup.position.copy(camera.position).add(dir.multiplyScalar(1.5));
-        sceneGroup.position.y = camera.position.y - 1.2;
-        sceneGroup.rotation.y = camera.rotation.y;
+        const instr = document.getElementById('instruction-text');
+        if (instr) instr.textContent = 'Gerakkan kamera perlahan untuk memindai lantai/meja...';
       }
-
-      sceneGroup.visible = true;
-      isPlaced = true;
-      if (reticle) reticle.visible = false;
-
-      const instr = document.getElementById('instruction-text');
-      if (instr) instr.textContent = '✨ Scene 3D menempel tepat di atas permukaan!';
     }
 
     function render(timestamp, frame) {
@@ -374,6 +378,7 @@
           session.addEventListener('end', () => {
             hitTestSourceRequested = false;
             hitTestSource = null;
+            hasValidHit = false;
           });
 
           hitTestSourceRequested = true;
@@ -388,6 +393,8 @@
 
             reticle.visible = true;
             reticle.matrix.fromArray(pose.transform.matrix);
+            lastValidMatrix.fromArray(pose.transform.matrix);
+            hasValidHit = true;
           } else {
             reticle.visible = false;
           }
