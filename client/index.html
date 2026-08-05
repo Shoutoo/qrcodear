@@ -204,11 +204,14 @@
 </div>
 <div class="hidden md:flex gap-gutter items-center">
 <a class="text-primary dark:text-secondary-fixed border-b-4 border-secondary font-bold pb-1 transition-transform hover:scale-105" href="#">Create</a>
+<a class="text-primary font-bold hover:scale-105 flex items-center gap-1 bg-primary/10 px-3 py-1 rounded-full text-xs" href="/studio"><span class="material-symbols-outlined text-sm">view_in_ar</span> AR Studio 3D</a>
 <a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary transition-transform hover:scale-105" href="#collection">Collection</a>
-<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary transition-transform hover:scale-105" href="#">Learn</a>
-<a class="text-on-surface-variant dark:text-surface-variant font-medium hover:text-primary transition-transform hover:scale-105" href="#">Help</a>
 </div>
-<button class="bg-primary text-white font-button-text text-button-text px-6 py-2 rounded-full chunky-button">Sign In</button>
+<div class="flex items-center gap-2">
+<a href="/studio" class="bg-secondary-container text-on-secondary-container font-button-text text-button-text px-4 py-2 rounded-full chunky-button text-xs font-bold flex items-center gap-1">
+  <span class="material-symbols-outlined text-sm">view_in_ar</span> Studio 3D
+</a>
+</div>
 </nav>
 <main class="pt-24 pb-20">
 <!-- Hero Section -->
@@ -242,6 +245,30 @@
 <span class="font-label-bold text-on-surface">Scan &amp; lihat ajaibnya</span>
 </div>
 </div>
+</section>
+
+<!-- AR Studio Feature Card Banner -->
+<section class="px-margin-page max-w-7xl mx-auto mb-stack-lg">
+  <div class="bg-gradient-to-r from-primary via-primary-container to-indigo-700 text-white rounded-3xl p-6 md:p-8 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border-2 border-white/10 relative overflow-hidden">
+    <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="flex items-center gap-5 text-left z-10">
+      <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md shrink-0 border border-white/20">
+        <span class="material-symbols-outlined text-4xl text-white">view_in_ar</span>
+      </div>
+      <div>
+        <div class="inline-flex items-center gap-1.5 bg-secondary text-on-secondary px-3.5 py-1 rounded-full text-xs font-bold mb-2 shadow-sm">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span> FITUR BARU: MULTI-OBJECT & TEXTURE
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold text-white leading-tight">AR Scene Studio 3D</h2>
+        <p class="text-xs md:text-sm text-white/90 max-w-2xl font-medium mt-1 leading-relaxed">
+          Gabungkan banyak model 3D, gambar, video texture, shapes primitive &amp; text 3D dalam 1 scene interaktif! Lengkap dengan fitur cetak barcode &amp; kartu AR langsung dari Studio.
+        </p>
+      </div>
+    </div>
+    <a href="/studio" class="z-10 bg-secondary text-on-secondary hover:bg-yellow-400 font-bold px-7 py-4 rounded-2xl shadow-xl flex items-center gap-2 text-sm shrink-0 hover:scale-105 transition-all border-2 border-white/30">
+      <span class="material-symbols-outlined">launch</span> Buka Studio 3D
+    </a>
+  </div>
 </section>
 
 <!-- Workspace Section -->
@@ -398,9 +425,14 @@
 <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
 <h2 class="font-headline-md text-headline-md text-on-surface">Koleksi Model</h2>
 </div>
+<div class="flex items-center gap-3">
 <div id="assetCount" class="bg-surface-container-high px-4 py-1 rounded-full text-label-bold font-label-bold text-on-surface-variant">
                     0 model
                 </div>
+<a href="/studio" class="bg-primary hover:bg-primary-container text-white font-bold text-xs px-4 py-2 rounded-full flex items-center gap-1.5 shadow-md transition-all">
+  <span class="material-symbols-outlined text-sm">view_in_ar</span> Buka AR Studio 3D
+</a>
+</div>
 </div>
 
 <!-- Live Search & Filter Bar -->
