@@ -472,6 +472,87 @@ app.get('/api/scenes', (req, res) => {
   res.json({ success: true, scenes });
 });
 
+// ─── Studio AR Scene Viewer (FASE 8 Opsi A & FASE C Tap-to-Place) ───────────────
+app.get('/studio/view/:id', (req, res) => {
+  const { id } = req.params;
+  const scenes = loadScenes();
+  const cleanId = id.replace(/^scene_/, '');
+  const scene = scenes.find(s => s.id === cleanId || s.id === id || s.sceneId === cleanId || s.sceneId === id);
+
+  if (!scene) {
+    return res.status(404).send('AR Scene tidak ditemukan');
+  }
+
+  const viewerPath = path.join(VIEWS_DIR, 'studio', 'viewer.html');
+  let html = fs.readFileSync(viewerPath, 'utf8');
+
+  html = html
+    .replace(/{{SCENE_NAME}}/g,      escapeHtml(scene.name || 'AR Multi-Object Scene'))
+    .replace(/{{SCENE_ID}}/g,        scene.id || scene.sceneId)
+    .replace(/{{SCENE_DATA_JSON}}/g, JSON.stringify(scene));
+
+  res.send(html);
+});
+
+app.get('/api/scenes/:id', (req, res) => {
+  const { id } = req.params;
+  const scenes = loadScenes();
+  const cleanId = id.replace(/^scene_/, '');
+  const scene = scenes.find(s => s.id === cleanId || s.id === id || s.sceneId === cleanId || s.sceneId === id);
+
+  if (!scene) return res.status(404).json({ error: 'Scene tidak ditemukan' });
+  res.json({ success: true, scene });
+});
+
+// ─── Studio Publish API Endpoint (FASE B) ──────────────────────────────────────
+app.post('/api/studio/publish/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { sceneData } = req.body;
+    let scenes = loadScenes();
+    const cleanId = id.replace(/^scene_/, '');
+
+    let sceneIndex = scenes.findIndex(s => s.id === cleanId || s.id === id || s.sceneId === cleanId || s.sceneId === id);
+    
+    let targetScene = sceneData || (sceneIndex !== -1 ? scenes[sceneIndex] : null);
+    if (!targetScene) {
+      targetScene = { id: cleanId || 'scene_' + Date.now(), name: 'AR Scene', objects: [] };
+    }
+
+    targetScene.id = cleanId || targetScene.id || 'scene_' + Date.now();
+    targetScene.sceneId = targetScene.id;
+    targetScene.isPublished = true;
+    targetScene.publishedAt = new Date().toISOString();
+
+    if (sceneIndex !== -1) {
+      scenes[sceneIndex] = targetScene;
+    } else {
+      scenes.push(targetScene);
+    }
+    saveScenes(scenes);
+
+    const protocol = req.protocol || 'http';
+    const host = req.get('host') || 'localhost:3001';
+    const directUrl = `${protocol}://${host}/studio/view/${targetScene.id}`;
+    const embedCode = `<iframe src="${directUrl}" width="100%" height="600" allow="camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking" frameborder="0"></iframe>`;
+
+    // Generate QR Code Data URL
+    const qrCodeDataUrl = await qrcode.toDataURL(directUrl, { margin: 2, width: 300 });
+
+    res.json({
+      success: true,
+      sceneId: targetScene.id,
+      sceneName: targetScene.name,
+      directUrl,
+      embedCode,
+      qrCodeDataUrl
+    });
+  } catch (err) {
+    console.error('Error publishing scene:', err);
+    res.status(500).json({ error: 'Gagal mempublish AR scene: ' + err.message });
+  }
+});
+
 // ─── Studio Media Upload API (FASE 5) ──────────────────────────────────────────
 app.get('/api/studio/media', (req, res) => {
   const media = loadMedia();

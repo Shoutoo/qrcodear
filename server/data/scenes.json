@@ -1,32 +1,56 @@
 [
   {
+    "id": "sample-scene-01",
     "sceneId": "sample-scene-01",
-    "name": "Sample Studio Scene",
+    "name": "Sample Studio Multi-Object Scene",
     "createdAt": "2026-08-05T14:15:00.000Z",
     "updatedAt": "2026-08-05T14:15:00.000Z",
     "objects": [
       {
-        "id": "light-1",
-        "name": "Ambient Light",
-        "type": "light",
-        "lightType": "ambient",
-        "color": "#ffffff",
-        "intensity": 0.6,
-        "position": [0, 5, 0],
-        "rotation": [0, 0, 0],
-        "scale": [1, 1, 1]
+        "id": "model-1",
+        "name": "Anatomi Model",
+        "type": "model",
+        "src": "/assets/draco_test.glb",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
       },
       {
-        "id": "light-2",
-        "name": "Directional Light",
-        "type": "light",
-        "lightType": "directional",
-        "color": "#ffffff",
-        "intensity": 0.8,
-        "position": [5, 10, 5],
-        "rotation": [0, 0, 0],
-        "scale": [1, 1, 1]
+        "id": "shape-1",
+        "name": "Green Box Primitive",
+        "type": "shape",
+        "shapeType": "box",
+        "color": "#10b981",
+        "position": [
+          0.6,
+          0.5,
+          0
+        ],
+        "rotation": [
+          0,
+          0.4,
+          0
+        ],
+        "scale": [
+          0.4,
+          0.4,
+          0.4
+        ]
       }
-    ]
+    ],
+    "isPublished": true,
+    "publishedAt": "2026-08-05T15:11:37.583Z"
   }
 ]

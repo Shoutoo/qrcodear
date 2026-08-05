@@ -965,6 +965,70 @@
       renderer.render(scene, camera);
     }
 
+    // ─── Publish Scene Handler (FASE B) ────────────────────────
+    async function publishCurrentScene() {
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = 'Mempublish Scene...';
+
+      const sceneId = 'scene_studio_' + Date.now();
+      const sceneData = {
+        id: sceneId,
+        sceneId: sceneId,
+        name: 'AR Studio Multi-Object Scene',
+        updatedAt: new Date().toISOString(),
+        objects: loadedSceneObjects.map(item => ({
+          id: item.id,
+          name: item.name,
+          type: item.type,
+          shapeType: item.shapeType,
+          color: item.color,
+          src: item.src || (item.assetData ? `/assets/${item.assetData.filename}` : null),
+          url: item.url,
+          position: [item.threeObject.position.x, item.threeObject.position.y, item.threeObject.position.z],
+          rotation: [item.threeObject.rotation.x, item.threeObject.rotation.y, item.threeObject.rotation.z],
+          scale: [item.threeObject.scale.x, item.threeObject.scale.y, item.threeObject.scale.z]
+        }))
+      };
+
+      try {
+        const res = await fetch(`/api/studio/publish/${sceneId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sceneData })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'Gagal publish');
+
+        statusEl.textContent = 'Published Live! ✨';
+
+        // Populate Publish Modal
+        document.getElementById('publish-qr-img').src = data.qrCodeDataUrl;
+        document.getElementById('publish-direct-url').value = data.directUrl;
+        document.getElementById('publish-embed-code').value = data.embedCode;
+        document.getElementById('publish-open-ar-btn').href = data.directUrl;
+        document.getElementById('publish-download-qr-btn').href = data.qrCodeDataUrl;
+
+        document.getElementById('modal-publish-scene').classList.remove('hidden');
+      } catch (err) {
+        alert('Error publish scene: ' + err.message);
+        statusEl.textContent = 'Publish Gagal';
+      }
+    }
+
+    function closePublishModal() {
+      document.getElementById('modal-publish-scene').classList.add('hidden');
+    }
+
+    function copyToClipboard(elementId, btnEl) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      navigator.clipboard.writeText(el.value).then(() => {
+        const origText = btnEl.innerHTML;
+        btnEl.innerHTML = '<span class="material-symbols-outlined text-xs">check</span> Copied!';
+        setTimeout(() => { btnEl.innerHTML = origText; }, 2000);
+      });
+    }
+
     // Start studio on DOM ready
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
@@ -997,6 +1061,63 @@
         </a>
         <a id="studio-open-ar-btn" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
           <span class="material-symbols-outlined text-sm">visibility</span> Open AR Viewer
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Publish Scene Modal (FASE B) ───────────────────────── -->
+  <div id="modal-publish-scene" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2 text-emerald-600 font-bold">
+          <span class="material-symbols-outlined">check_circle</span>
+          <h3 class="font-bold text-slate-800 text-base">AR Experience Anda Sudah Live!</h3>
+        </div>
+        <button onclick="closePublishModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- QR & Direct Link Section -->
+      <div class="flex flex-col sm:flex-row gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 shrink-0 w-36 h-36 flex flex-col items-center justify-center">
+          <img id="publish-qr-img" class="w-28 h-28 object-contain" src="" alt="QR Scene" />
+          <a id="publish-download-qr-btn" download="ar-scene-qr.png" href="#" class="text-[10px] font-bold text-emerald-600 hover:underline mt-1 flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[12px]">download</span> Download QR
+          </a>
+        </div>
+        
+        <div class="flex-1 space-y-3 w-full">
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1">Direct Link AR Scene:</label>
+            <div class="flex gap-1.5">
+              <input type="text" id="publish-direct-url" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-mono" />
+              <button onclick="copyToClipboard('publish-direct-url', this)" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                <span class="material-symbols-outlined text-xs">content_copy</span> Copy
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-bold text-slate-500 block mb-1">Embed Code (&lt;iframe&gt;):</label>
+            <div class="flex gap-1.5">
+              <input type="text" id="publish-embed-code" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-mono truncate" />
+              <button onclick="copyToClipboard('publish-embed-code', this)" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                <span class="material-symbols-outlined text-xs">code</span> Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3 pt-2">
+        <button onclick="closePublishModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs">
+          Tutup
+        </button>
+        <a id="publish-open-ar-btn" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md">
+          <span class="material-symbols-outlined text-sm">open_in_new</span> Buka Scene AR
         </a>
       </div>
     </div>
