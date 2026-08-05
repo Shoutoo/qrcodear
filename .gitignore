@@ -8,8 +8,9 @@ dist/
 scratch/
 server/uploads/*
 !server/uploads/.gitkeep
-!server/uploads/markers/custom-marker.patt
-!server/uploads/markers/custom-marker.png
-!server/uploads/markers/.gitkeep
+!server/uploads/markers/
+!server/uploads/markers/**
+!server/uploads/ecosystem-models/
 !server/uploads/ecosystem-models/**
-!server/uploads/eco_*_baked.glb
+!server/uploads/eco_*.glb
+!server/uploads/eco_*_qr.png
