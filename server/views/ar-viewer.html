@@ -249,6 +249,12 @@
       <p class="text-xs text-on-surface-variant font-medium">Magic AR Edu • {{UPLOAD_DATE}}</p>
     </div>
     <div class="ml-auto pointer-events-auto flex items-center gap-2">
+      <button id="btn-snapshot" class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-primary-container hover:text-white transition-all" title="Ambil Tangkapan Layar 3D">
+        <span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto
+      </button>
+      <button id="btn-share" class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-primary-container hover:text-white transition-all" title="Bagikan Tautan AR">
+        <span class="material-symbols-outlined text-sm">share</span> Bagikan
+      </button>
       <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/editor/{{ASSET_ID}}" target="_blank">
         <span class="material-symbols-outlined text-sm">edit_location_alt</span> Edit 3D
       </a>
@@ -418,8 +424,70 @@ if (viewer && ldBar && loadingLs) {
 }
 
 document.getElementById('overlay')?.addEventListener('click', (e) => {
-  if (e.target === document.getElementById('overlay')) closePopup();
+  if (infoPopup && infoPopup.classList.contains('show') && !infoPopup.contains(e.target) && !e.target.closest('.Hotspot')) {
+    closePopup();
+  }
 });
+
+// ─── Snapshot Capture Feature ───────────────────────────────
+const btnSnapshot = document.getElementById('btn-snapshot');
+if (btnSnapshot && viewer) {
+  btnSnapshot.addEventListener('click', async () => {
+    try {
+      btnSnapshot.disabled = true;
+      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Mengambil...`;
+      const blob = await viewer.toBlob({ idealAspect: true, mimeType: 'image/png' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `{{MODEL_NAME}}_AR_Snapshot_${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm text-green-500">check_circle</span> Berhasil!`;
+      setTimeout(() => {
+        btnSnapshot.disabled = false;
+        btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto`;
+      }, 2000);
+    } catch (err) {
+      console.error('Snapshot failed:', err);
+      alert('Gagal mengambil tangkapan layar 3D.');
+      btnSnapshot.disabled = false;
+      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto`;
+    }
+  });
+}
+
+// ─── Share Link Feature ─────────────────────────────────────
+const btnShare = document.getElementById('btn-share');
+if (btnShare) {
+  btnShare.addEventListener('click', async () => {
+    const shareData = {
+      title: '{{MODEL_NAME}} — Magic AR Edu',
+      text: 'Lihat model 3D interaktif ini dalam AR!',
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        copyToClipboard(window.location.href);
+      }
+    } else {
+      copyToClipboard(window.location.href);
+    }
+  });
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btnShare.innerHTML = `<span class="material-symbols-outlined text-sm text-green-500">check_circle</span> Tautan Disalin!`;
+    setTimeout(() => {
+      btnShare.innerHTML = `<span class="material-symbols-outlined text-sm">share</span> Bagikan`;
+    }, 2000);
+  }).catch(() => {
+    prompt('Salin tautan ini:', text);
+  });
+}
 </script>
 </body>
 </html>

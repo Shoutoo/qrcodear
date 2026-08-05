@@ -167,6 +167,14 @@ app.get('/ar/:id', (req, res) => {
     <a href="/" style="color:#7c5cfc;margin-top:16px;display:inline-block">← Kembali ke beranda</a></div></body></html>`);
   }
 
+  // Increment view counter
+  asset.viewCount = (asset.viewCount || 0) + 1;
+  const assetIndex = assets.findIndex(a => a.id === id);
+  if (assetIndex !== -1) {
+    assets[assetIndex].viewCount = asset.viewCount;
+    saveAssets(assets);
+  }
+
   const hostHeader = req.get('host') || '';
   const protocol = hostHeader.includes('localhost') ? 'http' : 'https';
   const host      = protocol + '://' + hostHeader;

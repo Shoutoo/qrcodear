@@ -393,7 +393,7 @@
 
 <!-- Koleksi Model Section -->
 <section id="collection" class="px-margin-page max-w-7xl mx-auto mb-stack-lg">
-<div class="flex justify-between items-center mb-stack-md">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-stack-md">
 <div class="flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
 <h2 class="font-headline-md text-headline-md text-on-surface">Koleksi Model</h2>
@@ -401,6 +401,23 @@
 <div id="assetCount" class="bg-surface-container-high px-4 py-1 rounded-full text-label-bold font-label-bold text-on-surface-variant">
                     0 model
                 </div>
+</div>
+
+<!-- Live Search & Filter Bar -->
+<div class="flex flex-col sm:flex-row gap-3 mb-6 bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+  <div class="relative flex-1">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline-variant text-sm">search</span>
+    <input type="text" id="searchInput" placeholder="Cari nama atau deskripsi model..." class="w-full bg-white dark:bg-surface border border-outline-variant rounded-lg pl-9 pr-4 py-2 text-sm font-body-md focus:border-primary focus:ring-0" oninput="filterGallery()" />
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-xs font-bold text-on-surface-variant uppercase whitespace-nowrap">Filter:</span>
+    <select id="formatFilter" class="bg-white dark:bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm font-body-md focus:border-primary focus:ring-0 cursor-pointer" onchange="filterGallery()">
+      <option value="all">Semua Model</option>
+      <option value="glb">GLB Format</option>
+      <option value="usdz">USDZ Ready (iOS)</option>
+      <option value="annotated">Dengan Anotasi 3D</option>
+    </select>
+  </div>
 </div>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter" id="galleryGrid">
@@ -679,12 +696,37 @@ function downloadQR() {
 }
 
 // ─── Gallery Handling ───────────────────────────────────────
+let allAssets = [];
+
 async function loadGallery() {
   try {
     const res  = await fetch('/api/assets');
     const data = await res.json();
-    renderGallery(data.assets || []);
-  } catch { renderGallery([]); }
+    allAssets = data.assets || [];
+    filterGallery();
+  } catch {
+    allAssets = [];
+    renderGallery([]);
+  }
+}
+
+function filterGallery() {
+  const query  = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+  const format = document.getElementById('formatFilter')?.value || 'all';
+
+  const filtered = allAssets.filter(a => {
+    const nameMatch = (a.name || '').toLowerCase().includes(query) ||
+                      (a.originalName || '').toLowerCase().includes(query) ||
+                      (a.description || '').toLowerCase().includes(query);
+    if (!nameMatch) return false;
+
+    if (format === 'usdz') return !!a.usdzUrl;
+    if (format === 'glb') return (a.filename || '').endsWith('.glb');
+    if (format === 'annotated') return (a.annotations || []).length > 0;
+    return true;
+  });
+
+  renderGallery(filtered);
 }
 
 function renderGallery(assets) {
@@ -720,6 +762,7 @@ function renderGallery(assets) {
     const date = new Date(a.uploadedAt).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
     const size = formatBytes(a.size || 0);
     const annLen = (a.annotations || []).length;
+    const views = a.viewCount || 0;
     const printUrl = a.printUrl || `/print/${a.id}`;
     
     // SVG icon placeholder based on extension
@@ -729,19 +772,22 @@ function renderGallery(assets) {
       <div class="bg-surface-container-lowest p-4 rounded-xl magic-card group flex flex-col" id="card-${a.id}">
         <div class="relative w-full h-40 bg-surface-container rounded-lg mb-3 flex items-center justify-center overflow-hidden border border-outline-variant/30">
           <span class="material-symbols-outlined text-6xl text-primary/40 group-hover:scale-110 transition-transform">${iconSym}</span>
-          <span class="absolute top-2 right-2 ${ext.class} text-[10px] px-2 py-0.5 rounded font-bold">${ext.name}</span>
-          ${annLen ? `<span class="absolute bottom-2 left-2 bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">sell</span> ${annLen} Label</span>` : ''}
+          <div class="absolute top-2 right-2 flex flex-col items-end gap-1">
+            <span class="${ext.class} text-[10px] px-2 py-0.5 rounded font-bold">${ext.name}</span>
+            ${a.usdzUrl ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[9px] px-1.5 py-0.5 rounded font-bold">iOS Ready</span>` : ''}
+          </div>
+          ${annLen ? `<span class="absolute bottom-2 left-2 bg-secondary-container text-on-secondary-container text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">sell</span> ${annLen} Hotspot</span>` : ''}
         </div>
         <h3 class="font-label-bold text-on-surface truncate" title="${escHtml(a.name || a.originalName)}">${escHtml(a.name || a.originalName)}</h3>
         <p class="text-xs text-on-surface-variant mb-3 line-clamp-2 min-h-[32px]">${a.description ? escHtml(a.description) : '<span class="italic">Tidak ada deskripsi</span>'}</p>
         
         <div class="flex items-center justify-between text-[10px] text-outline mb-4 mt-auto">
-          <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">calendar_today</span> ${date}</span>
+          <span class="flex items-center gap-1" title="Jumlah tayangan AR"><span class="material-symbols-outlined text-[12px]">visibility</span> ${views} views</span>
           <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">database</span> ${size}</span>
         </div>
         
-        <div class="flex gap-2">
-          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" href="/editor/${a.id}" title="Editor Anotasi 3D">
+        <div class="flex gap-1.5">
+          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" href="/editor/${a.id}" title="Editor Hotspot 3D">
             <span class="material-symbols-outlined text-sm">edit_location_alt</span>
           </a>
           <button class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" onclick="viewQR('${a.id}')" title="Lihat QR Code">
@@ -751,7 +797,7 @@ function renderGallery(assets) {
             <span class="material-symbols-outlined text-sm">print</span>
           </a>
           <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-tertiary/10 transition-colors text-tertiary" href="${escHtml(a.viewerUrl)}" target="_blank" title="Buka AR Viewer">
-            <span class="material-symbols-outlined text-sm">visibility</span>
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
           </a>
           <button class="bg-error-container/40 text-error p-2 rounded hover:bg-error-container transition-colors" onclick="deleteAsset('${a.id}')" title="Hapus">
             <span class="material-symbols-outlined text-sm">delete</span>

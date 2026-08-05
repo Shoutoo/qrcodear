@@ -151,27 +151,15 @@
         <div class="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-bold print-exact">Kartu AR</div>
       </div>
 
-      <!-- Card Body: Marker + QR (Single Unified Card) -->
-      <div class="flex items-stretch border-b-2 border-dashed border-outline-variant/30">
-        
-        <!-- Left: Marker AR -->
-        <div class="flex-1 p-5 flex flex-col items-center border-r-2 border-dashed border-outline-variant/30">
-          <div class="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">① Marker AR</div>
-          <div class="w-32 h-32 border-4 border-on-background rounded-lg flex items-center justify-center bg-white p-1 mb-2">
-            <img class="w-full h-full object-contain" src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Marker AR" />
-          </div>
-          <div class="text-xs text-on-surface-variant text-center leading-tight">Sorot kamera AR ke marker ini</div>
+      <!-- Card Body: QR Code Only (Markerless AR Card) -->
+      <div class="p-8 flex flex-col items-center border-b-2 border-dashed border-outline-variant/30 text-center">
+        <div class="text-xs font-bold text-primary uppercase tracking-wider mb-3">Scan QR Code Ini Dengan Kamera HP</div>
+        <div class="w-48 h-48 border-4 border-primary/20 rounded-2xl flex items-center justify-center bg-white p-2 mb-3 shadow-inner">
+          <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
         </div>
-
-        <!-- Right: QR Code -->
-        <div class="flex-1 p-5 flex flex-col items-center">
-          <div class="text-[10px] font-bold text-outline uppercase tracking-wider mb-2">② Scan Disini</div>
-          <div class="w-32 h-32 border-2 border-surface-container-high rounded-lg flex items-center justify-center bg-white p-1 mb-2">
-            <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
-          </div>
-          <div class="text-xs text-on-surface-variant text-center leading-tight">Scan untuk membuka AR Viewer</div>
-        </div>
-
+        <p class="text-xs text-on-surface-variant max-w-xs leading-relaxed font-medium">
+          Arahkan kamera HP ke QR Code untuk membuka AR Viewer, lalu tempatkan model 3D ajaib ini langsung di ruang nyata (Markerless WebAR).
+        </p>
       </div>
 
       <!-- Card Footer -->
