@@ -406,10 +406,12 @@
       document.getElementById('tap-instruction').style.display = 'flex';
       document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan & mengunci scene 3D';
 
-      // Check if anchors feature was granted by browser/device
+      // Check if anchors & hit-test features were granted by browser/device
       if (session.enabledFeatures) {
-        const isGranted = Array.from(session.enabledFeatures).includes('anchors');
-        debugState.anchorsGranted = isGranted ? 'TRUE (Granted by browser)' : 'FALSE (Denied / Not Supported)';
+        const features = Array.from(session.enabledFeatures);
+        const anchorsOk = features.includes('anchors');
+        const hitTestOk = features.includes('hit-test');
+        debugState.anchorsGranted = `anchors:${anchorsOk ? 'TRUE' : 'FALSE'}, hit-test:${hitTestOk ? 'TRUE' : 'FALSE'}`;
       } else {
         debugState.anchorsGranted = 'Unknown (session.enabledFeatures missing)';
       }
@@ -612,9 +614,9 @@
           updateDebugHUD();
 
           session.requestReferenceSpace('viewer').then((viewerSpace) => {
-            session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+            session.requestHitTestSource({ space: viewerSpace, offsetRay: new XRRay() }).then((source) => {
               hitTestSource = source;
-              debugState.hitTestSource = 'READY (Source Created)';
+              debugState.hitTestSource = 'READY (Source + XRRay Created)';
               updateDebugHUD();
             }).catch(err => {
               debugState.hitTestSource = 'ERROR: ' + err.message;
