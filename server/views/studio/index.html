@@ -930,6 +930,7 @@
           type: 'model',
           assetId: assetId,
           assetData: assetData,
+          src: url || (assetData ? `/assets/${assetData.filename}` : null),
           threeObject: model
         };
         loadedSceneObjects.push(record);
@@ -1062,18 +1063,29 @@
         sceneId: sceneId,
         name: 'AR Studio Multi-Object Scene',
         updatedAt: new Date().toISOString(),
-        objects: loadedSceneObjects.map(item => ({
-          id: item.id,
-          name: item.name,
-          type: item.type,
-          shapeType: item.shapeType,
-          color: item.color,
-          src: item.src || (item.assetData ? `/assets/${item.assetData.filename}` : null),
-          url: item.url,
-          position: [item.threeObject.position.x, item.threeObject.position.y, item.threeObject.position.z],
-          rotation: [item.threeObject.rotation.x, item.threeObject.rotation.y, item.threeObject.rotation.z],
-          scale: [item.threeObject.scale.x, item.threeObject.scale.y, item.threeObject.scale.z]
-        }))
+        objects: loadedSceneObjects.map(item => {
+          let modelSrc = item.src;
+          if (!modelSrc && item.assetData && item.assetData.filename) {
+            modelSrc = `/assets/${item.assetData.filename}`;
+          }
+          if (!modelSrc && item.url) {
+            modelSrc = item.url;
+          }
+
+          return {
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            shapeType: item.shapeType,
+            color: item.color,
+            content: item.content || item.textStr || item.name,
+            src: modelSrc,
+            url: item.url || modelSrc,
+            position: [item.threeObject.position.x, item.threeObject.position.y, item.threeObject.position.z],
+            rotation: [item.threeObject.rotation.x, item.threeObject.rotation.y, item.threeObject.rotation.z],
+            scale: [item.threeObject.scale.x, item.threeObject.scale.y, item.threeObject.scale.z]
+          };
+        })
       };
 
       try {

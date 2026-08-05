@@ -83,5 +83,37 @@
     ],
     "isPublished": true,
     "publishedAt": "2026-08-05T15:16:05.937Z"
+  },
+  {
+    "id": "studio_1785943380299",
+    "sceneId": "studio_1785943380299",
+    "name": "AR Studio Multi-Object Scene",
+    "updatedAt": "2026-08-05T15:23:00.299Z",
+    "objects": [
+      {
+        "id": "text_1",
+        "name": "Text: \"Magic AR\"",
+        "type": "text",
+        "color": "#8b5cf6",
+        "src": null,
+        "position": [
+          0,
+          0.5,
+          -1.586841438127883
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "isPublished": true,
+    "publishedAt": "2026-08-05T15:23:00.308Z"
   }
 ]

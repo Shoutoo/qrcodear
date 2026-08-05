@@ -161,7 +161,7 @@
         if (obj.rotation) itemGroup.rotation.set(obj.rotation[0] || 0, obj.rotation[1] || 0, obj.rotation[2] || 0);
         if (obj.scale) itemGroup.scale.set(obj.scale[0] || 1, obj.scale[1] || 1, obj.scale[2] || 1);
 
-        const modelPath = obj.src || (obj.assetData ? `/assets/${obj.assetData.filename}` : null);
+        const modelPath = obj.src || obj.url || (obj.assetData ? `/assets/${obj.assetData.filename}` : null);
 
         if (obj.type === 'model' && modelPath) {
           gltfLoader.load(modelPath, (gltf) => {
