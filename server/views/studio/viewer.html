@@ -73,6 +73,19 @@
       </a>
     </div>
 
+    <!-- Real-time Debug HUD Overlay (For XRAnchor verification) -->
+    <div id="debug-hud" class="bg-black/85 text-emerald-400 font-mono text-[10px] p-3 rounded-2xl border border-emerald-500/40 shadow-2xl pointer-events-auto max-w-xs space-y-1 my-2">
+      <div class="font-bold text-white border-b border-emerald-500/30 pb-1 flex justify-between items-center">
+        <span>🔍 XRANCHOR DEBUG HUD</span>
+        <span class="text-[9px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700">LIVE</span>
+      </div>
+      <div>Anchors Granted: <span id="hud-anchors-granted" class="text-amber-300 font-bold">Checking...</span></div>
+      <div>createAnchor(): <span id="hud-create-anchor" class="text-amber-300 font-bold">Not called yet</span></div>
+      <div>Active Anchor: <span id="hud-active-anchor" class="text-cyan-300 font-bold">None</span></div>
+      <div>Anchor Pose: <span id="hud-anchor-pose" class="text-slate-300">--</span></div>
+      <div>Pose Updates: <span id="hud-pose-count" class="text-purple-300 font-bold">0</span></div>
+    </div>
+
     <!-- Instruction Badge & Action Buttons (Center Bottom) -->
     <div class="flex flex-col items-center gap-3 pointer-events-auto mb-6">
       
@@ -111,6 +124,41 @@
     let activeAnchor = null;
     let lastHitTestResult = null;
     let hasValidHit = false;
+
+    // Real-time Debug HUD State
+    let debugState = {
+      anchorsGranted: 'Checking...',
+      createStatus: 'Not called yet',
+      createError: '',
+      activeStatus: 'None',
+      anchorPose: '--',
+      poseCount: 0
+    };
+
+    function updateDebugHUD() {
+      const gEl = document.getElementById('hud-anchors-granted');
+      const cEl = document.getElementById('hud-create-anchor');
+      const aEl = document.getElementById('hud-active-anchor');
+      const pEl = document.getElementById('hud-anchor-pose');
+      const cntEl = document.getElementById('hud-pose-count');
+
+      if (gEl) {
+        gEl.textContent = debugState.anchorsGranted;
+        gEl.className = debugState.anchorsGranted.includes('TRUE') ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+      }
+      if (cEl) {
+        if (debugState.createError) {
+          cEl.textContent = `${debugState.createStatus} [ERR: ${debugState.createError}]`;
+          cEl.className = 'text-rose-400 font-bold break-all';
+        } else {
+          cEl.textContent = debugState.createStatus;
+          cEl.className = debugState.createStatus.includes('SUCCESS') ? 'text-emerald-400 font-bold' : 'text-amber-300 font-bold';
+        }
+      }
+      if (aEl) aEl.textContent = debugState.activeStatus;
+      if (pEl) pEl.textContent = debugState.anchorPose;
+      if (cntEl) cntEl.textContent = debugState.poseCount;
+    }
 
     let sceneGroup; // Root group containing all multi-objects
     let isPlaced = false;
@@ -322,6 +370,15 @@
       document.getElementById('tap-instruction').style.display = 'flex';
       document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan & mengunci scene 3D';
 
+      // Check if anchors feature was granted by browser/device
+      if (session.enabledFeatures) {
+        const isGranted = Array.from(session.enabledFeatures).includes('anchors');
+        debugState.anchorsGranted = isGranted ? 'TRUE (Granted by browser)' : 'FALSE (Denied / Not Supported)';
+      } else {
+        debugState.anchorsGranted = 'Unknown (session.enabledFeatures missing)';
+      }
+      updateDebugHUD();
+
       try {
         await renderer.xr.setReferenceSpaceType('local-floor');
       } catch (e) {
@@ -356,6 +413,17 @@
       if (reticle) reticle.visible = false;
       sceneGroup.visible = false;
 
+      // Reset HUD Debug State
+      debugState = {
+        anchorsGranted: 'Checking...',
+        createStatus: 'Not called yet',
+        createError: '',
+        activeStatus: 'None',
+        anchorPose: '--',
+        poseCount: 0
+      };
+      updateDebugHUD();
+
       window.removeEventListener('click', onWindowTap);
       window.removeEventListener('touchstart', onWindowTap);
 
@@ -377,16 +445,32 @@
       if (isPlaced) return;
 
       // Try creating WebXR XRAnchor if hit test result available
-      if (lastHitTestResult && typeof lastHitTestResult.createAnchor === 'function') {
-        try {
-          const anchor = await lastHitTestResult.createAnchor();
-          if (anchor) {
-            activeAnchor = anchor;
+      if (lastHitTestResult) {
+        if (typeof lastHitTestResult.createAnchor === 'function') {
+          debugState.createStatus = 'Calling createAnchor()...';
+          updateDebugHUD();
+          try {
+            const anchor = await lastHitTestResult.createAnchor();
+            if (anchor) {
+              activeAnchor = anchor;
+              debugState.createStatus = 'SUCCESS (XRAnchor Created)';
+              debugState.createError = '';
+              debugState.activeStatus = 'ACTIVE';
+            } else {
+              debugState.createStatus = 'FAILED (Returned null)';
+            }
+          } catch (err) {
+            debugState.createStatus = 'EXCEPTION ERROR';
+            debugState.createError = err.message || String(err);
+            console.error('createAnchor error:', err);
           }
-        } catch (err) {
-          console.warn('XRAnchor creation fallback:', err);
+        } else {
+          debugState.createStatus = 'UNAVAILABLE (createAnchor method missing on hitResult)';
         }
+      } else {
+        debugState.createStatus = 'SKIPPED (No lastHitTestResult)';
       }
+      updateDebugHUD();
 
       if (hasValidHit || (reticle && reticle.visible)) {
         const hitPos = new THREE.Vector3();
@@ -432,6 +516,13 @@
       isPlaced = false;
       sceneGroup.visible = false;
 
+      debugState.createStatus = 'Reset (Not called)';
+      debugState.createError = '';
+      debugState.activeStatus = 'None';
+      debugState.anchorPose = '--';
+      debugState.poseCount = 0;
+      updateDebugHUD();
+
       document.getElementById('reset-ar-btn').style.display = 'none';
       document.getElementById('tap-instruction').style.display = 'flex';
       document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan di posisi baru';
@@ -448,7 +539,15 @@
           if (anchorPose) {
             sceneGroup.matrix.fromArray(anchorPose.transform.matrix);
             sceneGroup.matrix.decompose(sceneGroup.position, sceneGroup.quaternion, sceneGroup.scale);
+
+            debugState.poseCount++;
+            const pos = sceneGroup.position;
+            debugState.anchorPose = `x:${pos.x.toFixed(2)} y:${pos.y.toFixed(2)} z:${pos.z.toFixed(2)}`;
+            debugState.activeStatus = `ACTIVE (Pose Update #${debugState.poseCount})`;
+          } else {
+            debugState.anchorPose = 'getPose() returned NULL';
           }
+          updateDebugHUD();
         }
 
         // 2. Request HitTestSource if not requested yet
