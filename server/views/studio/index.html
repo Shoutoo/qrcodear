@@ -193,12 +193,13 @@
 
   <!-- ── 3D Scene Initialization & Model Management ──────────── -->
   <script>
-    let scene, camera, renderer, controls, transformControls, gltfLoader;
-    let fontLoader = new THREE.FontLoader();
+    // ─── Studio Global State ─────────────────────────────────────
+    let scene, camera, renderer, controls, transformControls;
+    let gltfLoader, loadedFont;
     let textureLoader = new THREE.TextureLoader();
-    let loadedFont = null;
     let loadedSceneObjects = [];
     let selectedSceneObject = null;
+    let allAssets = [];
     let objectCounter = 0;
     let raycaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
@@ -796,7 +797,8 @@
       try {
         const res = await fetch('/api/assets');
         const data = await res.json();
-        const assets = (data.assets || []).filter(a => a.filename && a.filename.endsWith('.glb'));
+        allAssets = data.assets || [];
+        const assets = allAssets.filter(a => a.filename && a.filename.endsWith('.glb'));
 
         if (!assets.length) {
           container.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">Belum ada file .glb yang diunggah.</div>';
@@ -832,11 +834,13 @@
 
         scene.add(model);
 
+        const assetData = allAssets.find(a => a.id === assetId);
         const record = {
           id: objId,
           name: `${name} #${objectCounter}`,
           type: 'model',
           assetId: assetId,
+          assetData: assetData,
           threeObject: model
         };
         loadedSceneObjects.push(record);
@@ -915,12 +919,18 @@
       const printBtn = document.getElementById('studio-print-card-btn');
       const openArBtn = document.getElementById('studio-open-ar-btn');
 
-      const activeAsset = (loadedSceneObjects.length && loadedSceneObjects[0].assetData)
-        ? loadedSceneObjects[0].assetData
-        : (allAssets.length ? allAssets[0] : null);
+      let activeAsset = null;
+      if (typeof loadedSceneObjects !== 'undefined' && loadedSceneObjects.length) {
+        const found = loadedSceneObjects.find(o => o.assetData);
+        if (found) activeAsset = found.assetData;
+      }
+      if (!activeAsset && typeof allAssets !== 'undefined' && allAssets.length) {
+        activeAsset = allAssets[0];
+      }
 
       if (activeAsset) {
-        qrImg.src = `/assets/${activeAsset.qrFilename}`;
+        const qrName = activeAsset.qrFilename || `${activeAsset.id}_qr.png`;
+        qrImg.src = `/assets/${qrName}`;
         printBtn.href = `/print/${activeAsset.id}`;
         openArBtn.href = `/ar/${activeAsset.id}`;
       } else {
