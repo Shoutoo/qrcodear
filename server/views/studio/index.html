@@ -46,12 +46,22 @@
       </div>
       <div>
         <h1 class="font-bold text-sm text-slate-800 leading-none">AR Scene Studio</h1>
-        <p class="text-[10px] text-slate-500 mt-1 font-semibold">FASE A • Bright Studio Theme</p>
+        <p class="text-[10px] text-emerald-700 mt-1 font-bold" id="studio-mode-badge">🌱 Preset Ekosistem (Reliable AR)</p>
       </div>
     </div>
 
+    <!-- Studio Mode Navigation Switcher (FASE P6) -->
+    <div class="bg-white/95 backdrop-blur-md border border-slate-200 p-1.5 rounded-2xl shadow-md flex items-center gap-1 pointer-events-auto">
+      <button id="nav-mode-preset" onclick="switchStudioMode('preset')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-sm" title="Preset Rantai Makanan 6 Slot (Bake GLB, 100% Reliable AR)">
+        <span class="material-symbols-outlined text-sm">cyclone</span> Preset Ekosistem (Reliable AR)
+      </button>
+      <button id="nav-mode-manual" onclick="switchStudioMode('manual')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100" title="Editor Multi-Object Bebas (WebXR Tap-to-Place, FASE C)">
+        <span class="material-symbols-outlined text-sm">handshake</span> Mode Manual (WebXR Tap-to-Place)
+      </button>
+    </div>
+
     <!-- Transform Mode Toolbar (Center Top - Contrast Dark Overlay) -->
-    <div class="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center gap-1 pointer-events-auto">
+    <div id="gizmo-toolbar" class="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center gap-1 pointer-events-auto">
       <button id="btn-mode-translate" onclick="setGizmoMode('translate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-md" title="Translasi / Geser (Posisi) [Key: W]">
         <span class="material-symbols-outlined text-sm">open_with</span> Position (W)
       </button>
@@ -68,8 +78,8 @@
       <button onclick="openPrintBarcodeModal()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md transition-all" title="Cetak Barcode QR & Kartu AR">
         <span class="material-symbols-outlined text-sm">print</span> Cetak Barcode / QR
       </button>
-      <button onclick="publishCurrentScene()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all" title="Publish / Simpan Scene">
-        <span class="material-symbols-outlined text-sm">publish</span> Publish
+      <button id="btn-main-publish" onclick="publishBakedEcosystem()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all" title="Bake & Publish GLB (Reliable AR)">
+        <span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB
       </button>
       <div class="bg-white/95 backdrop-blur-md border border-slate-200 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-700 flex items-center gap-2 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -82,7 +92,7 @@
   <aside class="absolute top-20 left-4 bottom-16 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
     
     <!-- Section 1.0: Ecosystem Preset Picker (FASE P3) -->
-    <div class="p-3 border-b border-emerald-200/80 bg-emerald-50/50">
+    <div id="ecosystem-preset-card" class="p-3 border-b border-emerald-200/80 bg-emerald-50/50">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px] uppercase tracking-wider">
           <span class="material-symbols-outlined text-xs text-emerald-600">cyclone</span> Preset Rantai Makanan
@@ -322,6 +332,54 @@
     // ─── FASE P3: Ecosystem Preset Picker & Slot Editor ───────────
     let ecosystemGroup = null;
     let currentActivePreset = null;
+
+    // ─── FASE P6: Studio Mode Switcher (Preset vs Mode Manual) ─────
+    let currentStudioMode = 'preset'; // 'preset' or 'manual'
+
+    function switchStudioMode(mode) {
+      currentStudioMode = mode;
+
+      const btnPreset = document.getElementById('nav-mode-preset');
+      const btnManual = document.getElementById('nav-mode-manual');
+      const presetCard = document.getElementById('ecosystem-preset-card');
+      const statusBadge = document.getElementById('studio-mode-badge');
+      const mainPublishBtn = document.getElementById('btn-main-publish');
+      const gizmoToolbar = document.getElementById('gizmo-toolbar');
+
+      if (mode === 'preset') {
+        if (btnPreset) btnPreset.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-sm';
+        if (btnManual) btnManual.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100';
+        if (presetCard) presetCard.style.display = 'block';
+        if (statusBadge) statusBadge.textContent = '🌱 Preset Ekosistem (Reliable AR)';
+        if (gizmoToolbar) gizmoToolbar.style.display = 'none';
+
+        if (mainPublishBtn) {
+          mainPublishBtn.onclick = publishBakedEcosystem;
+          mainPublishBtn.innerHTML = '<span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB';
+          mainPublishBtn.className = 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all';
+        }
+
+        if (currentActivePreset) {
+          renderEcosystemLayout(currentActivePreset);
+        }
+      } else {
+        if (btnManual) btnManual.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm';
+        if (btnPreset) btnPreset.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100';
+        if (presetCard) presetCard.style.display = 'none';
+        if (statusBadge) statusBadge.textContent = '⚡ Mode Manual (WebXR Tap-to-Place, FASE C)';
+        if (gizmoToolbar) gizmoToolbar.style.display = 'flex';
+
+        if (mainPublishBtn) {
+          mainPublishBtn.onclick = publishCurrentScene;
+          mainPublishBtn.innerHTML = '<span class="material-symbols-outlined text-sm">publish</span> Publish Scene (WebXR)';
+          mainPublishBtn.className = 'bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-indigo-400/30 transition-all';
+        }
+
+        if (ecosystemGroup) {
+          ecosystemGroup.visible = false;
+        }
+      }
+    }
 
     async function loadEcosystemPresetsUI() {
       try {
