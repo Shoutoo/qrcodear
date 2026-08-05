@@ -62,10 +62,15 @@
       </button>
     </div>
 
-    <!-- Status Badge -->
-    <div class="bg-slate-900/95 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-400 flex items-center gap-2 pointer-events-auto">
-      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-      <span id="studio-status">Studio Ready</span>
+    <!-- Right Actions: Print Barcode & Save (Top Right) -->
+    <div class="flex items-center gap-2 pointer-events-auto">
+      <button onclick="openPrintBarcodeModal()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg border border-indigo-400/30 transition-all" title="Cetak Barcode QR & Kartu AR">
+        <span class="material-symbols-outlined text-sm">print</span> Cetak Barcode / QR
+      </button>
+      <div class="bg-slate-900/95 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-400 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="studio-status">Studio Ready</span>
+      </div>
     </div>
   </header>
 
@@ -903,6 +908,34 @@
       }).join('');
     }
 
+    // ─── Print Barcode / QR Code Modal Handler ─────────────────
+    function openPrintBarcodeModal() {
+      const modal = document.getElementById('modal-print-barcode');
+      const qrImg = document.getElementById('studio-qr-img');
+      const printBtn = document.getElementById('studio-print-card-btn');
+      const openArBtn = document.getElementById('studio-open-ar-btn');
+
+      const activeAsset = (loadedSceneObjects.length && loadedSceneObjects[0].assetData)
+        ? loadedSceneObjects[0].assetData
+        : (allAssets.length ? allAssets[0] : null);
+
+      if (activeAsset) {
+        qrImg.src = `/assets/${activeAsset.qrFilename}`;
+        printBtn.href = `/print/${activeAsset.id}`;
+        openArBtn.href = `/ar/${activeAsset.id}`;
+      } else {
+        qrImg.src = '/assets/markers/custom-marker.png';
+        printBtn.href = '#';
+        openArBtn.href = '#';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closePrintBarcodeModal() {
+      document.getElementById('modal-print-barcode').classList.add('hidden');
+    }
+
     function escHtml(s) {
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
@@ -922,5 +955,38 @@
     // Start studio on DOM ready
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
+
+  <!-- ── Print Barcode & Kartu AR Modal ───────────────────────── -->
+  <div id="modal-print-barcode" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl text-center space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-400">qr_code_2</span>
+          <h3 class="font-bold text-slate-100 text-base">Cetak Barcode & Kartu AR</h3>
+        </div>
+        <button onclick="closePrintBarcodeModal()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- QR Code Image Preview -->
+      <div class="bg-white p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner flex items-center justify-center border-4 border-indigo-500/20">
+        <img id="studio-qr-img" class="w-full h-full object-contain" src="" alt="QR Code AR Studio" />
+      </div>
+
+      <p class="text-xs text-slate-400 font-medium leading-relaxed">
+        Scan QR Code ini dengan HP atau cetak Kartu AR untuk melihat gabungan scene 3D secara markerless di ruang nyata.
+      </p>
+
+      <div class="flex items-center gap-3 pt-2">
+        <a id="studio-print-card-btn" href="#" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+          <span class="material-symbols-outlined text-sm">print</span> Cetak Kartu AR
+        </a>
+        <a id="studio-open-ar-btn" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+          <span class="material-symbols-outlined text-sm">visibility</span> Open AR Viewer
+        </a>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
