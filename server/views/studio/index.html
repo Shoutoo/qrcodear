@@ -431,10 +431,15 @@
                 <span class="material-symbols-outlined text-xs text-emerald-600">${icon}</span>
                 <span>#${index+1} ${roleTitle}</span>
               </div>
-              <label class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-lg cursor-pointer border border-emerald-300 flex items-center gap-0.5 transition-colors">
-                <span class="material-symbols-outlined text-[12px]">upload</span> Swap 3D
-                <input type="file" accept=".glb,.gltf" onchange="uploadSlotModelFile(${index}, this)" class="hidden" />
-              </label>
+              <div class="flex items-center gap-1">
+                <button onclick="openModelLibraryModal(${index})" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5 shadow-sm transition-colors">
+                  <span class="material-symbols-outlined text-[12px]">grid_view</span> Galeri
+                </button>
+                <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-lg cursor-pointer border border-slate-300 flex items-center gap-0.5 transition-colors" title="Upload file GLB manual">
+                  <span class="material-symbols-outlined text-[12px]">upload</span> Upload
+                  <input type="file" accept=".glb,.gltf" onchange="uploadSlotModelFile(${index}, this)" class="hidden" />
+                </label>
+              </div>
             </div>
             <div class="flex items-center gap-1">
               <span class="text-[9px] text-slate-400 font-bold w-10 shrink-0">Label:</span>
@@ -443,6 +448,113 @@
           </div>
         `;
       }).join('');
+    }
+
+    // ─── Model Library Gallery Modal Logic (FASE P3 & 2.6) ─────────
+    let targetSlotIndexForLibrary = null;
+    let fullLibraryData = [];
+
+    async function openModelLibraryModal(slotIndex) {
+      targetSlotIndexForLibrary = slotIndex;
+      const roleNames = ['Produsen', 'Konsumen I', 'Konsumen II', 'Konsumen III', 'Konsumen Final', 'Decomposer'];
+      const roleTitle = roleNames[slotIndex] || `Slot #${slotIndex + 1}`;
+      document.getElementById('lib-modal-subtitle').textContent = `Pilih model 3D untuk ${roleTitle}`;
+
+      document.getElementById('modal-ecosystem-library').classList.remove('hidden');
+
+      if (!fullLibraryData.length) {
+        try {
+          const res = await fetch('/api/ecosystem/library');
+          const data = await res.json();
+          if (data.success && data.library) {
+            fullLibraryData = data.library;
+          }
+        } catch (err) {
+          console.error('Failed to load library:', err);
+        }
+      }
+
+      renderLibraryGrid('darat');
+    }
+
+    function closeModelLibraryModal() {
+      document.getElementById('modal-ecosystem-library').classList.add('hidden');
+      targetSlotIndexForLibrary = null;
+    }
+
+    function filterLibraryCategory(category) {
+      const tabDarat = document.getElementById('tab-darat');
+      const tabAll = document.getElementById('tab-all');
+      if (category === 'darat') {
+        if (tabDarat) tabDarat.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
+        if (tabAll) tabAll.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
+      } else {
+        if (tabAll) tabAll.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
+        if (tabDarat) tabDarat.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
+      }
+      renderLibraryGrid(category);
+    }
+
+    function filterLibrarySearch() {
+      const searchVal = document.getElementById('lib-search-input')?.value || '';
+      renderLibraryGrid('all', searchVal);
+    }
+
+    function renderLibraryGrid(categoryFilter = 'darat', searchQuery = '') {
+      const grid = document.getElementById('lib-models-grid');
+      if (!grid) return;
+
+      let allItems = [];
+      fullLibraryData.forEach(cat => {
+        if (categoryFilter === 'all' || cat.ecosystem === categoryFilter) {
+          allItems = allItems.concat(cat.items || []);
+        }
+      });
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        allItems = allItems.filter(item => (item.name || '').toLowerCase().includes(q) || (item.role || '').toLowerCase().includes(q));
+      }
+
+      if (!allItems.length) {
+        grid.innerHTML = `<div class="text-xs text-slate-400 text-center col-span-full py-10">Model tidak ditemukan</div>`;
+        return;
+      }
+
+      const roleIcons = {
+        produsen: 'eco',
+        konsumen_primer: 'bug_report',
+        konsumen_sekunder: 'pest_control',
+        konsumen_tersier: 'pets',
+        konsumen_final: 'cruelty_free',
+        decomposer: 'coronavirus'
+      };
+
+      grid.innerHTML = allItems.map(item => {
+        const icon = roleIcons[item.role] || 'deployed_code';
+        return `
+          <div onclick="selectLibraryModel('${item.modelSrc}', '${escHtml(item.name)}')" class="bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-500/80 p-3 rounded-2xl cursor-pointer transition-all flex flex-col items-center text-center group shadow-sm hover:shadow-md">
+            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mb-2 shadow-inner group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-2xl text-emerald-600">${icon}</span>
+            </div>
+            <h4 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 truncate w-full" title="${escHtml(item.name)}">${escHtml(item.name)}</h4>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded mt-1">${item.role || 'slot'}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function selectLibraryModel(modelSrc, modelName) {
+      if (targetSlotIndexForLibrary === null || !currentActivePreset) return;
+      const slotIndex = targetSlotIndexForLibrary;
+      closeModelLibraryModal();
+
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = `Memasang Model "${modelName}" ke Slot #${slotIndex + 1}...`;
+
+      currentActivePreset.slots[slotIndex].modelSrc = modelSrc;
+      renderEcosystemLayout(currentActivePreset);
+      statusEl.textContent = `Model "${modelName}" Berhasil Dipasang ke Slot #${slotIndex + 1}! ✨`;
     }
 
     async function updateSlotLabelInput(slotIndex, newLabel) {
@@ -1621,6 +1733,57 @@
           <span class="material-symbols-outlined text-sm">open_in_new</span> Buka Scene AR
         </a>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Ecosystem Model Library Gallery Modal (FASE P3 & 2.6) ───── -->
+  <div id="modal-ecosystem-library" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-2xl shadow-2xl space-y-4 text-slate-800 flex flex-col max-h-[85vh]">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="bg-emerald-600 text-white p-2 rounded-xl">
+            <span class="material-symbols-outlined text-lg">grid_view</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-800 text-base" id="lib-modal-title">Galeri Model 3D Bawaan (CC0)</h3>
+            <p class="text-xs text-slate-500 font-semibold" id="lib-modal-subtitle">Pilih model 3D untuk slot rantai makanan</p>
+          </div>
+        </div>
+        <button onclick="closeModelLibraryModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Search & Category Tabs -->
+      <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
+        <!-- Tabs -->
+        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto" id="lib-category-tabs">
+          <button onclick="filterLibraryCategory('darat')" id="tab-darat" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm">🌱 Darat</button>
+          <button onclick="filterLibraryCategory('all')" id="tab-all" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">📦 Semua</button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-64">
+          <span class="material-symbols-outlined absolute left-2.5 top-2 text-xs text-slate-400">search</span>
+          <input type="text" id="lib-search-input" onkeyup="filterLibrarySearch()" placeholder="Cari nama model..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
+        </div>
+      </div>
+
+      <!-- Model Cards Grid -->
+      <div id="lib-models-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto custom-scrollbar p-1 flex-1 min-h-[240px]">
+        <div class="text-xs text-slate-400 text-center col-span-full py-10">Memuat galeri model...</div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+        <span class="flex items-center gap-1 font-semibold text-emerald-700"><span class="material-symbols-outlined text-sm">verified</span> Lisensi CC0 (Public Domain / Free for Edu)</span>
+        <button onclick="closeModelLibraryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded-xl text-xs">
+          Batal
+        </button>
+      </div>
+
     </div>
   </div>
 </body>
