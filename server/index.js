@@ -163,12 +163,24 @@ app.use('/assets', express.static(ASSETS_DIR, {
   maxAge: '7d',
   immutable: true,
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.glb') || filePath.endsWith('.gltf')) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    if (filePath.endsWith('.glb')) {
+      res.setHeader('Content-Type', 'model/gltf-binary');
       res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    } else if (filePath.endsWith('.gltf')) {
+      res.setHeader('Content-Type', 'model/gltf+json');
+    } else if (filePath.endsWith('.usdz')) {
+      res.setHeader('Content-Type', 'model/vnd.usdz+zip');
     }
   }
 }));
-app.use('/uploads', express.static(ASSETS_DIR));
+app.use('/uploads', express.static(ASSETS_DIR, {
+  setHeaders: (res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
 app.use(express.static(CLIENT_DIR));
@@ -528,18 +540,16 @@ app.get('/ecosystem/view/:id', (req, res) => {
   let html = fs.readFileSync(ecoViewerPath, 'utf8');
 
   const hostHeader = req.get('host') || 'localhost:3001';
+  let isLocal = hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1');
   let protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-  if (hostHeader.includes('onrender.com') || hostHeader.includes('github.io')) {
-    protocol = 'https';
+  if (!isLocal) {
+    protocol = 'https'; // Force HTTPS for Scene Viewer / Quick Look / WebXR
   }
   let host = protocol + '://' + hostHeader;
-  if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
-    host = host.replace(/^http:\/\//, 'https://');
-  }
 
   const glbPath = (item && item.glbUrl) ? item.glbUrl : `/assets/${id}.glb`;
   let fullGlbUrl = glbPath.startsWith('http') ? glbPath : `${host}${glbPath}`;
-  if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+  if (!isLocal) {
     fullGlbUrl = fullGlbUrl.replace(/^http:\/\//, 'https://');
   }
 
@@ -718,12 +728,13 @@ app.post('/api/ecosystem/publish', uploadEcoBake.single('bakedGlb'), async (req,
     const { presetId, presetName } = req.body;
     const id = path.parse(req.file.filename).name;
     const hostHeader = req.get('host') || 'localhost:3001';
+    let isLocal = hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1');
     let protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-    if (hostHeader.includes('onrender.com') || hostHeader.includes('github.io')) {
+    if (!isLocal) {
       protocol = 'https';
     }
     let host = protocol + '://' + hostHeader;
-    if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+    if (!isLocal) {
       host = host.replace(/^http:\/\//, 'https://');
     }
     const directUrl = `${host}/ecosystem/view/${id}`;

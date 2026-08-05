@@ -69,15 +69,38 @@
     </button>
   </model-viewer>
 
+  <!-- Fallback Error Overlay -->
+  <div id="error-overlay" class="hidden absolute inset-0 z-30 bg-slate-900/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white">
+    <div class="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-400/30 flex items-center justify-center mb-4">
+      <span class="material-symbols-outlined text-3xl text-red-400">warning</span>
+    </div>
+    <h2 class="font-bold text-lg mb-2">Gagal Memuat Model AR 3D</h2>
+    <p class="text-xs text-slate-300 max-w-xs mb-6 leading-relaxed">
+      File GLB model belum tersedia atau koneksi terputus. Jika baru dipublikasikan, silakan muat ulang atau buka Studio.
+    </p>
+    <div class="flex items-center gap-3">
+      <button onclick="location.reload()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md">
+        <span class="material-symbols-outlined text-base">refresh</span> Coba Muat Ulang
+      </button>
+      <a href="/studio" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold px-4 py-2.5 rounded-xl">
+        Buka Studio
+      </a>
+    </div>
+  </div>
+
   <script>
     const viewer = document.getElementById('eco-viewer');
     const arBtn = document.getElementById('ar-btn');
+    const errorOverlay = document.getElementById('error-overlay');
 
     viewer.addEventListener('error', (event) => {
       console.error('model-viewer error:', event);
       if (arBtn) {
         arBtn.innerHTML = '<span class="material-symbols-outlined text-xl">error</span> Gagal Memuat Model AR';
         arBtn.style.background = '#ef4444';
+      }
+      if (errorOverlay) {
+        errorOverlay.classList.remove('hidden');
       }
     });
 
