@@ -241,9 +241,25 @@ app.get('/ar/:id', (req, res) => {
 app.get('/print/:id', (req, res) => {
   const { id } = req.params;
   const assets = loadAssets();
-  const asset  = assets.find(a => a.id === id);
+  let asset = assets.find(a => a.id === id);
 
-  if (!asset) return res.status(404).send('Model tidak ditemukan');
+  // If not found in 3D assets, check Studio scenes.json
+  if (!asset) {
+    const scenes = loadScenes();
+    const cleanId = id.replace(/^scene_/, '');
+    const scene = scenes.find(s => s.id === cleanId || s.id === id);
+    if (scene) {
+      asset = {
+        id: scene.id,
+        name: scene.name || 'AR Studio Multi-Object Scene',
+        description: scene.description || 'Scene 3D dari AR Studio (Multi-Object & Texture)',
+        qrFilename: scene.qrFilename || `${scene.id}_qr.png`,
+        uploadedAt: scene.updatedAt || scene.createdAt || new Date().toISOString()
+      };
+    }
+  }
+
+  if (!asset) return res.status(404).send('Model / Scene 3D tidak ditemukan');
 
   const markerImageUrl = asset.markerImageUrl || '/assets/markers/custom-marker.png';
 
@@ -253,7 +269,7 @@ app.get('/print/:id', (req, res) => {
   html = html
     .replace(/{{MODEL_NAME}}/g,      escapeHtml(asset.name || 'Model 3D'))
     .replace(/{{MODEL_DESC}}/g,      escapeHtml(asset.description || ''))
-    .replace(/{{QR_FILENAME}}/g,     asset.qrFilename || '')
+    .replace(/{{QR_FILENAME}}/g,     asset.qrFilename || `${asset.id}_qr.png`)
     .replace(/{{MARKER_IMAGE_URL}}/g, markerImageUrl)
     .replace(/{{ASSET_ID}}/g,        asset.id)
     .replace(/{{UPLOAD_DATE}}/g,     formatDateId(asset.uploadedAt));
