@@ -165,7 +165,13 @@
 
         if (obj.type === 'model' && modelPath) {
           gltfLoader.load(modelPath, (gltf) => {
-            itemGroup.add(gltf.scene);
+            const model = gltf.scene;
+            const box = new THREE.Box3().setFromObject(model);
+            if (!box.isEmpty()) {
+              // Shift model so its lowest Y point sits flat at Y = 0
+              model.position.y -= box.min.y;
+            }
+            itemGroup.add(model);
           }, undefined, (err) => {
             console.error('Error loading 3D model in AR:', err);
           });
@@ -174,10 +180,19 @@
           const color = obj.color || 0x10b981;
           mat = new THREE.MeshStandardMaterial({ color, roughness: 0.3, side: THREE.DoubleSide });
 
-          if (obj.shapeType === 'box') geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-          else if (obj.shapeType === 'sphere') geo = new THREE.SphereGeometry(0.35, 32, 32);
-          else if (obj.shapeType === 'cylinder') geo = new THREE.CylinderGeometry(0.25, 0.25, 0.75, 32);
-          else geo = new THREE.PlaneGeometry(0.8, 0.8);
+          if (obj.shapeType === 'box') {
+            geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            geo.translate(0, 0.25, 0); // Ground bottom at Y = 0
+          } else if (obj.shapeType === 'sphere') {
+            geo = new THREE.SphereGeometry(0.35, 32, 32);
+            geo.translate(0, 0.35, 0);
+          } else if (obj.shapeType === 'cylinder') {
+            geo = new THREE.CylinderGeometry(0.25, 0.25, 0.75, 32);
+            geo.translate(0, 0.375, 0);
+          } else {
+            geo = new THREE.PlaneGeometry(0.8, 0.8);
+            geo.translate(0, 0.4, 0);
+          }
 
           const mesh = new THREE.Mesh(geo, mat);
           itemGroup.add(mesh);
@@ -185,6 +200,7 @@
           textureLoader.load(obj.url || obj.src, (tex) => {
             const aspect = (tex.image.width && tex.image.height) ? (tex.image.width / tex.image.height) : 1;
             const geo = new THREE.PlaneGeometry(aspect * 0.8, 0.8);
+            geo.translate(0, 0.4, 0);
             const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, transparent: true });
             const mesh = new THREE.Mesh(geo, mat);
             itemGroup.add(mesh);
@@ -200,6 +216,7 @@
 
           const textTex = new THREE.CanvasTexture(canvas);
           const textGeo = new THREE.PlaneGeometry(1.2, 0.3);
+          textGeo.translate(0, 0.15, 0);
           const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
           itemGroup.add(new THREE.Mesh(textGeo, textMat));
         }
@@ -276,7 +293,7 @@
 
     function onSessionStarted(session) {
       document.getElementById('start-ar-btn').style.display = 'none';
-      document.getElementById('instruction-text').textContent = 'Tap layar untuk menempatkan scene di permukaan lantai';
+      document.getElementById('instruction-text').textContent = 'Tap titik di meja/lantai untuk menempelkan scene';
 
       renderer.xr.setReferenceSpaceType('local');
       renderer.xr.setSession(session);
@@ -313,40 +330,33 @@
       if (isPlaced) return;
 
       if (reticle && reticle.visible) {
-        const pos = new THREE.Vector3();
-        const rot = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        reticle.matrix.decompose(pos, rot, scale);
+        const hitPos = new THREE.Vector3();
+        hitPos.setFromMatrixPosition(reticle.matrix);
 
-        sceneGroup.position.copy(pos);
-        sceneGroup.quaternion.copy(rot);
+        sceneGroup.position.copy(hitPos);
 
-        // Compute scene bounding box to sit flat on top of the surface plane
-        sceneGroup.visible = true;
-        const box = new THREE.Box3().setFromObject(sceneGroup);
-        if (box && !box.isEmpty()) {
-          const minY = box.min.y;
-          // Shift sceneGroup down by minY so lowest point touches physical surface (y = 0)
-          sceneGroup.position.y -= (minY - pos.y);
-        }
+        // Turn scene to face user camera naturally
+        const camPos = new THREE.Vector3();
+        camera.getWorldPosition(camPos);
+        sceneGroup.lookAt(camPos.x, sceneGroup.position.y, camPos.z);
       } else {
-        // Fallback: position scene 1.2m in front of camera
+        // Fallback: position scene 1.5m in front of camera
         const dir = new THREE.Vector3();
         camera.getWorldDirection(dir);
         dir.y = 0;
         dir.normalize();
 
-        sceneGroup.position.copy(camera.position).add(dir.multiplyScalar(1.2));
-        sceneGroup.position.y = camera.position.y - 1.0; // Comfortably grounded height
+        sceneGroup.position.copy(camera.position).add(dir.multiplyScalar(1.5));
+        sceneGroup.position.y = camera.position.y - 1.2;
         sceneGroup.rotation.y = camera.rotation.y;
-        sceneGroup.visible = true;
       }
 
+      sceneGroup.visible = true;
       isPlaced = true;
       if (reticle) reticle.visible = false;
 
       const instr = document.getElementById('instruction-text');
-      if (instr) instr.textContent = '✨ Scene 3D menempel sempurna di atas meja/lantai!';
+      if (instr) instr.textContent = '✨ Scene 3D menempel tepat di atas permukaan!';
     }
 
     function render(timestamp, frame) {
