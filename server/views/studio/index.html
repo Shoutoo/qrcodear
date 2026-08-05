@@ -471,9 +471,15 @@
 
       if (!loadedFont) {
         document.getElementById('studio-status').textContent = 'Memuat font 3D...';
-        fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+        const loader = new THREE.FontLoader();
+        loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
           loadedFont = font;
-          add3DTextToScene();
+          document.getElementById('studio-status').textContent = `Studio Ready (${loadedSceneObjects.length} Objek)`;
+          addTextToScene();
+        }, undefined, (err) => {
+          console.error('Font load error:', err);
+          document.getElementById('studio-status').textContent = 'Studio Ready';
+          addCanvasTextFallback(textStr);
         });
         return;
       }
@@ -505,7 +511,44 @@
         id: objId,
         name: `Text: "${textStr}"`,
         type: 'text',
-        textStr,
+        content: textStr,
+        textStr: textStr,
+        color: '#8b5cf6',
+        threeObject: mesh
+      };
+      loadedSceneObjects.push(record);
+
+      selectSceneObject(objId);
+      updateSceneHierarchyUI();
+    }
+
+    function addCanvasTextFallback(textStr) {
+      objectCounter++;
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#8b5cf6';
+      ctx.font = 'Bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(textStr, 256, 75);
+
+      const textTex = new THREE.CanvasTexture(canvas);
+      const textGeo = new THREE.PlaneGeometry(2, 0.5);
+      const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(textGeo, textMat);
+      mesh.position.set(0, 0.5, 0);
+
+      const objId = `text_${objectCounter}`;
+      mesh.name = objId;
+      scene.add(mesh);
+
+      const record = {
+        id: objId,
+        name: `Text: "${textStr}"`,
+        type: 'text',
+        content: textStr,
+        textStr: textStr,
+        color: '#8b5cf6',
         threeObject: mesh
       };
       loadedSceneObjects.push(record);
