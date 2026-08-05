@@ -82,8 +82,14 @@
     
     <!-- Section 1.1: Add 3D Model -->
     <div class="p-3 border-b border-slate-200/80">
-      <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1">
-        <span class="material-symbols-outlined text-xs">add_box</span> Model 3D (.glb)
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider">
+          <span class="material-symbols-outlined text-xs">add_box</span> Model 3D (.glb)
+        </div>
+        <label class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-sm">
+          <span class="material-symbols-outlined text-xs">upload</span> Upload
+          <input type="file" id="model-3d-upload-input" accept=".glb,.gltf,.usdz" onchange="upload3DModelFile(this)" class="hidden" />
+        </label>
       </div>
       <div id="assets-list" class="space-y-1.5 overflow-y-auto max-h-28 custom-scrollbar">
         <div class="text-xs text-slate-400 text-center py-2">Memuat koleksi aset...</div>
@@ -286,6 +292,43 @@
 
       // 11. Animation Loop
       animate();
+    }
+
+    // ─── Direct 3D Model (.glb) Upload Handling ───────────────
+    async function upload3DModelFile(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('model', file);
+      formData.append('name', file.name.replace(/\.[^/.]+$/, ''));
+      formData.append('description', 'Uploaded via AR Studio');
+
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = 'Mengunggah Model 3D...';
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          statusEl.textContent = 'Model 3D Berhasil Diunggah! ✨';
+          await fetchAvailableAssets();
+          if (data.asset && data.asset.id) {
+            addModelToScene(data.asset.id, data.asset.name || file.name);
+          }
+        } else {
+          alert('Gagal mengunggah Model 3D: ' + (data.error || 'Unknown error'));
+          statusEl.textContent = 'Gagal upload model';
+        }
+      } catch (err) {
+        console.error('3D Model upload failed:', err);
+        alert('Gagal mengunggah file Model 3D: ' + err.message);
+        statusEl.textContent = 'Gagal upload model';
+      } finally {
+        input.value = '';
+      }
     }
 
     // ─── Media Upload & Handling (FASE 5) ──────────────────────
