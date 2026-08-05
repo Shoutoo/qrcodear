@@ -102,55 +102,52 @@ function createSpecies3DLabelMesh(name, role, angle) {
     canvas.toDataURL = function (t) {
         return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
     };
-    ctx.clearRect(0, 0, 512, 256);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 512, 256);
     ctx.strokeStyle = '#632ce5';
-    ctx.lineWidth = 10;
-    const x = 16, y = 16, w = 480, h = 224, r = 32;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    ctx.lineWidth = 14;
+    ctx.strokeRect(7, 7, 498, 242);
     ctx.fillStyle = '#0d1e25';
-    ctx.font = 'bold 44px Arial, sans-serif';
+    ctx.font = 'bold 46px Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     let displayName = name || 'Spesies';
     if (displayName.length > 16)
         displayName = displayName.substring(0, 14) + '..';
-    ctx.fillText(displayName, 256, 92);
+    ctx.fillText(displayName, 256, 90);
     ctx.fillStyle = '#fdd400';
-    const rx = 60, ry = 142, rw = 392, rh = 62, rr = 20;
-    ctx.beginPath();
-    ctx.moveTo(rx + rr, ry);
-    ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
-    ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
-    ctx.arcTo(rx, ry + rh, rx, ry, rr);
-    ctx.arcTo(rx, ry, rx + rw, ry, rr);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillRect(40, 140, 432, 70);
+    ctx.strokeStyle = '#0d1e25';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(40, 140, 432, 70);
     ctx.fillStyle = '#0d1e25';
     ctx.font = '900 28px Arial, sans-serif';
     const roleDisplay = role.toUpperCase().replace(/_/g, ' ');
-    ctx.fillText(roleDisplay, 256, 173);
+    ctx.fillText(roleDisplay, 256, 175);
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
-    const planeGeom = new THREE.PlaneGeometry(1.0, 0.5);
-    const planeMat = new THREE.MeshBasicMaterial({
+    const labelGroup = new THREE.Group();
+    const planeGeom = new THREE.PlaneGeometry(1.2, 0.6);
+    const planeMat = new THREE.MeshStandardMaterial({
         map: texture,
-        transparent: true,
+        roughness: 0.7,
+        metalness: 0.0,
         side: THREE.DoubleSide,
-        depthWrite: false,
     });
-    const mesh = new THREE.Mesh(planeGeom, planeMat);
-    mesh.position.set(0, 1.15, 0);
-    mesh.rotation.y = angle + Math.PI / 2;
-    return mesh;
+    const frontMesh = new THREE.Mesh(planeGeom, planeMat);
+    frontMesh.position.set(0, 0, 0.02);
+    labelGroup.add(frontMesh);
+    const backGeom = new THREE.BoxGeometry(1.22, 0.62, 0.03);
+    const backMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.6,
+        metalness: 0.1,
+    });
+    const backMesh = new THREE.Mesh(backGeom, backMat);
+    labelGroup.add(backMesh);
+    labelGroup.position.set(0, 1.2, 0);
+    labelGroup.rotation.y = angle + Math.PI / 2;
+    return labelGroup;
 }
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');
 const VIEWS_DIR = path.join(ROOT_DIR, 'server', 'views');
