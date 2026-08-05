@@ -50,6 +50,24 @@ const path = __importStar(require("path"));
 const THREE = __importStar(require("three"));
 const GLTFExporter_js_1 = require("three/examples/jsm/exporters/GLTFExporter.js");
 const qrcode = __importStar(require("qrcode"));
+const canvas_1 = require("@napi-rs/canvas");
+if (typeof global.ImageData === 'undefined') {
+    global.ImageData = canvas_1.ImageData;
+}
+if (typeof global.document === 'undefined') {
+    global.document = {
+        createElement: (type) => {
+            if (type === 'canvas') {
+                const c = (0, canvas_1.createCanvas)(1, 1);
+                c.toDataURL = function (t) {
+                    return 'data:image/png;base64,' + c.toBuffer('image/png').toString('base64');
+                };
+                return c;
+            }
+            return {};
+        },
+    };
+}
 if (typeof global.FileReader === 'undefined') {
     const { Blob } = require('buffer');
     global.Blob = Blob;
@@ -77,6 +95,62 @@ if (typeof global.FileReader === 'undefined') {
             });
         }
     };
+}
+function createSpecies3DLabelMesh(name, role, angle) {
+    const canvas = (0, canvas_1.createCanvas)(512, 256);
+    const ctx = canvas.getContext('2d');
+    canvas.toDataURL = function (t) {
+        return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
+    };
+    ctx.clearRect(0, 0, 512, 256);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+    ctx.strokeStyle = '#632ce5';
+    ctx.lineWidth = 10;
+    const x = 16, y = 16, w = 480, h = 224, r = 32;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#0d1e25';
+    ctx.font = 'bold 44px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let displayName = name || 'Spesies';
+    if (displayName.length > 16)
+        displayName = displayName.substring(0, 14) + '..';
+    ctx.fillText(displayName, 256, 92);
+    ctx.fillStyle = '#fdd400';
+    const rx = 60, ry = 142, rw = 392, rh = 62, rr = 20;
+    ctx.beginPath();
+    ctx.moveTo(rx + rr, ry);
+    ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
+    ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
+    ctx.arcTo(rx, ry + rh, rx, ry, rr);
+    ctx.arcTo(rx, ry, rx + rw, ry, rr);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#0d1e25';
+    ctx.font = '900 28px Arial, sans-serif';
+    const roleDisplay = role.toUpperCase().replace(/_/g, ' ');
+    ctx.fillText(roleDisplay, 256, 173);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.needsUpdate = true;
+    const planeGeom = new THREE.PlaneGeometry(1.0, 0.5);
+    const planeMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+    });
+    const mesh = new THREE.Mesh(planeGeom, planeMat);
+    mesh.position.set(0, 1.15, 0);
+    mesh.rotation.y = angle + Math.PI / 2;
+    return mesh;
 }
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');
 const VIEWS_DIR = path.join(ROOT_DIR, 'server', 'views');
@@ -319,6 +393,15 @@ let ViewsService = class ViewsService {
             }
             catch (e) {
                 console.warn(`[NestJS Auto-Bake Warning] Slot ${i} model error:`, e.message);
+            }
+            try {
+                const labelText = slot.label || `Spesies ${i + 1}`;
+                const roleText = (slot.role || 'organisme').replace(/_/g, ' ');
+                const labelMesh = createSpecies3DLabelMesh(labelText, roleText, angle);
+                slotGroup.add(labelMesh);
+            }
+            catch (err) {
+                console.warn(`[NestJS Auto-Bake Warning] Slot ${i} label mesh error:`, err.message);
             }
             sceneGroup.add(slotGroup);
         });

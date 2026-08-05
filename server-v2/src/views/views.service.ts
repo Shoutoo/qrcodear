@@ -5,6 +5,25 @@ import * as path from 'path';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import * as qrcode from 'qrcode';
+import { createCanvas, ImageData } from '@napi-rs/canvas';
+
+if (typeof global.ImageData === 'undefined') {
+  global.ImageData = ImageData as any;
+}
+if (typeof global.document === 'undefined') {
+  global.document = {
+    createElement: (type: string) => {
+      if (type === 'canvas') {
+        const c = createCanvas(1, 1) as any;
+        c.toDataURL = function (t: string) {
+          return 'data:image/png;base64,' + c.toBuffer('image/png').toString('base64');
+        };
+        return c;
+      }
+      return {};
+    },
+  } as any;
+}
 
 // Polyfill FileReader for THREE.GLTFExporter in Node.js
 if (typeof global.FileReader === 'undefined') {
@@ -30,6 +49,79 @@ if (typeof global.FileReader === 'undefined') {
       });
     }
   } as any;
+}
+
+function createSpecies3DLabelMesh(name: string, role: string, angle: number): THREE.Mesh {
+  const canvas = createCanvas(512, 256) as any;
+  const ctx = canvas.getContext('2d');
+
+  canvas.toDataURL = function (t: string) {
+    return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
+  };
+
+  ctx.clearRect(0, 0, 512, 256);
+
+  // Outer Card Box (White Card with Purple Border)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+  ctx.strokeStyle = '#632ce5';
+  ctx.lineWidth = 10;
+
+  const x = 16, y = 16, w = 480, h = 224, r = 32;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Species Name Text (Dark Charcoal)
+  ctx.fillStyle = '#0d1e25';
+  ctx.font = 'bold 44px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  let displayName = name || 'Spesies';
+  if (displayName.length > 16) displayName = displayName.substring(0, 14) + '..';
+  ctx.fillText(displayName, 256, 92);
+
+  // Role Badge (Yellow Pill)
+  ctx.fillStyle = '#fdd400';
+  const rx = 60, ry = 142, rw = 392, rh = 62, rr = 20;
+  ctx.beginPath();
+  ctx.moveTo(rx + rr, ry);
+  ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
+  ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
+  ctx.arcTo(rx, ry + rh, rx, ry, rr);
+  ctx.arcTo(rx, ry, rx + rw, ry, rr);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#0d1e25';
+  ctx.font = '900 28px Arial, sans-serif';
+  const roleDisplay = role.toUpperCase().replace(/_/g, ' ');
+  ctx.fillText(roleDisplay, 256, 173);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const planeGeom = new THREE.PlaneGeometry(1.0, 0.5);
+  const planeMat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+
+  const mesh = new THREE.Mesh(planeGeom, planeMat);
+  mesh.position.set(0, 1.15, 0);
+
+  // Face outward from center ring
+  mesh.rotation.y = angle + Math.PI / 2;
+
+  return mesh;
 }
 
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');
@@ -317,6 +409,16 @@ export class ViewsService {
         }
       } catch (e) {
         console.warn(`[NestJS Auto-Bake Warning] Slot ${i} model error:`, e.message);
+      }
+
+      // 1b. Add 3D Floating Label Badge (visible in mobile AR & web)
+      try {
+        const labelText = slot.label || `Spesies ${i + 1}`;
+        const roleText = (slot.role || 'organisme').replace(/_/g, ' ');
+        const labelMesh = createSpecies3DLabelMesh(labelText, roleText, angle);
+        slotGroup.add(labelMesh);
+      } catch (err) {
+        console.warn(`[NestJS Auto-Bake Warning] Slot ${i} label mesh error:`, err.message);
       }
 
       sceneGroup.add(slotGroup);
