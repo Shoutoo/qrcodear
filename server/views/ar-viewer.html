@@ -78,31 +78,8 @@
     }
   </script>
 
-  <!-- A-Frame & AR.js (marker-based) -->
-  <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.19.0/meshopt_decoder.js"></script>
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-
-  <script>
-    // Explicitly hook THREE.GLTFLoader prototype for Draco & Meshopt compressed models
-    (function () {
-      if (typeof THREE === 'undefined' || !THREE.GLTFLoader) return;
-
-      const dracoLoader = new THREE.DRACOLoader();
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-
-      const originalLoad = THREE.GLTFLoader.prototype.load;
-      THREE.GLTFLoader.prototype.load = function (url, onLoad, onProgress, onError) {
-        if (typeof this.setDRACOLoader === 'function') {
-          this.setDRACOLoader(dracoLoader);
-        }
-        if (typeof this.setMeshoptDecoder === 'function' && window.MeshoptDecoder) {
-          this.setMeshoptDecoder(window.MeshoptDecoder);
-        }
-        return originalLoad.call(this, url, onLoad, onProgress, onError);
-      };
-    })();
-  </script>
+  <!-- Google <model-viewer> (Markerless AR Engine) -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -110,53 +87,47 @@
       width: 100%; height: 100%;
       overflow: hidden;
       font-family: 'Quicksand', sans-serif;
-      background: transparent !important;
+      background: #f4faff;
     }
 
-    /* ── Large Magenta Title Overlay ───────────────────────── */
-    .ar-title-text {
+    /* ── Model Viewer Container ────────────────────────────── */
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background-color: #f4faff;
+      --poster-color: transparent;
+      z-index: 1;
+    }
+
+    /* ── Custom Floating AR Button ─────────────────────────── */
+    .ar-custom-button {
       position: absolute;
-      bottom: 56px;
+      bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 15;
-      pointer-events: none;
-      text-align: center;
-      width: 90vw;
-      max-width: 640px;
-      font-size: clamp(1.4rem, 5vw, 2.2rem);
-      font-weight: 900;
-      color: #ff007f;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      line-height: 1.1;
-      text-shadow:
-        -2px -2px 0 #ffffff,
-         2px -2px 0 #ffffff,
-        -2px  2px 0 #ffffff,
-         2px  2px 0 #ffffff,
-        -3px  0   0 #ffffff,
-         3px  0   0 #ffffff,
-         0   -3px 0 #ffffff,
-         0    3px 0 #ffffff,
-         0 6px 16px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(135deg, #632ce5 0%, #7c4dff 100%);
+      color: #ffffff;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 28px;
+      border-radius: 50px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      z-index: 20;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-
-    #arjs-video {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      object-fit: cover !important;
-      z-index: -1 !important;
+    .ar-custom-button:hover {
+      transform: translateX(-50%) scale(1.05);
+      box-shadow: 0 12px 30px rgba(99, 44, 229, 0.5);
     }
-
-    /* ── A-Frame Scene ─────────────────────────────────── */
-    a-scene { position: fixed !important; inset: 0; width: 100% !important; height: 100% !important; z-index: 0; }
-
-    /* ── Main Overlay ──────────────────────────────────── */
-    #overlay { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+    .ar-custom-button:active {
+      transform: translateX(-50%) scale(0.95);
+    }
 
     /* ── Header Bar ────────────────────────────────────── */
     #header {
@@ -164,73 +135,9 @@
       padding: 16px 20px 32px;
       background: linear-gradient(to bottom, rgba(244,250,255,0.95) 0%, rgba(244,250,255,0) 100%);
       display: flex; align-items: center; gap: 12px;
+      z-index: 10;
       pointer-events: auto;
     }
-
-    /* ── SVG Lines Overlay ─────────────────────────────── */
-    #lines-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-
-    /* ── Annotation Labels ─────────────────────────────── */
-    #ann-wrap { position: absolute; inset: 0; pointer-events: none; }
-    .ann-label {
-      position: absolute; display: none; align-items: center; gap: 0;
-      transform: translate(-50%, -50%); pointer-events: auto;
-      animation: annPop 0.3s cubic-bezier(0.4,0,0.2,1) both;
-      filter: drop-shadow(0 4px 12px rgba(111,92,0,0.15));
-    }
-    @keyframes annPop { from { transform: translate(-50%,-50%) scale(0.4); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
-    .ann-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: #fdd400; /* secondary-container */
-      border-radius: 50px; padding: 6px 8px 6px 16px;
-      font-size: 13px; font-weight: 700; color: #6f5c00; /* on-secondary-container */
-      white-space: nowrap; font-family: 'Quicksand', sans-serif;
-      border: 2px solid #ffffff;
-    }
-    .ann-info-btn {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: #6f5c00; border: none;
-      color: #fdd400; font-size: 14px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: transform 0.15s; pointer-events: auto; flex-shrink: 0;
-    }
-    .ann-info-btn:hover { transform: scale(1.1); }
-    .ann-dot {
-      position: absolute; width: 12px; height: 12px; border-radius: 50%;
-      background: #fdd400; border: 3px solid #ffffff;
-      box-shadow: 0 0 10px rgba(253,212,0,0.8);
-      transform: translate(-50%, -50%); pointer-events: none;
-    }
-
-    /* ── Instructions ──────────────────────────────────── */
-    #instructions {
-      position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-      background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
-      border: 2px solid #e7f6ff; border-radius: 50px; padding: 12px 24px;
-      color: #0d1e25; font-size: 14px; font-weight: 700; font-family: 'Quicksand', sans-serif;
-      text-align: center; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      transition: opacity 0.5s ease, transform 0.5s ease; pointer-events: none;
-    }
-    #instructions.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); }
-
-    /* ── Marker Found Pulse ────────────────────────────── */
-    #found-ring {
-      position: absolute; left: 50%; top: 50%; width: 160px; height: 160px;
-      transform: translate(-50%, -50%) scale(0); border-radius: 50%; border: 4px solid #fdd400;
-      opacity: 0; pointer-events: none;
-    }
-    #found-ring.flash { animation: ringPulse 0.8s ease-out forwards; }
-    @keyframes ringPulse { 0% { transform: translate(-50%,-50%) scale(0.3); opacity: 0.9; } 100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; } }
-
-    /* ── Info Popup ────────────────────────────────────── */
-    #info-popup {
-      position: absolute; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(20px);
-      width: min(340px, 90vw); background: #ffffff; border: 2px solid #e7f6ff;
-      border-radius: 24px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.15);
-      display: none; pointer-events: auto; animation: popupSlide 0.3s cubic-bezier(0.4,0,0.2,1);
-    }
-    #info-popup.show { display: block; transform: translateX(-50%) translateY(0); }
-    @keyframes popupSlide { from { transform: translateX(-50%) translateY(30px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 
     /* ── Loading Screen ────────────────────────────────── */
     #loading-screen {
@@ -240,21 +147,6 @@
     }
     #loading-screen.fade { opacity: 0; pointer-events: none; }
     #loading-screen.hidden { display: none; }
-
-    /* ── Bottom Footer Bar ─────────────────────────────── */
-    #footer-bar {
-      position: absolute; bottom: 0; left: 0; right: 0; padding: 20px;
-      background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 100%);
-      display: flex; align-items: center; justify-content: center; pointer-events: none;
-    }
-    .status-indicator {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.9); padding: 8px 16px; border-radius: 50px;
-      font-size: 12px; font-weight: 700; color: #0d1e25; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #cac3d8; transition: background 0.3s; }
-    .status-dot.active { background: #3ecf8e; box-shadow: 0 0 8px rgba(62,207,142,0.8); animation: dotPulse 1.5s infinite; }
-    @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
   </style>
 </head>
 <body>
@@ -269,34 +161,27 @@
   <div class="w-48 h-2 bg-surface-container-high rounded-full overflow-hidden mt-4">
     <div class="h-full bg-primary rounded-full transition-all duration-300" id="ld-bar" style="width: 0%"></div>
   </div>
-  <div class="text-sm font-bold text-outline mt-2" id="ld-status">Menyiapkan keajaiban...</div>
+  <div class="text-sm font-bold text-outline mt-2" id="ld-status">Memuat model 3D ajaib...</div>
 </div>
 
-<!-- ── No AR Fallback ─────────────────────────────────────── -->
-<div id="no-ar-notice" class="hidden fixed inset-0 z-[60] bg-background flex-col items-center justify-center p-8 text-center font-body-md">
-  <span class="material-symbols-outlined text-6xl text-error mb-4">no_photography</span>
-  <h2 class="font-headline-md text-2xl text-on-surface mb-2 font-bold">Kamera Tidak Tersedia</h2>
-  <p class="text-on-surface-variant max-w-sm">Akses kamera memerlukan koneksi HTTPS atau localhost. Pastikan Anda membuka halaman ini melalui jaringan yang aman.</p>
-</div>
-
-<!-- ── A-Frame AR Scene ───────────────────────────────────── -->
-<a-scene
-  id="ar-scene"
-  embedded
-  arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-  gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
-  renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
-  vr-mode-ui="enabled: false"
-  loading-screen="enabled: false"
+<!-- ── Google <model-viewer> (Markerless AR Engine) ────────── -->
+<model-viewer
+  id="viewer"
+  src="{{MODEL_URL}}"
+  ios-src="{{MODEL_USDZ_URL}}"
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  camera-controls
+  shadow-intensity="1"
+  ar-placement="floor"
+  alt="{{MODEL_NAME}}"
+  loading="eager"
+  auto-rotate
 >
-  <!-- Built-in Instant Hiro Marker (100% Offline & Fail-Safe) -->
-  <a-marker id="main-marker" preset="hiro" emitevents="true" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-    <a-entity id="model-entity" gltf-model="{{MODEL_URL}}" position="0 0 0" scale="1.2 1.2 1.2"></a-entity>
-    <a-entity id="ann-dots-3d"></a-entity>
-  </a-marker>
-
-  <a-entity camera></a-entity>
-</a-scene>
+  <button slot="ar-button" id="ar-button" class="ar-custom-button">
+    <span class="material-symbols-outlined">view_in_ar</span> Lihat dalam AR
+  </button>
+</model-viewer>
 
 <!-- ── UI Overlay ────────────────────────────────────────── -->
 <div id="overlay">
@@ -370,262 +255,50 @@
 // ─── Data injected from server ──────────────────────────────
 const ANNOTATIONS = JSON.parse(document.getElementById('annotations-data').textContent || '[]');
 
-// ─── Position presets (in marker/A-Frame space, y-up) ───────
-const POS_PRESETS = {
-  'top':          { x:  0.00, y: 0.55, z: 0 },
-  'top-left':     { x: -0.25, y: 0.45, z: 0 },
-  'top-right':    { x:  0.25, y: 0.45, z: 0 },
-  'left':         { x: -0.32, y: 0.22, z: 0 },
-  'right':        { x:  0.32, y: 0.22, z: 0 },
-  'center-left':  { x: -0.28, y: 0.10, z: 0 },
-  'center-right': { x:  0.28, y: 0.10, z: 0 },
-  'bottom-left':  { x: -0.22, y:-0.02, z: 0 },
-  'bottom-right': { x:  0.22, y:-0.02, z: 0 },
-  'bottom':       { x:  0.00, y:-0.08, z: 0 },
-};
+// ─── DOM References ─────────────────────────────────────────
+const viewer    = document.getElementById('viewer');
+const ldBar     = document.getElementById('ld-bar');
+const ldStatus  = document.getElementById('ld-status');
+const loadingLs = document.getElementById('loading-screen');
 
-// ─── State ─────────────────────────────────────────────────
-const scene  = document.getElementById('ar-scene');
-const marker = document.getElementById('main-marker');
-const ldBar  = document.getElementById('ld-bar');
-const ldStatus = document.getElementById('ld-status');
-const instructions = document.getElementById('instructions');
-const foundRing = document.getElementById('found-ring');
-const statusDot = document.getElementById('status-dot');
-const statusText = document.getElementById('status-text');
-const linesSvg = document.getElementById('lines-svg');
-const annWrap = document.getElementById('ann-wrap');
-const infoPopup = document.getElementById('info-popup');
+// ─── Loading Progress for <model-viewer> ────────────────────
+if (viewer && ldBar && loadingLs) {
+  viewer.addEventListener('progress', (e) => {
+    const progress = Math.round(e.detail.totalProgress * 100);
+    ldBar.style.width = progress + '%';
+    if (ldStatus) ldStatus.textContent = `Memuat model 3D (${progress}%)...`;
+  });
 
-let markerVisible = false;
-let modelLoaded = false;
-let labelEls = [];
-let dotPositions3D = [];
-let modelCenter3D = new THREE.Vector3(0, 0.25, 0);
+  const finishLoading = () => {
+    ldBar.style.width = '100%';
+    if (ldStatus) ldStatus.textContent = 'Siap!';
+    setTimeout(() => {
+      loadingLs.classList.add('fade');
+      setTimeout(() => loadingLs.classList.add('hidden'), 600);
+    }, 300);
+  };
 
-// ─── Loading bar simulation ─────────────────────────────────
-let ldProgress = 0;
-const ldInterval = setInterval(() => {
-  if (ldProgress >= 85) { clearInterval(ldInterval); return; }
-  ldProgress += Math.random() * 12;
-  ldBar.style.width = Math.min(ldProgress, 85) + '%';
-}, 400);
-
-function finishLoading() {
-  clearInterval(ldInterval);
-  ldBar.style.width = '100%';
-  ldStatus.textContent = 'Siap! Cari marker AR…';
-  const ls = document.getElementById('loading-screen');
+  viewer.addEventListener('load', finishLoading);
+  // Fallback timeout in case load event already fired
   setTimeout(() => {
-    ls.classList.add('fade');
-    setTimeout(() => ls.classList.add('hidden'), 600);
-  }, 600);
+    if (!loadingLs.classList.contains('hidden')) finishLoading();
+  }, 4000);
 }
 
-// ─── Auto-scale model to fit marker ────────────────────────
-function autoScaleModel(modelEl) {
-  const obj3D = modelEl.getObject3D('mesh') || modelEl.object3D;
-  if (!obj3D) {
-    modelLoaded = true;
-    finishLoading();
-    return;
-  }
-
-  const box = new THREE.Box3().setFromObject(obj3D);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-
-  const maxDim = Math.max(size.x, size.y, size.z);
-  if (maxDim <= 0) return;
-  const targetSize = 1.2;
-  const scale = targetSize / maxDim;
-
-  modelEl.object3D.scale.set(scale, scale, scale);
-
-  const scaledMinY = box.min.y * scale;
-  modelEl.object3D.position.set(-center.x * scale, -scaledMinY, -center.z * scale);
-
-  const scaledHeight = size.y * scale;
-  modelCenter3D.set(-center.x * scale, -scaledMinY + scaledHeight * 0.5, -center.z * scale);
-
-  modelLoaded = true;
-  finishLoading();
-}
-
-// ─── Build annotation 3D dots ──────────────────────────────
-function buildAnnotationDots() {
-  const container = document.getElementById('ann-dots-3d');
-  dotPositions3D = [];
-
-  ANNOTATIONS.forEach((ann) => {
-    const preset = POS_PRESETS[ann.position] || POS_PRESETS['right'];
-    const sphere = document.createElement('a-sphere');
-    sphere.setAttribute('radius', '0.022');
-    sphere.setAttribute('material', 'shader: flat; color: #fdd400; opacity: 1;');
-    sphere.setAttribute('position', `${preset.x} ${preset.y} ${preset.z}`);
-    container.appendChild(sphere);
-    dotPositions3D.push(new THREE.Vector3(preset.x, preset.y, preset.z));
-  });
-}
-
-// ─── Build HTML annotation labels ──────────────────────────
-function buildLabels() {
-  annWrap.innerHTML = '';
-  labelEls = [];
-
-  ANNOTATIONS.forEach((ann, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'ann-dot';
-    annWrap.appendChild(dot);
-
-    const label = document.createElement('div');
-    label.className = 'ann-label';
-    label.innerHTML = `
-      <div class="ann-pill">
-        <span>${escHtml(ann.name)}</span>
-        ${ann.description ? `<button class="ann-info-btn" data-idx="${i}"><span class="material-symbols-outlined text-[16px]">info</span></button>` : ''}
-      </div>
-    `;
-    annWrap.appendChild(label);
-
-    label.querySelector('.ann-info-btn')?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      showInfo(i);
-    });
-
-    labelEls.push({ dot, label });
-  });
-}
-
-// ─── Project 3D world position → 2D screen ─────────────────
-function projectToScreen(vec3, markerObj3D) {
-  const threeCamera = scene.camera;
-  if (!threeCamera) return null;
-  const v = vec3.clone().applyMatrix4(markerObj3D.matrixWorld).project(threeCamera);
-  if (v.z > 1) return null;
-  return {
-    x: (v.x + 1) / 2 * window.innerWidth,
-    y: (-v.y + 1) / 2 * window.innerHeight,
-  };
-}
-
-// ─── Update annotation positions every frame ─────────────────
-function updateAnnotations() {
-  if (!markerVisible || !marker.object3D.visible || ANNOTATIONS.length === 0) {
-    labelEls.forEach(({ dot, label }) => { dot.style.display = 'none'; label.style.display = 'none'; });
-    linesSvg.innerHTML = '';
-    return;
-  }
-
-  const centerScreen = projectToScreen(modelCenter3D, marker.object3D);
-  const paths = [];
-
-  dotPositions3D.forEach((pos3D, i) => {
-    const dotScreen = projectToScreen(pos3D, marker.object3D);
-    if (!dotScreen) {
-      labelEls[i].dot.style.display = 'none';
-      labelEls[i].label.style.display = 'none';
-      return;
-    }
-
-    const { dot, label } = labelEls[i];
-    dot.style.display = 'block';
-    dot.style.left = dotScreen.x + 'px';
-    dot.style.top = dotScreen.y + 'px';
-
-    let dx = dotScreen.x - (centerScreen?.x ?? window.innerWidth / 2);
-    let dy = dotScreen.y - (centerScreen?.y ?? window.innerHeight / 2);
-    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-    const ux = dx / dist; const uy = dy / dist;
-    const OFFSET = 75;
-    const labelX = dotScreen.x + ux * OFFSET;
-    const labelY = dotScreen.y + uy * OFFSET;
-
-    label.style.display = 'flex';
-    label.style.left = labelX + 'px';
-    label.style.top = labelY + 'px';
-
-    paths.push(`<line x1="${dotScreen.x}" y1="${dotScreen.y}" x2="${labelX}" y2="${labelY}" stroke="#fdd400" stroke-width="3" stroke-linecap="round" />`);
-  });
-
-  linesSvg.innerHTML = paths.join('');
-}
-
-function showInfo(i) {
-  const ann = ANNOTATIONS[i];
-  document.getElementById('popup-title').textContent = ann.name;
-  document.getElementById('popup-desc').textContent = ann.description || 'Tidak ada deskripsi.';
-  infoPopup.classList.add('show');
-}
-function closePopup() { infoPopup.classList.remove('show'); }
-function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-
-function initAR() {
-  ldStatus.textContent = 'Memuat model 3D ajaib...';
-  ldBar.style.width = '40%';
-
-  if (!navigator.mediaDevices?.getUserMedia) {
-    document.getElementById('loading-screen').classList.add('hidden');
-    document.getElementById('no-ar-notice').classList.remove('hidden');
-    document.getElementById('no-ar-notice').classList.add('flex');
-    return;
-  }
-
-  const modelEl = document.getElementById('model-entity');
-
-  const onModelReady = () => {
-    ldStatus.textContent = 'Merapikan letak model...';
-    ldBar.style.width = '70%';
-    autoScaleModel(modelEl);
-    buildAnnotationDots();
-    buildLabels();
-  };
-
-  modelEl.addEventListener('model-loaded', onModelReady);
-  if (modelEl.getObject3D('mesh')) {
-    onModelReady();
-  }
-
-  modelEl.addEventListener('model-error', () => {
-    ldStatus.textContent = '⚠️ Gagal memuat model';
-    ldBar.classList.add('bg-error');
-  });
-
-  marker.addEventListener('markerFound', () => {
-    markerVisible = true;
-    instructions.classList.add('hidden');
-    statusDot.classList.add('active');
-    statusText.textContent = 'Marker ditemukan ✨';
-    foundRing.classList.remove('flash');
-    void foundRing.offsetWidth;
-    foundRing.classList.add('flash');
-  });
-
-  marker.addEventListener('markerLost', () => {
-    markerVisible = false;
-    instructions.classList.remove('hidden');
-    statusDot.classList.remove('active');
-    statusText.textContent = 'Mencari marker...';
-    linesSvg.innerHTML = '';
-    labelEls.forEach(({ dot, label }) => { dot.style.display = 'none'; label.style.display = 'none'; });
-  });
-
-  AFRAME.registerComponent('ann-updater', { tick() { if (modelLoaded) updateAnnotations(); } });
-  scene.setAttribute('ann-updater', '');
-
-  setTimeout(() => { if (!modelLoaded) finishLoading(); }, 6000);
-}
-
-// Run initAR immediately
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAR);
-} else {
-  initAR();
-}
-
-document.getElementById('overlay').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('overlay')) closePopup();
-});
+/* =========================================================================
+ * LEGACY AR.JS ANNOTATION CODE (RESERVED FOR FASE 3 HOTSPOT CONVERSION)
+ * =========================================================================
+ *
+ * const POS_PRESETS = {
+ *   'top': { x: 0.00, y: 0.55, z: 0 },
+ *   'right': { x: 0.32, y: 0.22, z: 0 },
+ *   ...
+ * };
+ *
+ * function showInfo(i) { ... }
+ * function closePopup() { ... }
+ *
+ * ========================================================================= */
 </script>
 </body>
 </html>
