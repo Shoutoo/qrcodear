@@ -142,5 +142,77 @@
         "license": "CC0"
       }
     ]
+  },
+  {
+    "ecosystem": "laut",
+    "name": "Ekosistem Laut",
+    "items": [
+      {
+        "id": "lib-laut-alga",
+        "name": "Fitoplankton / Alga Laut",
+        "role": "produsen",
+        "icon": "water_ec",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/alga.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/alga-thumb.png",
+        "source": "Poly Pizza / Low-Poly Sea",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-laut-udang",
+        "name": "Zooplankton / Udang Kecil",
+        "role": "konsumen_primer",
+        "icon": "set_meal",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/udang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/udang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Marine",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-laut-ikan-kecil",
+        "name": "Ikan Kecil",
+        "role": "konsumen_sekunder",
+        "icon": "phishing",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/ikan_kecil.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/ikan_kecil-thumb.png",
+        "source": "Poly Pizza / Low-Poly Fish",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-laut-ikan-besar",
+        "name": "Ikan Besar",
+        "role": "konsumen_tersier",
+        "icon": "phishing",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/ikan_besar.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/ikan_besar-thumb.png",
+        "source": "Poly Pizza / Low-Poly Fish",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-laut-hiu",
+        "name": "Hiu",
+        "role": "konsumen_final",
+        "icon": "sailing",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/hiu.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/hiu-thumb.png",
+        "source": "Poly Pizza / Low-Poly Shark",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-laut-bakteri",
+        "name": "Bakteri Pengurai",
+        "role": "decomposer",
+        "icon": "coronavirus",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/bakteri.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/laut/bakteri-thumb.png",
+        "source": "Poly Pizza / Low-Poly Microbe",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      }
+    ]
   }
 ]

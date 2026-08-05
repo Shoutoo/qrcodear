@@ -72,5 +72,42 @@
         "modelSrc": "/uploads/ecosystem-models/library/hutan/jamur.glb"
       }
     ]
+  },
+  {
+    "id": "preset-laut",
+    "name": "Ekosistem Laut",
+    "description": "Rantai makanan siklus ekosistem laut (Alga → Udang → Ikan Kecil → Ikan Besar → Hiu → Bakteri)",
+    "slots": [
+      {
+        "role": "produsen",
+        "label": "Fitoplankton / Alga Laut",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/alga.glb"
+      },
+      {
+        "role": "konsumen_primer",
+        "label": "Zooplankton / Udang Kecil",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/udang.glb"
+      },
+      {
+        "role": "konsumen_sekunder",
+        "label": "Ikan Kecil",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/ikan_kecil.glb"
+      },
+      {
+        "role": "konsumen_tersier",
+        "label": "Ikan Besar",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/ikan_besar.glb"
+      },
+      {
+        "role": "konsumen_final",
+        "label": "Hiu",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/hiu.glb"
+      },
+      {
+        "role": "decomposer",
+        "label": "Bakteri Pengurai",
+        "modelSrc": "/uploads/ecosystem-models/library/laut/bakteri.glb"
+      }
+    ]
   }
 ]

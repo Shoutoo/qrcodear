@@ -483,7 +483,7 @@
     }
 
     function filterLibraryCategory(category) {
-      const tabs = ['darat', 'hutan', 'all'];
+      const tabs = ['darat', 'hutan', 'laut', 'all'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
         if (btn) {
@@ -1764,6 +1764,7 @@
         <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto" id="lib-category-tabs">
           <button onclick="filterLibraryCategory('darat')" id="tab-darat" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm">🌱 Darat</button>
           <button onclick="filterLibraryCategory('hutan')" id="tab-hutan" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌳 Hutan</button>
+          <button onclick="filterLibraryCategory('laut')" id="tab-laut" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌊 Laut</button>
           <button onclick="filterLibraryCategory('all')" id="tab-all" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">📦 Semua</button>
         </div>
 
