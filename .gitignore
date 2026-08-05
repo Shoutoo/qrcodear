@@ -6,3 +6,5 @@ server/uploads/*
 !server/uploads/markers/custom-marker.patt
 !server/uploads/markers/custom-marker.png
 !server/uploads/markers/.gitkeep
+!server/uploads/ecosystem-models/**
+
