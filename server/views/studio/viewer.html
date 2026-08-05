@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>AR Studio Multi-Object Viewer — {{SCENE_NAME}}</title>
+  <title>AR Studio World Tracking Viewer — {{SCENE_NAME}}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -20,15 +20,27 @@
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .ar-pill-btn:active { transform: scale(0.95); }
+
+    .reset-pill-btn {
+      background: rgba(15, 23, 42, 0.9);
+      color: #f8fafc; font-weight: 700; font-size: 13px;
+      padding: 10px 20px; border-radius: 50px; border: 1.5px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      display: flex; items-center: center; gap: 6px; cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .reset-pill-btn:active { transform: scale(0.95); }
   </style>
 
-  <!-- WebXR Polyfill for iOS / Browsers without native WebXR -->
+  <!-- WebXR Polyfill for Browsers without native WebXR -->
   <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.min.js"></script>
   <script>
     if (typeof WebXRPolyfill !== 'undefined') {
       new WebXRPolyfill();
     }
   </script>
+  <!-- Google <model-viewer> fallback -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
   <!-- Three.js & WebXR loaders -->
@@ -43,7 +55,7 @@
   <!-- 3D Canvas -->
   <div id="ar-canvas-container"></div>
 
-  <!-- Overlay UI -->
+  <!-- Overlay UI (Pre-created statically in DOM before requestSession) -->
   <div id="overlay-ui" class="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-6">
     
     <!-- Top Header Bar -->
@@ -52,7 +64,7 @@
         <span class="material-symbols-outlined text-emerald-600">view_in_ar</span>
         <div>
           <h1 class="font-bold text-slate-800 text-sm leading-tight">{{SCENE_NAME}}</h1>
-          <p class="text-[10px] text-slate-500 font-semibold">WebXR Tap-to-Place AR</p>
+          <p class="text-[10px] text-slate-500 font-semibold">WebXR World Tracking & XRAnchors</p>
         </div>
       </div>
 
@@ -61,18 +73,23 @@
       </a>
     </div>
 
-    <!-- Instruction Badge & Start AR Button (Center Bottom) -->
+    <!-- Instruction Badge & Action Buttons (Center Bottom) -->
     <div class="flex flex-col items-center gap-3 pointer-events-auto mb-6">
       
       <!-- Tap Instruction Banner -->
       <div id="tap-instruction" class="bg-slate-900/90 backdrop-blur-md text-white border border-white/20 px-5 py-2.5 rounded-full text-xs font-bold shadow-2xl flex items-center gap-2 transition-all">
         <span class="material-symbols-outlined text-emerald-400 text-sm animate-bounce">touch_app</span>
-        <span id="instruction-text">Tekan "Lihat dalam AR" untuk memulai scan ruangan</span>
+        <span id="instruction-text">Tekan "Mulai AR World Tracking" untuk memulai scan ruangan</span>
       </div>
 
       <!-- Start AR Button -->
       <button id="start-ar-btn" class="ar-pill-btn">
-        <span class="material-symbols-outlined text-lg">view_in_ar</span> Lihat dalam AR
+        <span class="material-symbols-outlined text-lg">view_in_ar</span> Mulai AR World Tracking
+      </button>
+
+      <!-- Reset / Unlock Position Button (Initially Hidden) -->
+      <button id="reset-ar-btn" onclick="resetAnchorPlacement()" class="reset-pill-btn" style="display: none;">
+        <span class="material-symbols-outlined text-base text-amber-400">restart_alt</span> Reset / Pindah Posisi
       </button>
 
     </div>
@@ -91,6 +108,11 @@
     let hitTestSource = null;
     let hitTestSourceRequested = false;
 
+    let activeAnchor = null;
+    let lastHitTestResult = null;
+    let lastHitPoseMatrix = new THREE.Matrix4();
+    let hasValidHit = false;
+
     let sceneGroup; // Root group containing all multi-objects
     let isPlaced = false;
     let gltfLoader, textureLoader;
@@ -98,21 +120,22 @@
     function init() {
       container = document.getElementById('ar-canvas-container');
 
-      // 1. Three.js Scene
+      // 1. Three.js Scene Setup
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
 
-      // Lights
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      // Lighting Setup (Ambient + Directional for bright custom GLB models)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-      dirLight.position.set(2, 4, 2);
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      dirLight.position.set(3, 6, 3);
+      dirLight.castShadow = true;
       scene.add(dirLight);
 
       // 2. Scene Root Group for Multi-Objects
       sceneGroup = new THREE.Group();
-      sceneGroup.visible = false; // Hidden until user taps floor reticle
+      sceneGroup.visible = false; // Hidden until user taps to place
       scene.add(sceneGroup);
 
       // 3. Setup Loaders
@@ -122,7 +145,7 @@
       dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
       gltfLoader.setDRACOLoader(dracoLoader);
 
-      // Populate objects into sceneGroup
+      // Populate objects into sceneGroup preserving transform scale & rotation
       buildSceneObjects();
 
       // 4. Reticle Ring for Floor Hit-Testing
@@ -148,8 +171,9 @@
 
     function buildSceneObjects() {
       if (!objects || !objects.length) {
-        // Fallback demo shape if no objects in scene
+        // Fallback box if scene objects are empty
         const defaultGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        defaultGeo.translate(0, 0.25, 0);
         const defaultMat = new THREE.MeshStandardMaterial({ color: 0x10b981 });
         sceneGroup.add(new THREE.Mesh(defaultGeo, defaultMat));
         return;
@@ -168,7 +192,7 @@
             const model = gltf.scene;
             const box = new THREE.Box3().setFromObject(model);
             if (!box.isEmpty()) {
-              // Shift model so its lowest Y point sits flat at Y = 0
+              // Normalize grounding so lowest Y sits at Y = 0 relative to itemGroup
               model.position.y -= box.min.y;
             }
             itemGroup.add(model);
@@ -182,7 +206,7 @@
 
           if (obj.shapeType === 'box') {
             geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            geo.translate(0, 0.25, 0); // Ground bottom at Y = 0
+            geo.translate(0, 0.25, 0);
           } else if (obj.shapeType === 'sphere') {
             geo = new THREE.SphereGeometry(0.35, 32, 32);
             geo.translate(0, 0.35, 0);
@@ -225,9 +249,6 @@
       });
     }
 
-    let lastValidMatrix = new THREE.Matrix4();
-    let hasValidHit = false;
-
     async function setupARButton() {
       const arBtn = document.getElementById('start-ar-btn');
       const instructionText = document.getElementById('instruction-text');
@@ -250,12 +271,12 @@
       function objSrc(o) { return o.src || (o.assetData ? `/assets/${o.assetData.filename}` : null); }
 
       if (isWebXRSupported) {
-        instructionText.textContent = 'Tekan "Lihat dalam AR" untuk memindai ruangan';
+        instructionText.textContent = 'Tekan "Mulai AR World Tracking" untuk memindai ruangan';
         arBtn.addEventListener('click', async () => {
           try {
             const session = await navigator.xr.requestSession('immersive-ar', {
               requiredFeatures: ['hit-test'],
-              optionalFeatures: ['dom-overlay', 'local-floor'],
+              optionalFeatures: ['anchors', 'dom-overlay', 'local-floor'],
               domOverlay: { root: document.getElementById('overlay-ui') }
             });
             onSessionStarted(session);
@@ -266,18 +287,19 @@
         });
       } else {
         // iOS Safari or non-WebXR Browser Fallback
-        instructionText.textContent = isIOS ? 'iOS Safari: Buka AR Quick Look' : 'Buka AR Quick Look Viewer';
-        arBtn.innerHTML = '<span class="material-symbols-outlined text-lg">phone_iphone</span> Lihat AR (iOS Quick Look)';
+        instructionText.textContent = isIOS ? 'Gunakan Chrome di Android untuk pengalaman AR penuh. (Preview 3D iOS Active)' : 'Gunakan Chrome di Android untuk pengalaman AR World Tracking penuh';
+        arBtn.innerHTML = '<span class="material-symbols-outlined text-lg">phone_iphone</span> Lihat Preview 3D (iOS)';
 
-        // Prepare hidden <model-viewer> element for iOS Quick Look
+        // Prepare hidden <model-viewer> element for iOS Quick Look / 3D Preview
         let mv = document.getElementById('ios-ar-viewer');
         if (!mv) {
           mv = document.createElement('model-viewer');
           mv.id = 'ios-ar-viewer';
           mv.setAttribute('src', modelUrl);
           mv.setAttribute('ar', '');
-          mv.setAttribute('ar-modes', 'quicklook scene-viewer webxr');
+          mv.setAttribute('ar-modes', 'scene-viewer quick-look webxr');
           mv.setAttribute('camera-controls', '');
+          mv.setAttribute('auto-rotate', '');
           mv.style.display = 'none';
           document.body.appendChild(mv);
         }
@@ -288,7 +310,7 @@
           } else {
             const arLink = mv.shadowRoot ? mv.shadowRoot.querySelector('#ar-button') : null;
             if (arLink) arLink.click();
-            else alert('Silakan gunakan Chrome (Android) untuk WebXR Tap-to-Place atau update iOS Safari.');
+            else alert('Gunakan Chrome di Android untuk pengalaman AR World Tracking penuh.');
           }
         });
       }
@@ -296,9 +318,9 @@
 
     async function onSessionStarted(session) {
       document.getElementById('start-ar-btn').style.display = 'none';
+      document.getElementById('tap-instruction').style.display = 'flex';
       document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan & mengunci scene 3D';
 
-      // Try local-floor for real-world floor tracking, fallback to local
       try {
         await renderer.xr.setReferenceSpaceType('local-floor');
       } catch (e) {
@@ -324,24 +346,48 @@
       hitTestSourceRequested = false;
       hitTestSource = null;
       hasValidHit = false;
+      if (activeAnchor && typeof activeAnchor.delete === 'function') {
+        try { activeAnchor.delete(); } catch(e){}
+      }
+      activeAnchor = null;
+      isPlaced = false;
+      sceneGroup.visible = false;
+
       window.removeEventListener('click', onWindowTap);
       window.removeEventListener('touchstart', onWindowTap);
+
       document.getElementById('start-ar-btn').style.display = 'flex';
-      document.getElementById('instruction-text').textContent = 'Tekan "Lihat dalam AR" untuk memulai';
+      document.getElementById('reset-ar-btn').style.display = 'none';
+      document.getElementById('tap-instruction').style.display = 'flex';
+      document.getElementById('instruction-text').textContent = 'Tekan "Mulai AR World Tracking" untuk memulai';
     }
 
-    function onWindowTap() {
+    function onWindowTap(e) {
+      // Don't trigger tap placement if user clicked Reset button
+      if (e.target && e.target.closest('#reset-ar-btn')) return;
       if (renderer.xr.isPresenting && !isPlaced) {
         onSelect();
       }
     }
 
-    function onSelect() {
+    async function onSelect() {
       if (isPlaced) return;
+
+      // Try creating WebXR XRAnchor if hit test result available
+      if (lastHitTestResult && typeof lastHitTestResult.createAnchor === 'function') {
+        try {
+          const anchor = await lastHitTestResult.createAnchor();
+          if (anchor) {
+            activeAnchor = anchor;
+          }
+        } catch (err) {
+          console.warn('XRAnchor creation fallback:', err);
+        }
+      }
 
       if (hasValidHit || (reticle && reticle.visible)) {
         const hitPos = new THREE.Vector3();
-        hitPos.setFromMatrixPosition(reticle.matrix.elements[0] ? reticle.matrix : lastValidMatrix);
+        hitPos.setFromMatrixPosition(reticle.matrix.elements[0] ? reticle.matrix : lastHitPoseMatrix);
 
         sceneGroup.position.copy(hitPos);
 
@@ -349,7 +395,7 @@
         camera.getWorldPosition(camPos);
         sceneGroup.lookAt(camPos.x, sceneGroup.position.y, camPos.z);
       } else {
-        // Zero-scan instant placement: 1.2m in front of camera at table height
+        // Fallback: 1.2m in front of camera at table height
         const camPos = new THREE.Vector3();
         camera.getWorldPosition(camPos);
 
@@ -359,7 +405,7 @@
         camDir.normalize();
 
         const targetPos = camPos.clone().add(camDir.multiplyScalar(1.2));
-        targetPos.y = camPos.y - 0.3; // Sit at comfortable height in 3D world space
+        targetPos.y = camPos.y - 0.3;
 
         sceneGroup.position.copy(targetPos);
         sceneGroup.rotation.set(0, camera.rotation.y, 0);
@@ -370,8 +416,22 @@
       isPlaced = true;
       if (reticle) reticle.visible = false;
 
-      const instrContainer = document.getElementById('tap-instruction');
-      if (instrContainer) instrContainer.style.display = 'none'; // Hide banner after tap
+      // Show Reset button & Hide tap instruction
+      document.getElementById('reset-ar-btn').style.display = 'flex';
+      document.getElementById('tap-instruction').style.display = 'none';
+    }
+
+    function resetAnchorPlacement() {
+      if (activeAnchor && typeof activeAnchor.delete === 'function') {
+        try { activeAnchor.delete(); } catch(e){}
+      }
+      activeAnchor = null;
+      isPlaced = false;
+      sceneGroup.visible = false;
+
+      document.getElementById('reset-ar-btn').style.display = 'none';
+      document.getElementById('tap-instruction').style.display = 'flex';
+      document.getElementById('instruction-text').textContent = 'Tap layar kapan saja untuk menempatkan di posisi baru';
     }
 
     function render(timestamp, frame) {
@@ -379,6 +439,16 @@
         const referenceSpace = renderer.xr.getReferenceSpace();
         const session = renderer.xr.getSession();
 
+        // 1. Update sceneGroup transform every frame using XRAnchor if active (relocalization drift correction)
+        if (activeAnchor && frame.getPose) {
+          const anchorPose = frame.getPose(activeAnchor.anchorSpace, referenceSpace);
+          if (anchorPose) {
+            sceneGroup.matrix.fromArray(anchorPose.transform.matrix);
+            sceneGroup.matrix.decompose(sceneGroup.position, sceneGroup.quaternion, sceneGroup.scale);
+          }
+        }
+
+        // 2. Request HitTestSource if not requested yet
         if (hitTestSourceRequested === false) {
           session.requestReferenceSpace('viewer').then((viewerSpace) => {
             session.requestHitTestSource({ space: viewerSpace }).then((source) => {
@@ -395,17 +465,21 @@
           hitTestSourceRequested = true;
         }
 
+        // 3. Update reticle ring every frame if not placed yet
         if (hitTestSource && !isPlaced) {
           const hitTestResults = frame.getHitTestResults(hitTestSource);
 
           if (hitTestResults.length > 0) {
             const hit = hitTestResults[0];
+            lastHitTestResult = hit;
             const pose = hit.getPose(referenceSpace);
 
-            reticle.visible = true;
-            reticle.matrix.fromArray(pose.transform.matrix);
-            lastValidMatrix.fromArray(pose.transform.matrix);
-            hasValidHit = true;
+            if (pose) {
+              reticle.visible = true;
+              reticle.matrix.fromArray(pose.transform.matrix);
+              lastHitPoseMatrix.fromArray(pose.transform.matrix);
+              hasValidHit = true;
+            }
           } else {
             reticle.visible = false;
           }
