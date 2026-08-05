@@ -147,7 +147,13 @@
     }
 
     function buildSceneObjects() {
-      if (!objects.length) return;
+      if (!objects || !objects.length) {
+        // Fallback demo shape if no objects in scene
+        const defaultGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const defaultMat = new THREE.MeshStandardMaterial({ color: 0x10b981 });
+        sceneGroup.add(new THREE.Mesh(defaultGeo, defaultMat));
+        return;
+      }
 
       objects.forEach(obj => {
         const itemGroup = new THREE.Group();
@@ -155,30 +161,47 @@
         if (obj.rotation) itemGroup.rotation.set(obj.rotation[0] || 0, obj.rotation[1] || 0, obj.rotation[2] || 0);
         if (obj.scale) itemGroup.scale.set(obj.scale[0] || 1, obj.scale[1] || 1, obj.scale[2] || 1);
 
-        if (obj.type === 'model' && obj.src) {
-          gltfLoader.load(obj.src, (gltf) => {
+        const modelPath = obj.src || (obj.assetData ? `/assets/${obj.assetData.filename}` : null);
+
+        if (obj.type === 'model' && modelPath) {
+          gltfLoader.load(modelPath, (gltf) => {
             itemGroup.add(gltf.scene);
+          }, undefined, (err) => {
+            console.error('Error loading 3D model in AR:', err);
           });
         } else if (obj.type === 'shape') {
           let geo, mat;
           const color = obj.color || 0x10b981;
           mat = new THREE.MeshStandardMaterial({ color, roughness: 0.3, side: THREE.DoubleSide });
 
-          if (obj.shapeType === 'box') geo = new THREE.BoxGeometry(1, 1, 1);
-          else if (obj.shapeType === 'sphere') geo = new THREE.SphereGeometry(0.75, 32, 32);
-          else if (obj.shapeType === 'cylinder') geo = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 32);
-          else geo = new THREE.PlaneGeometry(1.5, 1.5);
+          if (obj.shapeType === 'box') geo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+          else if (obj.shapeType === 'sphere') geo = new THREE.SphereGeometry(0.35, 32, 32);
+          else if (obj.shapeType === 'cylinder') geo = new THREE.CylinderGeometry(0.25, 0.25, 0.75, 32);
+          else geo = new THREE.PlaneGeometry(0.8, 0.8);
 
           const mesh = new THREE.Mesh(geo, mat);
           itemGroup.add(mesh);
-        } else if (obj.type === 'image' && obj.url) {
-          textureLoader.load(obj.url, (tex) => {
+        } else if (obj.type === 'image' && (obj.url || obj.src)) {
+          textureLoader.load(obj.url || obj.src, (tex) => {
             const aspect = (tex.image.width && tex.image.height) ? (tex.image.width / tex.image.height) : 1;
-            const geo = new THREE.PlaneGeometry(aspect * 1.2, 1.2);
+            const geo = new THREE.PlaneGeometry(aspect * 0.8, 0.8);
             const mat = new THREE.MeshStandardMaterial({ map: tex, side: THREE.DoubleSide, transparent: true });
             const mesh = new THREE.Mesh(geo, mat);
             itemGroup.add(mesh);
           });
+        } else if (obj.type === 'text') {
+          const canvas = document.createElement('canvas');
+          canvas.width = 512; canvas.height = 128;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = obj.color || '#10b981';
+          ctx.font = 'Bold 48px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(obj.content || obj.name || 'Text 3D', 256, 75);
+
+          const textTex = new THREE.CanvasTexture(canvas);
+          const textGeo = new THREE.PlaneGeometry(1.2, 0.3);
+          const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
+          itemGroup.add(new THREE.Mesh(textGeo, textMat));
         }
 
         sceneGroup.add(itemGroup);
@@ -219,7 +242,6 @@
           } catch (err) {
             console.error('Failed to start AR session:', err);
             instructionText.textContent = 'AR Error: ' + err.message;
-            fallbackToModelViewer(modelUrl);
           }
         });
       } else {
@@ -244,7 +266,6 @@
           if (mv && typeof mv.activateAR === 'function') {
             mv.activateAR();
           } else {
-            // Trigger AR click on hidden model-viewer
             const arLink = mv.shadowRoot ? mv.shadowRoot.querySelector('#ar-button') : null;
             if (arLink) arLink.click();
             else alert('Silakan gunakan Chrome (Android) untuk WebXR Tap-to-Place atau update iOS Safari.');
@@ -255,7 +276,7 @@
 
     function onSessionStarted(session) {
       document.getElementById('start-ar-btn').style.display = 'none';
-      document.getElementById('instruction-text').textContent = 'Tap di permukaan lantai/meja untuk menempatkan scene';
+      document.getElementById('instruction-text').textContent = 'Tap layar untuk menempatkan scene di permukaan lantai';
 
       renderer.xr.setReferenceSpaceType('local');
       renderer.xr.setSession(session);
@@ -263,6 +284,10 @@
       controller = renderer.xr.getController(0);
       controller.addEventListener('select', onSelect);
       scene.add(controller);
+
+      // Window tap fallback listener for WebXR
+      window.addEventListener('click', onWindowTap);
+      window.addEventListener('touchstart', onWindowTap);
 
       session.addEventListener('end', onSessionEnded);
 
@@ -272,21 +297,38 @@
     function onSessionEnded() {
       hitTestSourceRequested = false;
       hitTestSource = null;
+      window.removeEventListener('click', onWindowTap);
+      window.removeEventListener('touchstart', onWindowTap);
       document.getElementById('start-ar-btn').style.display = 'flex';
       document.getElementById('instruction-text').textContent = 'Tekan "Lihat dalam AR" untuk memulai';
     }
 
+    function onWindowTap() {
+      if (renderer.xr.isPresenting && !isPlaced) {
+        onSelect();
+      }
+    }
+
     function onSelect() {
-      if (reticle.visible && !isPlaced) {
-        // Place the sceneGroup at reticle position
+      if (isPlaced) return;
+
+      if (reticle && reticle.visible) {
         sceneGroup.position.setFromMatrixPosition(reticle.matrix);
         sceneGroup.quaternion.setFromRotationMatrix(reticle.matrix);
-        sceneGroup.visible = true;
-
-        isPlaced = true;
-        reticle.visible = false;
-        document.getElementById('instruction-text').textContent = '✨ Scene berhasil ditempatkan!';
+      } else {
+        // Fallback: position scene 1.5m in front of camera
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+        sceneGroup.position.copy(camera.position).add(dir.multiplyScalar(1.5));
+        sceneGroup.rotation.y = camera.rotation.y;
       }
+
+      sceneGroup.visible = true;
+      isPlaced = true;
+      if (reticle) reticle.visible = false;
+
+      const instr = document.getElementById('instruction-text');
+      if (instr) instr.textContent = '✨ Scene 3D berhasil ditempatkan!';
     }
 
     function render(timestamp, frame) {
