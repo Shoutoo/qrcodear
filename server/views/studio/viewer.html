@@ -22,6 +22,15 @@
     .ar-pill-btn:active { transform: scale(0.95); }
   </style>
 
+  <!-- WebXR Polyfill for iOS / Browsers without native WebXR -->
+  <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.min.js"></script>
+  <script>
+    if (typeof WebXRPolyfill !== 'undefined') {
+      new WebXRPolyfill();
+    }
+  </script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
   <!-- Three.js & WebXR loaders -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
@@ -176,28 +185,72 @@
       });
     }
 
-    function setupARButton() {
+    async function setupARButton() {
       const arBtn = document.getElementById('start-ar-btn');
-      if (!navigator.xr) {
-        document.getElementById('instruction-text').textContent = 'WebXR AR tidak didukung di browser ini.';
-        arBtn.style.opacity = '0.5';
-        return;
+      const instructionText = document.getElementById('instruction-text');
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      let isWebXRSupported = false;
+
+      if (navigator.xr && navigator.xr.isSessionSupported) {
+        try {
+          isWebXRSupported = await navigator.xr.isSessionSupported('immersive-ar');
+        } catch (e) {
+          isWebXRSupported = false;
+        }
       }
 
-      arBtn.addEventListener('click', async () => {
-        try {
-          const session = await navigator.xr.requestSession('immersive-ar', {
-            requiredFeatures: ['hit-test'],
-            optionalFeatures: ['dom-overlay'],
-            domOverlay: { root: document.getElementById('overlay-ui') }
-          });
+      // Find first 3D model GLB in scene for iOS Quick Look fallback
+      const firstModelObj = objects.find(o => o.type === 'model' && objSrc(o));
+      const modelUrl = firstModelObj ? objSrc(firstModelObj) : '/assets/draco_test.glb';
 
-          onSessionStarted(session);
-        } catch (err) {
-          console.error('Failed to start AR session:', err);
-          document.getElementById('instruction-text').textContent = 'AR Error: ' + err.message;
+      function objSrc(o) { return o.src || (o.assetData ? `/assets/${o.assetData.filename}` : null); }
+
+      if (isWebXRSupported) {
+        instructionText.textContent = 'Tekan "Lihat dalam AR" untuk memindai ruangan (Tap-to-Place)';
+        arBtn.addEventListener('click', async () => {
+          try {
+            const session = await navigator.xr.requestSession('immersive-ar', {
+              requiredFeatures: ['hit-test'],
+              optionalFeatures: ['dom-overlay'],
+              domOverlay: { root: document.getElementById('overlay-ui') }
+            });
+            onSessionStarted(session);
+          } catch (err) {
+            console.error('Failed to start AR session:', err);
+            instructionText.textContent = 'AR Error: ' + err.message;
+            fallbackToModelViewer(modelUrl);
+          }
+        });
+      } else {
+        // iOS Safari or non-WebXR Browser Fallback
+        instructionText.textContent = isIOS ? 'iOS Safari: Buka AR Quick Look' : 'Buka AR Quick Look Viewer';
+        arBtn.innerHTML = '<span class="material-symbols-outlined text-lg">phone_iphone</span> Lihat AR (iOS Quick Look)';
+
+        // Prepare hidden <model-viewer> element for iOS Quick Look
+        let mv = document.getElementById('ios-ar-viewer');
+        if (!mv) {
+          mv = document.createElement('model-viewer');
+          mv.id = 'ios-ar-viewer';
+          mv.setAttribute('src', modelUrl);
+          mv.setAttribute('ar', '');
+          mv.setAttribute('ar-modes', 'quicklook scene-viewer webxr');
+          mv.setAttribute('camera-controls', '');
+          mv.style.display = 'none';
+          document.body.appendChild(mv);
         }
-      });
+
+        arBtn.addEventListener('click', () => {
+          if (mv && typeof mv.activateAR === 'function') {
+            mv.activateAR();
+          } else {
+            // Trigger AR click on hidden model-viewer
+            const arLink = mv.shadowRoot ? mv.shadowRoot.querySelector('#ar-button') : null;
+            if (arLink) arLink.click();
+            else alert('Silakan gunakan Chrome (Android) untuk WebXR Tap-to-Place atau update iOS Safari.');
+          }
+        });
+      }
     }
 
     function onSessionStarted(session) {
