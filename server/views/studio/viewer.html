@@ -110,7 +110,6 @@
 
     let activeAnchor = null;
     let lastHitTestResult = null;
-    let lastHitPoseMatrix = new THREE.Matrix4();
     let hasValidHit = false;
 
     let sceneGroup; // Root group containing all multi-objects
@@ -273,6 +272,7 @@
       if (isWebXRSupported) {
         instructionText.textContent = 'Tekan "Mulai AR World Tracking" untuk memindai ruangan';
         arBtn.addEventListener('click', async () => {
+          arBtn.style.display = 'none';
           try {
             const session = await navigator.xr.requestSession('immersive-ar', {
               requiredFeatures: ['hit-test'],
@@ -282,7 +282,8 @@
             onSessionStarted(session);
           } catch (err) {
             console.error('Failed to start AR session:', err);
-            instructionText.textContent = 'AR Error: ' + err.message;
+            instructionText.textContent = 'AR Error: ' + (err.message || 'Izin kamera ditolak atau tidak didukung');
+            arBtn.style.display = 'flex'; // Reappear so user can try again
           }
         });
       } else {
@@ -337,6 +338,7 @@
       window.addEventListener('click', onWindowTap);
       window.addEventListener('touchstart', onWindowTap);
 
+      // Single combined session end listener
       session.addEventListener('end', onSessionEnded);
 
       renderer.setAnimationLoop(render);
@@ -351,6 +353,7 @@
       }
       activeAnchor = null;
       isPlaced = false;
+      if (reticle) reticle.visible = false;
       sceneGroup.visible = false;
 
       window.removeEventListener('click', onWindowTap);
@@ -387,7 +390,7 @@
 
       if (hasValidHit || (reticle && reticle.visible)) {
         const hitPos = new THREE.Vector3();
-        hitPos.setFromMatrixPosition(reticle.matrix.elements[0] ? reticle.matrix : lastHitPoseMatrix);
+        hitPos.setFromMatrixPosition(reticle.matrix);
 
         sceneGroup.position.copy(hitPos);
 
@@ -456,12 +459,6 @@
             });
           });
 
-          session.addEventListener('end', () => {
-            hitTestSourceRequested = false;
-            hitTestSource = null;
-            hasValidHit = false;
-          });
-
           hitTestSourceRequested = true;
         }
 
@@ -477,7 +474,6 @@
             if (pose) {
               reticle.visible = true;
               reticle.matrix.fromArray(pose.transform.matrix);
-              lastHitPoseMatrix.fromArray(pose.transform.matrix);
               hasValidHit = true;
             }
           } else {
