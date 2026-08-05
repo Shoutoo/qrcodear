@@ -535,12 +535,12 @@
       grid.innerHTML = allItems.map(item => {
         const icon = item.icon || roleIcons[item.role] || 'deployed_code';
         return `
-          <div onclick="selectLibraryModel('${item.modelSrc}', '${escHtml(item.name)}')" class="bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-500/80 p-3 rounded-2xl cursor-pointer transition-all flex flex-col items-center text-center group shadow-sm hover:shadow-md">
-            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mb-2 shadow-inner group-hover:scale-110 transition-transform">
+          <div onclick="selectLibraryModel('${item.modelSrc}', '${escHtml(item.name)}')" class="bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-500/80 p-3 rounded-2xl cursor-pointer transition-all flex flex-col items-center text-center group shadow-sm hover:shadow-md overflow-hidden">
+            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mb-2 shadow-inner group-hover:scale-110 transition-transform overflow-hidden shrink-0">
               <span class="material-symbols-outlined text-2xl text-emerald-600">${icon}</span>
             </div>
             <h4 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 truncate w-full" title="${escHtml(item.name)}">${escHtml(item.name)}</h4>
-            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded mt-1">${item.role || 'slot'}</span>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded mt-1 shrink-0">${item.role || 'slot'}</span>
           </div>
         `;
       }).join('');
@@ -725,25 +725,6 @@
         const slotGroup = new THREE.Group();
         slotGroup.position.set(x, y, z);
 
-        // Load 3D Model / Placeholder Box
-        const modelSrc = slots[i].modelSrc;
-        if (modelSrc && gltfLoader) {
-          gltfLoader.load(modelSrc, (gltf) => {
-            const model = gltf.scene;
-            const box = new THREE.Box3().setFromObject(model);
-            if (!box.isEmpty()) model.position.y -= box.min.y;
-            model.scale.set(0.6, 0.6, 0.6);
-            slotGroup.add(model);
-          }, undefined, () => {
-            // Fallback placeholder shape
-            const placeholderGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-            const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const placeholderMesh = new THREE.Mesh(placeholderGeo, placeholderMat);
-            placeholderMesh.position.y = 0.3;
-            slotGroup.add(placeholderMesh);
-          });
-        }
-
         // Add Radial-Facing Text Label Plane (Spec 2.3)
         const labelText = slots[i].label || slots[i].role;
         const labelCanvas = document.createElement('canvas');
@@ -764,9 +745,48 @@
         const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture, side: THREE.DoubleSide, transparent: true });
         const labelMesh = new THREE.Mesh(labelGeo, labelMat);
 
-        // Position label above node & orient facing outward radially
-        labelMesh.position.set(0, 0.9, 0);
+        // Default label position (will be dynamically adjusted once 3D model loads)
+        labelMesh.position.set(0, 1.15, 0);
         labelMesh.rotation.y = -angle + Math.PI / 2;
+
+        // Load 3D Model / Placeholder Box with Dynamic Normalization (TASK B Fix)
+        const modelSrc = slots[i].modelSrc;
+        if (modelSrc && gltfLoader) {
+          gltfLoader.load(modelSrc, (gltf) => {
+            const model = gltf.scene;
+
+            // 1. Calculate raw bounding box
+            const initialBox = new THREE.Box3().setFromObject(model);
+            if (!initialBox.isEmpty()) {
+              const size = initialBox.getSize(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z);
+
+              // Target max dimension for ecosystem nodes: 0.75m
+              const TARGET_MAX_DIM = 0.75;
+              if (maxDim > 0) {
+                const scaleFactor = TARGET_MAX_DIM / maxDim;
+                model.scale.setScalar(scaleFactor);
+              }
+
+              // Re-align Y base to 0
+              const normBox = new THREE.Box3().setFromObject(model);
+              if (!normBox.isEmpty()) {
+                model.position.y -= normBox.min.y;
+
+                // Dynamically position label 0.25m above the top of the normalized model
+                labelMesh.position.y = Math.max(1.0, normBox.max.y + 0.25);
+              }
+            }
+            slotGroup.add(model);
+          }, undefined, () => {
+            // Fallback placeholder shape
+            const placeholderGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+            const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
+            const placeholderMesh = new THREE.Mesh(placeholderGeo, placeholderMat);
+            placeholderMesh.position.y = 0.3;
+            slotGroup.add(placeholderMesh);
+          });
+        }
 
         slotGroup.add(labelMesh);
         ecosystemGroup.add(slotGroup);

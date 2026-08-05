@@ -84,29 +84,29 @@ function tubeMesh(pts, radius, segments, radSeg, mat, closed = false) {
   return new THREE.Mesh(geo, mat);
 }
 
-// Helper for cute toy face (eyes + pupils + highlights)
+// Helper for cute toy face (eyes + pupils + highlights) — TASK A
 function addCuteFace(group, headPos, forwardVec, sideVec, upVec, scale = 1.0) {
   [-1, 1].forEach(side => {
     const eyeGroup = new THREE.Group();
     const pos = headPos.clone()
-      .addScaledVector(sideVec, side * 0.14 * scale)
-      .addScaledVector(upVec, 0.08 * scale)
-      .addScaledVector(forwardVec, 0.12 * scale);
+      .addScaledVector(sideVec, side * 0.16 * scale)
+      .addScaledVector(upVec, 0.10 * scale)
+      .addScaledVector(forwardVec, 0.14 * scale);
     eyeGroup.position.copy(pos);
 
-    // Eye white base
-    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.065 * scale, 16, 14), matteMat(0xfafafa, 0.3));
-    sclera.position.set(side * 0.01, 0, 0.01);
+    // Eye white base (sclera)
+    const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.075 * scale, 16, 14), matteMat(0xfafafa, 0.3));
+    sclera.position.set(side * 0.015 * scale, 0, 0.015 * scale);
     eyeGroup.add(sclera);
 
-    // Black pupil
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.052 * scale, 14, 12), matteMat(0x0a0a0a, 0.95));
-    pupil.position.set(side * 0.02 * scale, 0, 0.03 * scale);
+    // Big cute black pupil
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.062 * scale, 14, 12), matteMat(0x080808, 0.95));
+    pupil.position.set(side * 0.025 * scale, 0, 0.038 * scale);
     eyeGroup.add(pupil);
 
-    // White highlight dot
-    const hl = new THREE.Mesh(new THREE.SphereGeometry(0.018 * scale, 8, 6), matteMat(0xffffff, 0.05));
-    hl.position.set(side * 0.01 * scale, 0.02 * scale, 0.05 * scale);
+    // White highlight dot (shiny eye spark)
+    const hl = new THREE.Mesh(new THREE.SphereGeometry(0.022 * scale, 8, 6), matteMat(0xffffff, 0.05));
+    hl.position.set(side * 0.015 * scale, 0.026 * scale, 0.058 * scale);
     eyeGroup.add(hl);
 
     group.add(eyeGroup);
