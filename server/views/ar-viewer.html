@@ -125,9 +125,62 @@
       transform: translateX(-50%) scale(1.05);
       box-shadow: 0 12px 30px rgba(99, 44, 229, 0.5);
     }
-    .ar-custom-button:active {
-      transform: translateX(-50%) scale(0.95);
+    /* ── Native <model-viewer> Hotspots ──────────────────────── */
+    .view-hotspot {
+      background: #fdd400; /* yellow pill */
+      color: #6f5c00;
+      border: 2px solid #ffffff;
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(111, 92, 0, 0.25);
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+      white-space: nowrap;
+      user-select: none;
+      z-index: 10;
     }
+    .view-hotspot:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 20px rgba(111, 92, 0, 0.35);
+    }
+    .view-hotspot:active {
+      transform: scale(0.95);
+    }
+    .view-hotspot .hotspot-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #6f5c00;
+      color: #fdd400;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .view-hotspot[data-normal] {
+      pointer-events: auto;
+    }
+    .view-hotspot.not-normal {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    /* ── Info Popup Modal ──────────────────────────────── */
+    #info-popup {
+      position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+      width: min(340px, 90vw); background: #ffffff; border: 2px solid #e7f6ff;
+      border-radius: 24px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.15);
+      display: none; pointer-events: auto; animation: popupSlide 0.3s cubic-bezier(0.4,0,0.2,1);
+      z-index: 30;
+    }
+    #info-popup.show { display: block; transform: translateX(-50%) translateY(0); }
+    @keyframes popupSlide { from { transform: translateX(-50%) translateY(30px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
 
     /* ── Header Bar ────────────────────────────────────── */
     #header {
@@ -260,6 +313,75 @@ const viewer    = document.getElementById('viewer');
 const ldBar     = document.getElementById('ld-bar');
 const ldStatus  = document.getElementById('ld-status');
 const loadingLs = document.getElementById('loading-screen');
+const infoPopup = document.getElementById('info-popup');
+
+// ─── Position Presets for Legacy Annotations ─────────────────
+const POS_PRESETS = {
+  'top':          '0m 0.55m 0m',
+  'top-left':     '-0.25m 0.45m 0m',
+  'top-right':    '0.25m 0.45m 0m',
+  'left':         '-0.32m 0.22m 0m',
+  'right':        '0.32m 0.22m 0m',
+  'center-left':  '-0.28m 0.10m 0m',
+  'center-right': '0.28m 0.10m 0m',
+  'bottom-left':  '-0.22m -0.02m 0m',
+  'bottom-right': '0.22m -0.02m 0m',
+  'bottom':       '0m -0.08m 0m',
+};
+
+// ─── Render Native <model-viewer> Hotspots ───────────────────
+function renderHotspots() {
+  if (!viewer || !ANNOTATIONS.length) return;
+
+  ANNOTATIONS.forEach((ann, index) => {
+    let posStr = '0m 0.25m 0m';
+
+    if (ann.dataPosition) {
+      posStr = ann.dataPosition;
+    } else if (ann.position && POS_PRESETS[ann.position]) {
+      posStr = POS_PRESETS[ann.position];
+    } else if (ann.position && typeof ann.position === 'string' && (ann.position.includes('m') || ann.position.includes(' '))) {
+      posStr = ann.position;
+    }
+
+    // Default normal vector to "0 1 0" for legacy data without normal vector
+    const normalStr = ann.dataNormal || ann.normal || '0 1 0';
+
+    const btn = document.createElement('button');
+    btn.className = 'view-hotspot';
+    btn.setAttribute('slot', `hotspot-${index + 1}`);
+    btn.setAttribute('data-position', posStr);
+    btn.setAttribute('data-normal', normalStr);
+    btn.setAttribute('data-visibility-attribute', 'visible');
+
+    btn.innerHTML = `
+      <span>${escHtml(ann.name || 'Label')}</span>
+      ${ann.description ? `<span class="hotspot-icon"><span class="material-symbols-outlined text-[14px]">info</span></span>` : ''}
+    `;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showInfo(ann);
+    });
+
+    viewer.appendChild(btn);
+  });
+}
+
+function showInfo(ann) {
+  if (!infoPopup) return;
+  document.getElementById('popup-title').textContent = ann.name || 'Label Anotasi';
+  document.getElementById('popup-desc').textContent = ann.description || 'Tidak ada deskripsi.';
+  infoPopup.classList.add('show');
+}
+
+function closePopup() {
+  if (infoPopup) infoPopup.classList.remove('show');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 // ─── Loading Progress for <model-viewer> ────────────────────
 if (viewer && ldBar && loadingLs) {
@@ -278,27 +400,23 @@ if (viewer && ldBar && loadingLs) {
     }, 300);
   };
 
-  viewer.addEventListener('load', finishLoading);
+  viewer.addEventListener('load', () => {
+    finishLoading();
+    renderHotspots();
+  });
+
   // Fallback timeout in case load event already fired
   setTimeout(() => {
-    if (!loadingLs.classList.contains('hidden')) finishLoading();
-  }, 4000);
+    if (!loadingLs.classList.contains('hidden')) {
+      finishLoading();
+      renderHotspots();
+    }
+  }, 3500);
 }
 
-/* =========================================================================
- * LEGACY AR.JS ANNOTATION CODE (RESERVED FOR FASE 3 HOTSPOT CONVERSION)
- * =========================================================================
- *
- * const POS_PRESETS = {
- *   'top': { x: 0.00, y: 0.55, z: 0 },
- *   'right': { x: 0.32, y: 0.22, z: 0 },
- *   ...
- * };
- *
- * function showInfo(i) { ... }
- * function closePopup() { ... }
- *
- * ========================================================================= */
+document.getElementById('overlay')?.addEventListener('click', (e) => {
+  if (e.target === document.getElementById('overlay')) closePopup();
+});
 </script>
 </body>
 </html>
