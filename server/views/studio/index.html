@@ -281,9 +281,10 @@
       dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
       gltfLoader.setDRACOLoader(dracoLoader);
 
-      // 9. Fetch Available Assets & Media
+      // 9. Fetch Available Assets & Media & Preset Ekosistem (FASE P2)
       fetchAvailableAssets();
       fetchAvailableMedia();
+      fetchDefaultEcosystemPreset();
 
       // 10. Event Listeners
       renderer.domElement.addEventListener('pointerdown', onCanvasPointerDown);
@@ -292,6 +293,133 @@
 
       // 11. Animation Loop
       animate();
+    }
+
+    // ─── FASE P2: Ecosystem Preset Circular Layout Generator ──────
+    let ecosystemGroup = null;
+
+    async function fetchDefaultEcosystemPreset() {
+      try {
+        const res = await fetch('/api/ecosystem/presets/preset-darat');
+        const data = await res.json();
+        if (data.success && data.preset) {
+          renderEcosystemLayout(data.preset);
+        }
+      } catch (err) {
+        console.error('Failed to fetch default ecosystem preset:', err);
+      }
+    }
+
+    function renderEcosystemLayout(preset) {
+      if (ecosystemGroup) {
+        scene.remove(ecosystemGroup);
+        ecosystemGroup = null;
+      }
+
+      ecosystemGroup = new THREE.Group();
+      ecosystemGroup.name = 'ecosystem_preset_group';
+
+      const slots = preset.slots || [];
+      const numSlots = slots.length; // Always 6
+      const radius = 2.2; // Circle radius in meters
+
+      const slotPositions = [];
+
+      // 1. Calculate positions for 6 slots in a circle
+      for (let i = 0; i < numSlots; i++) {
+        const angle = (i * 2 * Math.PI) / numSlots;
+        const x = radius * Math.cos(angle);
+        const z = radius * Math.sin(angle);
+        const y = 0.5;
+
+        slotPositions.push({ x, y, z, angle, slotData: slots[i] });
+
+        // Add Slot Container
+        const slotGroup = new THREE.Group();
+        slotGroup.position.set(x, y, z);
+
+        // Load 3D Model / Placeholder Box
+        const modelSrc = slots[i].modelSrc;
+        if (modelSrc && gltfLoader) {
+          gltfLoader.load(modelSrc, (gltf) => {
+            const model = gltf.scene;
+            const box = new THREE.Box3().setFromObject(model);
+            if (!box.isEmpty()) model.position.y -= box.min.y;
+            model.scale.set(0.6, 0.6, 0.6);
+            slotGroup.add(model);
+          }, undefined, () => {
+            // Fallback placeholder shape
+            const placeholderGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+            const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
+            const placeholderMesh = new THREE.Mesh(placeholderGeo, placeholderMat);
+            placeholderMesh.position.y = 0.3;
+            slotGroup.add(placeholderMesh);
+          });
+        }
+
+        // Add Radial-Facing Text Label Plane (Spec 2.3)
+        const labelText = slots[i].label || slots[i].role;
+        const labelCanvas = document.createElement('canvas');
+        labelCanvas.width = 512; labelCanvas.height = 128;
+        const ctx = labelCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 512, 128);
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = '#ef4444';
+        ctx.strokeRect(4, 4, 504, 120);
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'Bold 42px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(labelText, 256, 75);
+
+        const labelTexture = new THREE.CanvasTexture(labelCanvas);
+        const labelGeo = new THREE.PlaneGeometry(1.2, 0.3);
+        const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture, side: THREE.DoubleSide, transparent: true });
+        const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+
+        // Position label above node & orient facing outward radially
+        labelMesh.position.set(0, 0.9, 0);
+        labelMesh.rotation.y = -angle + Math.PI / 2;
+
+        slotGroup.add(labelMesh);
+        ecosystemGroup.add(slotGroup);
+      }
+
+      // 2. Generate Directional Curved Arrows between sequential nodes (1->2->3->4->5->6->1)
+      for (let i = 0; i < numSlots; i++) {
+        const nextIdx = (i + 1) % numSlots;
+        const start = slotPositions[i];
+        const end = slotPositions[nextIdx];
+
+        // Compute Arc Control Points
+        const midAngle = (start.angle + (nextIdx === 0 ? 2 * Math.PI : end.angle)) / 2;
+        const arcRadius = radius * 1.15; // Slightly outward curve
+        const midX = arcRadius * Math.cos(midAngle);
+        const midZ = arcRadius * Math.sin(midAngle);
+        const midY = 0.5;
+
+        const pStart = new THREE.Vector3(start.x * 0.85, start.y, start.z * 0.85);
+        const pMid = new THREE.Vector3(midX, midY, midZ);
+        const pEnd = new THREE.Vector3(end.x * 0.85, end.y, end.z * 0.85);
+
+        const curve = new THREE.CatmullRomCurve3([pStart, pMid, pEnd]);
+        const tubeGeo = new THREE.TubeGeometry(curve, 24, 0.03, 8, false);
+        const tubeMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.2, metalness: 0.1 });
+        const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+        ecosystemGroup.add(tubeMesh);
+
+        // Arrowhead Cone at destination node
+        const tangent = curve.getTangent(1.0).normalize();
+        const coneGeo = new THREE.ConeGeometry(0.1, 0.28, 16);
+        coneGeo.rotateX(Math.PI / 2);
+        const coneMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2 });
+        const coneMesh = new THREE.Mesh(coneGeo, coneMat);
+        coneMesh.position.copy(pEnd);
+        coneMesh.lookAt(pEnd.clone().add(tangent));
+        ecosystemGroup.add(coneMesh);
+      }
+
+      scene.add(ecosystemGroup);
     }
 
     // ─── Direct 3D Model (.glb) Upload Handling ───────────────
