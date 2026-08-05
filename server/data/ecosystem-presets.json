@@ -1,0 +1,39 @@
+[
+  {
+    "id": "preset-darat",
+    "name": "Ekosistem Darat",
+    "description": "Rantai makanan siklus ekosistem darat (Rumput → Belalang → Katak → Ular → Elang → Jamur)",
+    "slots": [
+      {
+        "role": "produsen",
+        "label": "Rumput",
+        "modelSrc": "/assets/draco_test.glb"
+      },
+      {
+        "role": "konsumen_primer",
+        "label": "Belalang",
+        "modelSrc": "/assets/draco_test.glb"
+      },
+      {
+        "role": "konsumen_sekunder",
+        "label": "Katak",
+        "modelSrc": "/assets/draco_test.glb"
+      },
+      {
+        "role": "konsumen_tersier",
+        "label": "Ular",
+        "modelSrc": "/assets/draco_test.glb"
+      },
+      {
+        "role": "konsumen_final",
+        "label": "Elang",
+        "modelSrc": "/assets/draco_test.glb"
+      },
+      {
+        "role": "decomposer",
+        "label": "Jamur",
+        "modelSrc": "/assets/draco_test.glb"
+      }
+    ]
+  }
+]

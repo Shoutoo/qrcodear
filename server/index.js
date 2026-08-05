@@ -59,6 +59,14 @@ function saveMedia(media) {
   fs.writeFileSync(MEDIA_FILE, JSON.stringify(media, null, 2), 'utf8');
 }
 
+const ECOSYSTEM_PRESETS_FILE = path.join(__dirname, 'data', 'ecosystem-presets.json');
+
+function loadEcosystemPresets() {
+  if (!fs.existsSync(ECOSYSTEM_PRESETS_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(ECOSYSTEM_PRESETS_FILE, 'utf8')); }
+  catch { return []; }
+}
+
 const mediaStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, MEDIA_DIR),
   filename: (req, file, cb) => {
@@ -581,6 +589,20 @@ app.post('/api/studio/upload-media', uploadMedia.single('file'), (req, res) => {
   saveMedia(mediaList);
 
   res.json({ success: true, item: mediaItem });
+});
+
+// ─── Ecosystem Presets API (FASE P1) ───────────────────────────────────────────
+app.get('/api/ecosystem/presets', (req, res) => {
+  const presets = loadEcosystemPresets();
+  res.json({ success: true, presets });
+});
+
+app.get('/api/ecosystem/presets/:id', (req, res) => {
+  const { id } = req.params;
+  const presets = loadEcosystemPresets();
+  const preset = presets.find(p => p.id === id);
+  if (!preset) return res.status(404).json({ error: 'Preset tidak ditemukan' });
+  res.json({ success: true, preset });
 });
 
 // ─── Catch-all: serve frontend ────────────────────────────────────────────────
