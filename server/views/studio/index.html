@@ -204,10 +204,6 @@
     let raycaster = new THREE.Raycaster();
     let mouse = new THREE.Vector2();
 
-    fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-      loadedFont = font;
-    });
-
     function initStudio() {
       const container = document.getElementById('canvas-container');
 
@@ -471,7 +467,11 @@
       if (!textStr) return;
 
       if (!loadedFont) {
-        alert('Font 3D sedang diunduh, silakan coba 2 detik lagi...');
+        document.getElementById('studio-status').textContent = 'Memuat font 3D...';
+        fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+          loadedFont = font;
+          add3DTextToScene();
+        });
         return;
       }
 
