@@ -528,11 +528,21 @@ app.get('/ecosystem/view/:id', (req, res) => {
   let html = fs.readFileSync(ecoViewerPath, 'utf8');
 
   const hostHeader = req.get('host') || 'localhost:3001';
-  const protocol = req.protocol || 'http';
-  const host = protocol + '://' + hostHeader;
+  let protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  if (hostHeader.includes('onrender.com') || hostHeader.includes('github.io')) {
+    protocol = 'https';
+  }
+  let host = protocol + '://' + hostHeader;
+  if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+    host = host.replace(/^http:\/\//, 'https://');
+  }
 
   const glbPath = (item && item.glbUrl) ? item.glbUrl : `/assets/${id}.glb`;
-  const fullGlbUrl = glbPath.startsWith('http') ? glbPath : `${host}${glbPath}`;
+  let fullGlbUrl = glbPath.startsWith('http') ? glbPath : `${host}${glbPath}`;
+  if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+    fullGlbUrl = fullGlbUrl.replace(/^http:\/\//, 'https://');
+  }
+
   const name = item ? item.name : 'Rantai Makanan AR';
 
   html = html
@@ -708,8 +718,14 @@ app.post('/api/ecosystem/publish', uploadEcoBake.single('bakedGlb'), async (req,
     const { presetId, presetName } = req.body;
     const id = path.parse(req.file.filename).name;
     const hostHeader = req.get('host') || 'localhost:3001';
-    const protocol = req.protocol || 'http';
-    const host = protocol + '://' + hostHeader;
+    let protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+    if (hostHeader.includes('onrender.com') || hostHeader.includes('github.io')) {
+      protocol = 'https';
+    }
+    let host = protocol + '://' + hostHeader;
+    if (!hostHeader.includes('localhost') && !hostHeader.includes('127.0.0.1')) {
+      host = host.replace(/^http:\/\//, 'https://');
+    }
     const directUrl = `${host}/ecosystem/view/${id}`;
 
     // Generate QR Code PNG
