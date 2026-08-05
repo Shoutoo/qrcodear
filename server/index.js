@@ -70,6 +70,14 @@ function saveEcosystemPresets(presets) {
   fs.writeFileSync(ECOSYSTEM_PRESETS_FILE, JSON.stringify(presets, null, 2), 'utf8');
 }
 
+const ECOSYSTEM_MODEL_LIBRARY_FILE = path.join(__dirname, 'data', 'ecosystem-model-library.json');
+
+function loadEcosystemModelLibrary() {
+  if (!fs.existsSync(ECOSYSTEM_MODEL_LIBRARY_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(ECOSYSTEM_MODEL_LIBRARY_FILE, 'utf8')); }
+  catch { return []; }
+}
+
 const mediaStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, MEDIA_DIR),
   filename: (req, file, cb) => {
@@ -160,6 +168,7 @@ app.use('/assets', express.static(ASSETS_DIR, {
     }
   }
 }));
+app.use('/uploads', express.static(ASSETS_DIR));
 
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
 app.use(express.static(CLIENT_DIR));
@@ -622,7 +631,12 @@ app.post('/api/studio/upload-media', uploadMedia.single('file'), (req, res) => {
   res.json({ success: true, item: mediaItem });
 });
 
-// ─── Ecosystem Presets API (FASE P1) ───────────────────────────────────────────
+// ─── Ecosystem Presets API (FASE P1 & P2.5) ───────────────────────────────────
+app.get('/api/ecosystem/library', (req, res) => {
+  const library = loadEcosystemModelLibrary();
+  res.json({ success: true, library });
+});
+
 app.get('/api/ecosystem/presets', (req, res) => {
   const presets = loadEcosystemPresets();
   res.json({ success: true, presets });

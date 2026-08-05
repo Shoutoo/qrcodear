@@ -1,0 +1,68 @@
+[
+  {
+    "ecosystem": "darat",
+    "name": "Ekosistem Darat",
+    "items": [
+      {
+        "id": "lib-darat-rumput",
+        "name": "Rumput",
+        "role": "produsen",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/rumput.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/rumput-thumb.png",
+        "source": "Poly Pizza / Low-Poly Nature",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-darat-belalang",
+        "name": "Belalang",
+        "role": "konsumen_primer",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/belalang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/belalang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Animal",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-darat-katak",
+        "name": "Katak",
+        "role": "konsumen_sekunder",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/katak.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/katak-thumb.png",
+        "source": "Poly Pizza / Low-Poly Animal",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-darat-ular",
+        "name": "Ular",
+        "role": "konsumen_tersier",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/ular.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/ular-thumb.png",
+        "source": "Poly Pizza / Low-Poly Animal",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-darat-elang",
+        "name": "Elang",
+        "role": "konsumen_final",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/elang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/elang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Bird",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-darat-jamur",
+        "name": "Jamur",
+        "role": "decomposer",
+        "modelSrc": "/uploads/ecosystem-models/library/darat/jamur.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/darat/jamur-thumb.png",
+        "source": "Poly Pizza / Low-Poly Fungi",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      }
+    ]
+  }
+]

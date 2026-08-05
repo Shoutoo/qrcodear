@@ -7,32 +7,32 @@
       {
         "role": "produsen",
         "label": "Rumput",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/rumput.glb"
       },
       {
         "role": "konsumen_primer",
         "label": "Belalang",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/belalang.glb"
       },
       {
         "role": "konsumen_sekunder",
         "label": "Katak",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/katak.glb"
       },
       {
         "role": "konsumen_tersier",
         "label": "Ular",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/ular.glb"
       },
       {
         "role": "konsumen_final",
         "label": "Elang",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/elang.glb"
       },
       {
         "role": "decomposer",
         "label": "Jamur",
-        "modelSrc": "/assets/draco_test.glb"
+        "modelSrc": "/uploads/ecosystem-models/library/darat/jamur.glb"
       }
     ]
   }
