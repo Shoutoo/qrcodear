@@ -1,0 +1,32 @@
+[
+  {
+    "sceneId": "sample-scene-01",
+    "name": "Sample Studio Scene",
+    "createdAt": "2026-08-05T14:15:00.000Z",
+    "updatedAt": "2026-08-05T14:15:00.000Z",
+    "objects": [
+      {
+        "id": "light-1",
+        "name": "Ambient Light",
+        "type": "light",
+        "lightType": "ambient",
+        "color": "#ffffff",
+        "intensity": 0.6,
+        "position": [0, 5, 0],
+        "rotation": [0, 0, 0],
+        "scale": [1, 1, 1]
+      },
+      {
+        "id": "light-2",
+        "name": "Directional Light",
+        "type": "light",
+        "lightType": "directional",
+        "color": "#ffffff",
+        "intensity": 0.8,
+        "position": [5, 10, 5],
+        "rotation": [0, 0, 0],
+        "scale": [1, 1, 1]
+      }
+    ]
+  }
+]

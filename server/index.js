@@ -20,10 +20,12 @@ app.use(compression());
 // ─── Directories ───────────────────────────────────────────────────────────────
 const ASSETS_DIR  = path.join(__dirname, 'uploads');
 const MARKERS_DIR = path.join(ASSETS_DIR, 'markers');
+const MEDIA_DIR   = path.join(ASSETS_DIR, 'media');
 const DATA_FILE   = path.join(__dirname, 'data', 'assets.json');
+const MEDIA_FILE  = path.join(__dirname, 'data', 'media.json');
 const VIEWS_DIR   = path.join(__dirname, 'views');
 
-[ASSETS_DIR, MARKERS_DIR, path.join(__dirname, 'data')].forEach(dir => {
+[ASSETS_DIR, MARKERS_DIR, MEDIA_DIR, path.join(__dirname, 'data')].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -36,6 +38,40 @@ function loadAssets() {
 function saveAssets(assets) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(assets, null, 2), 'utf8');
 }
+
+const SCENES_FILE = path.join(__dirname, 'data', 'scenes.json');
+
+function loadScenes() {
+  if (!fs.existsSync(SCENES_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(SCENES_FILE, 'utf8')); }
+  catch { return []; }
+}
+function saveScenes(scenes) {
+  fs.writeFileSync(SCENES_FILE, JSON.stringify(scenes, null, 2), 'utf8');
+}
+
+function loadMedia() {
+  if (!fs.existsSync(MEDIA_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(MEDIA_FILE, 'utf8')); }
+  catch { return []; }
+}
+function saveMedia(media) {
+  fs.writeFileSync(MEDIA_FILE, JSON.stringify(media, null, 2), 'utf8');
+}
+
+const mediaStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, MEDIA_DIR),
+  filename: (req, file, cb) => {
+    const id  = nanoid(10);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${id}${ext}`);
+  }
+});
+
+const uploadMedia = multer({
+  storage: mediaStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
 
 // ─── Helper: Generate NFT dataset (.fset, .fset3, .iset) from QR PNG ──────────
 function generateNftMarker(qrImagePath, assetId) {
@@ -404,6 +440,50 @@ app.delete('/api/assets/:id', (req, res) => {
   assets = assets.filter(a => a.id !== id);
   saveAssets(assets);
   res.json({ success: true });
+});
+
+// ─── Studio Multi-Object Scene Editor Routes (FASE 0 & 1) ──────────────────────
+app.get('/studio', (req, res) => {
+  const studioPath = path.join(VIEWS_DIR, 'studio', 'index.html');
+  if (!fs.existsSync(studioPath)) {
+    return res.status(404).send('Studio index.html tidak ditemukan');
+  }
+  res.sendFile(studioPath);
+});
+
+app.get('/api/scenes', (req, res) => {
+  const scenes = loadScenes();
+  res.json({ success: true, scenes });
+});
+
+// ─── Studio Media Upload API (FASE 5) ──────────────────────────────────────────
+app.get('/api/studio/media', (req, res) => {
+  const media = loadMedia();
+  res.json({ success: true, media });
+});
+
+app.post('/api/studio/upload-media', uploadMedia.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Tidak ada file yang diunggah' });
+
+  const id = path.parse(req.file.filename).name;
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const isVideo = ['.mp4', '.webm', '.ogv', '.mov'].includes(ext);
+  const mediaType = isVideo ? 'video' : 'image';
+
+  const mediaItem = {
+    id,
+    filename: req.file.filename,
+    originalName: req.file.originalname,
+    mediaType,
+    url: `/assets/media/${req.file.filename}`,
+    uploadedAt: new Date().toISOString()
+  };
+
+  const mediaList = loadMedia();
+  mediaList.unshift(mediaItem);
+  saveMedia(mediaList);
+
+  res.json({ success: true, item: mediaItem });
 });
 
 // ─── Catch-all: serve frontend ────────────────────────────────────────────────
