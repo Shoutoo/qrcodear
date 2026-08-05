@@ -518,12 +518,17 @@ app.get('/ecosystem/view/:id', (req, res) => {
 
   let html = fs.readFileSync(ecoViewerPath, 'utf8');
 
-  const glbUrl = item ? item.glbUrl : `/assets/${id}.glb`;
+  const hostHeader = req.get('host') || 'localhost:3001';
+  const protocol = req.protocol || 'http';
+  const host = protocol + '://' + hostHeader;
+
+  const glbPath = (item && item.glbUrl) ? item.glbUrl : `/assets/${id}.glb`;
+  const fullGlbUrl = glbPath.startsWith('http') ? glbPath : `${host}${glbPath}`;
   const name = item ? item.name : 'Rantai Makanan AR';
 
   html = html
     .replace(/{{ECOSYSTEM_NAME}}/g, escapeHtml(name))
-    .replace(/{{ECOSYSTEM_GLB_URL}}/g, glbUrl);
+    .replace(/{{ECOSYSTEM_GLB_URL}}/g, fullGlbUrl);
 
   res.send(html);
 });

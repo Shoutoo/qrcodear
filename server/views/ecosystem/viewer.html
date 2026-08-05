@@ -55,7 +55,7 @@
     id="eco-viewer"
     src="{{ECOSYSTEM_GLB_URL}}"
     ar
-    ar-modes="webxr scene-viewer quick-look"
+    ar-modes="scene-viewer webxr quick-look"
     camera-controls
     shadow-intensity="1.2"
     shadow-softness="0.8"
@@ -64,10 +64,29 @@
     loading="eager"
     auto-rotate
   >
-    <button slot="ar-button" class="ar-custom-btn">
+    <button slot="ar-button" id="ar-btn" class="ar-custom-btn">
       <span class="material-symbols-outlined text-xl">view_in_ar</span> Mulai AR Rantai Makanan
     </button>
   </model-viewer>
 
+  <script>
+    const viewer = document.getElementById('eco-viewer');
+    const arBtn = document.getElementById('ar-btn');
+
+    viewer.addEventListener('error', (event) => {
+      console.error('model-viewer error:', event);
+      if (arBtn) {
+        arBtn.innerHTML = '<span class="material-symbols-outlined text-xl">error</span> Gagal Memuat Model AR';
+        arBtn.style.background = '#ef4444';
+      }
+    });
+
+    viewer.addEventListener('ar-status', (event) => {
+      console.log('AR Status Event:', event.detail.status);
+      if (event.detail.status === 'failed') {
+        alert('Perangkat Anda belum mendukung Scene Viewer / ARCore.');
+      }
+    });
+  </script>
 </body>
 </html>
