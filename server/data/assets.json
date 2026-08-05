@@ -1,5 +1,22 @@
 [
   {
+    "id": "GgFRJz4dhf",
+    "name": "Model iOS USDZ Test",
+    "description": "Uji coba upload usdz untuk iOS",
+    "annotations": [],
+    "filename": "GgFRJz4dhf.glb",
+    "originalName": "draco_test.glb",
+    "usdzFilename": "GgFRJz4dhf.usdz",
+    "usdzUrl": "/assets/GgFRJz4dhf.usdz",
+    "size": 2356664,
+    "mimetype": "application/octet-stream",
+    "viewerUrl": "http://localhost:3001/ar/GgFRJz4dhf",
+    "printUrl": "http://localhost:3001/print/GgFRJz4dhf",
+    "qrFilename": "GgFRJz4dhf_qr.png",
+    "nftMarkerBase": "/assets/markers/GgFRJz4dhf_nft",
+    "uploadedAt": "2026-08-05T06:32:10.707Z"
+  },
+  {
     "id": "o4Um0_Xwv6",
     "name": "Model Edukasi AR",
     "description": "Model 3D Interaktif untuk Uji Coba",

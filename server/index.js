@@ -180,6 +180,7 @@ app.get('/ar/:id', (req, res) => {
 
   html = html
     .replace(/{{MODEL_URL}}/g,        assetUrl)
+    .replace(/{{MODEL_USDZ_URL}}/g,   asset.usdzUrl || '')
     .replace(/{{MODEL_NAME}}/g,       escapeHtml(asset.name || 'Model 3D'))
     .replace(/{{MODEL_DESC}}/g,       escapeHtml(asset.description || ''))
     .replace(/{{ASSET_ID}}/g,         asset.id)
@@ -217,18 +218,34 @@ app.get('/print/:id', (req, res) => {
 });
 
 // ─── Route: Upload asset ──────────────────────────────────────────────────────
-app.post('/api/upload', upload.single('model'), async (req, res) => {
+app.post('/api/upload', upload.fields([
+  { name: 'model', maxCount: 1 },
+  { name: 'usdz',  maxCount: 1 }
+]), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'File tidak ditemukan' });
+    const modelFile = req.files?.model?.[0];
+    const usdzFile  = req.files?.usdz?.[0];
+
+    if (!modelFile) return res.status(400).json({ error: 'File model 3D tidak ditemukan' });
 
     const { name, description } = req.body;
     const annotations = parseAnnotations(req.body.annotations);
-    const id   = path.parse(req.file.filename).name;
+    const id   = path.parse(modelFile.filename).name;
     const hostHeader = req.get('host') || '';
     const protocol = hostHeader.includes('localhost') ? 'http' : 'https';
     const host = protocol + '://' + hostHeader;
     const viewerUrl = `${host}/ar/${id}`;
     const printUrl  = `${host}/print/${id}`;
+
+    // Handle optional USDZ file upload (iOS AR Quick Look)
+    let usdzFilename = null;
+    let usdzUrl = '';
+    if (usdzFile) {
+      usdzFilename = `${id}.usdz`;
+      const targetUsdzPath = path.join(ASSETS_DIR, usdzFilename);
+      fs.copyFileSync(usdzFile.path, targetUsdzPath);
+      usdzUrl = `/assets/${usdzFilename}`;
+    }
 
     // Generate QR code (data URL)
     const qrDataUrl = await qrcode.toDataURL(viewerUrl, {
@@ -251,13 +268,15 @@ app.post('/api/upload', upload.single('model'), async (req, res) => {
     // Build metadata
     const assetMeta = {
       id,
-      name:         name || req.file.originalname,
+      name:         name || modelFile.originalname,
       description:  description || '',
       annotations,
-      filename:     req.file.filename,
-      originalName: req.file.originalname,
-      size:         req.file.size,
-      mimetype:     req.file.mimetype,
+      filename:     modelFile.filename,
+      originalName: modelFile.originalname,
+      usdzFilename,
+      usdzUrl,
+      size:         modelFile.size,
+      mimetype:     modelFile.mimetype,
       viewerUrl,
       printUrl,
       qrFilename,

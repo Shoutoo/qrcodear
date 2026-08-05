@@ -295,6 +295,14 @@
 <label class="font-label-bold text-label-bold text-on-surface uppercase mb-2 block">Deskripsi (Opsional)</label>
 <textarea id="inputDesc" class="w-full bg-surface-container-low border-2 border-outline-variant rounded-lg p-4 h-24 focus:border-tertiary-container focus:ring-0 font-body-md" placeholder="Tambahkan deskripsi singkat tentang model ini..." maxlength="200"></textarea>
 </div>
+<div>
+<label class="font-label-bold text-label-bold text-on-surface uppercase mb-2 block flex items-center justify-between">
+  <span>File USDZ (.usdz) untuk iOS</span>
+  <span class="bg-secondary-container text-on-secondary-container text-[10px] px-2.5 py-0.5 rounded-full font-bold">iOS Safari AR</span>
+</label>
+<input id="inputUsdz" accept=".usdz" type="file" class="w-full bg-surface-container-low border-2 border-outline-variant rounded-lg p-3 text-sm font-body-md focus:border-tertiary-container focus:ring-0 cursor-pointer" />
+<p class="text-xs text-on-surface-variant mt-1 font-medium">Opsional. Diperlukan khusus agar AR Quick Look bisa terbuka di iPhone/iPad.</p>
+</div>
 </div>
 
 <!-- Annotation Section -->
@@ -585,8 +593,14 @@ async function handleUpload() {
   const desc = document.getElementById('inputDesc').value.trim();
   const annotations = collectAnnotations();
 
+  const usdzInput = document.getElementById('inputUsdz');
+  const usdzFile  = usdzInput?.files?.[0];
+
   const fd = new FormData();
   fd.append('model', selectedFile);
+  if (usdzFile) {
+    fd.append('usdz', usdzFile);
+  }
   fd.append('name', name);
   fd.append('description', desc);
   fd.append('annotations', JSON.stringify(annotations));
@@ -612,6 +626,7 @@ async function handleUpload() {
     clearFile();
     document.getElementById('inputName').value = '';
     document.getElementById('inputDesc').value = '';
+    if (usdzInput) usdzInput.value = '';
     annItems = [];
     renderAnnList();
     if (annOpen) toggleAnn();
