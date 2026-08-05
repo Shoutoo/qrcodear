@@ -5,7 +5,7 @@
   "scripts": {
     "start": "cd server-v2 && npm run start:prod",
     "dev": "cd server-v2 && npm run start:dev",
-    "build": "cd server-v2 && npm run build",
+    "build": "cd server-v2 && npm install && npx prisma generate && npm run build",
     "postinstall": "cd server-v2 && npm install && npx prisma generate",
     "start:legacy": "node server/index.js"
   },
@@ -14,3 +14,4 @@
   },
   "keywords": ["ar", "qrcode", "3d", "augmented-reality", "webxr", "glb", "model-viewer"]
 }
+
