@@ -475,6 +475,16 @@
       });
     }
 
+    function showPublishModal(data) {
+      document.getElementById('publish-qr-img').src = data.qrCodeDataUrl;
+      document.getElementById('publish-direct-url').value = data.directUrl;
+      document.getElementById('publish-embed-code').value = `<iframe src="${data.directUrl}" width="100%" height="600" allow="camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking" frameborder="0"></iframe>`;
+      document.getElementById('publish-open-ar-btn').href = data.directUrl;
+      document.getElementById('publish-download-qr-btn').href = data.qrCodeDataUrl;
+
+      document.getElementById('modal-publish-scene').classList.remove('hidden');
+    }
+
     async function publishBakedEcosystem() {
       const statusEl = document.getElementById('studio-status');
       statusEl.textContent = 'Membake Scene 3D ke file GLB...';

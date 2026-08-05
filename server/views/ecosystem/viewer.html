@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{{ECOSYSTEM_NAME}} — Reliable Ecosystem AR</title>
+  
+  <!-- Tailwind CSS & Material Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Google <model-viewer> Library -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+  <style>
+    body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #f8fafc; }
+    model-viewer { width: 100vw; height: 100vh; position: absolute; inset: 0; background: radial-gradient(circle at center, #ffffff 0%, #e2e8f0 100%); }
+    .ar-custom-btn {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+      color: #ffffff; border-radius: 9999px; padding: 14px 28px;
+      font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.5); cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 2px solid #ffffff; z-index: 20;
+    }
+    .ar-custom-btn:active { transform: translateX(-50%) scale(0.95); }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Card -->
+  <header class="absolute top-4 left-4 right-4 z-20 pointer-events-auto">
+    <div class="max-w-md mx-auto bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-emerald-200/80 shadow-lg flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">cyclone</span>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-800 text-base leading-tight">{{ECOSYSTEM_NAME}}</h1>
+          <p class="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">verified</span> Preset Rantai Makanan (Reliable AR)
+          </p>
+        </div>
+      </div>
+      <a href="/studio" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors">
+        Studio
+      </a>
+    </div>
+  </header>
+
+  <!-- Google <model-viewer> Native AR Engine -->
+  <model-viewer
+    id="eco-viewer"
+    src="{{ECOSYSTEM_GLB_URL}}"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    shadow-intensity="1.2"
+    shadow-softness="0.8"
+    ar-placement="floor"
+    alt="{{ECOSYSTEM_NAME}}"
+    loading="eager"
+    auto-rotate
+  >
+    <button slot="ar-button" class="ar-custom-btn">
+      <span class="material-symbols-outlined text-xl">view_in_ar</span> Mulai AR Rantai Makanan
+    </button>
+  </model-viewer>
+
+</body>
+</html>

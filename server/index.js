@@ -505,6 +505,29 @@ app.get('/studio/view/:id', (req, res) => {
   res.send(html);
 });
 
+// ─── Ecosystem Preset Baked AR Viewer Route (FASE P5) ─────────────────────────
+app.get('/ecosystem/view/:id', (req, res) => {
+  const { id } = req.params;
+  const publishedList = loadEcosystemPublished();
+  const item = publishedList.find(p => p.id === id || p.filename === `${id}.glb`);
+
+  const ecoViewerPath = path.join(VIEWS_DIR, 'ecosystem', 'viewer.html');
+  if (!fs.existsSync(ecoViewerPath)) {
+    return res.status(404).send('Ecosystem viewer.html tidak ditemukan');
+  }
+
+  let html = fs.readFileSync(ecoViewerPath, 'utf8');
+
+  const glbUrl = item ? item.glbUrl : `/assets/${id}.glb`;
+  const name = item ? item.name : 'Rantai Makanan AR';
+
+  html = html
+    .replace(/{{ECOSYSTEM_NAME}}/g, escapeHtml(name))
+    .replace(/{{ECOSYSTEM_GLB_URL}}/g, glbUrl);
+
+  res.send(html);
+});
+
 app.get('/api/scenes/:id', (req, res) => {
   const { id } = req.params;
   const scenes = loadScenes();
