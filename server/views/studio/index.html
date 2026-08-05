@@ -16,8 +16,8 @@
     body { font-family: 'Quicksand', sans-serif; overflow: hidden; }
     #canvas-container { width: 100vw; height: 100vh; position: absolute; inset: 0; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   </style>
@@ -31,7 +31,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 select-none">
+<body class="bg-slate-100 text-slate-800 select-none">
 
   <!-- ── 3D Viewport Canvas Container ────────────────────────── -->
   <div id="canvas-container"></div>
@@ -39,35 +39,38 @@
   <!-- ── Studio Overlay UI ────────────────────────────────────── -->
   <!-- Header Bar -->
   <header class="absolute top-0 left-0 right-0 p-4 flex items-center justify-between pointer-events-none z-10">
-    <div class="flex items-center gap-3 bg-slate-900/95 backdrop-blur-md border border-slate-800 px-4 py-2 rounded-2xl shadow-xl pointer-events-auto">
-      <div class="bg-indigo-600 p-1.5 rounded-xl flex items-center justify-center">
+    <div class="flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-200/90 px-4 py-2 rounded-2xl shadow-md pointer-events-auto">
+      <div class="bg-emerald-600 p-1.5 rounded-xl flex items-center justify-center">
         <span class="material-symbols-outlined text-white text-lg">view_in_ar</span>
       </div>
       <div>
-        <h1 class="font-bold text-sm text-slate-100 leading-none">AR Scene Studio</h1>
-        <p class="text-[10px] text-slate-400 mt-1 font-semibold">FASE 5 • Image & Video 3D Texture Objects</p>
+        <h1 class="font-bold text-sm text-slate-800 leading-none">AR Scene Studio</h1>
+        <p class="text-[10px] text-slate-500 mt-1 font-semibold">FASE A • Bright Studio Theme</p>
       </div>
     </div>
 
-    <!-- Transform Mode Toolbar (Center Top) -->
+    <!-- Transform Mode Toolbar (Center Top - Contrast Dark Overlay) -->
     <div class="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center gap-1 pointer-events-auto">
-      <button id="btn-mode-translate" onclick="setGizmoMode('translate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-md" title="Translasi / Geser (Posisi) [Key: W]">
+      <button id="btn-mode-translate" onclick="setGizmoMode('translate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-md" title="Translasi / Geser (Posisi) [Key: W]">
         <span class="material-symbols-outlined text-sm">open_with</span> Position (W)
       </button>
-      <button id="btn-mode-rotate" onclick="setGizmoMode('rotate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-750" title="Rotasi / Putar [Key: E]">
+      <button id="btn-mode-rotate" onclick="setGizmoMode('rotate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700" title="Rotasi / Putar [Key: E]">
         <span class="material-symbols-outlined text-sm">sync</span> Rotation (E)
       </button>
-      <button id="btn-mode-scale" onclick="setGizmoMode('scale')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-750" title="Skala / Ukuran [Key: R]">
+      <button id="btn-mode-scale" onclick="setGizmoMode('scale')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700" title="Skala / Ukuran [Key: R]">
         <span class="material-symbols-outlined text-sm">aspect_ratio</span> Scale (R)
       </button>
     </div>
 
-    <!-- Right Actions: Print Barcode & Save (Top Right) -->
+    <!-- Right Actions: Print Barcode & Solid Green Publish Button (Top Right) -->
     <div class="flex items-center gap-2 pointer-events-auto">
-      <button onclick="openPrintBarcodeModal()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-lg border border-indigo-400/30 transition-all" title="Cetak Barcode QR & Kartu AR">
+      <button onclick="openPrintBarcodeModal()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md transition-all" title="Cetak Barcode QR & Kartu AR">
         <span class="material-symbols-outlined text-sm">print</span> Cetak Barcode / QR
       </button>
-      <div class="bg-slate-900/95 backdrop-blur-md border border-slate-800 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-400 flex items-center gap-2">
+      <button onclick="saveCurrentScene()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all" title="Publish / Simpan Scene">
+        <span class="material-symbols-outlined text-sm">publish</span> Publish
+      </button>
+      <div class="bg-white/95 backdrop-blur-md border border-slate-200 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-700 flex items-center gap-2 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span id="studio-status">Studio Ready</span>
       </div>
@@ -75,42 +78,42 @@
   </header>
 
   <!-- ── Left Sidebar (Object Library & Scene Objects) ──────── -->
-  <aside class="absolute top-20 left-4 bottom-16 w-80 bg-slate-900/95 backdrop-blur-md border border-slate-800/80 rounded-2xl shadow-2xl z-10 flex flex-col overflow-hidden pointer-events-auto">
+  <aside class="absolute top-20 left-4 bottom-16 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
     
     <!-- Section 1.1: Add 3D Model -->
-    <div class="p-3 border-b border-slate-800">
-      <div class="flex items-center gap-1.5 text-indigo-400 font-bold text-[11px] uppercase tracking-wider mb-1">
+    <div class="p-3 border-b border-slate-200/80">
+      <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1">
         <span class="material-symbols-outlined text-xs">add_box</span> Model 3D (.glb)
       </div>
       <div id="assets-list" class="space-y-1.5 overflow-y-auto max-h-28 custom-scrollbar">
-        <div class="text-xs text-slate-500 text-center py-2">Memuat koleksi aset...</div>
+        <div class="text-xs text-slate-400 text-center py-2">Memuat koleksi aset...</div>
       </div>
     </div>
 
     <!-- Section 1.2: Add Primitives & Text 3D -->
-    <div class="p-3 border-b border-slate-800 space-y-2">
+    <div class="p-3 border-b border-slate-200/80 space-y-2">
       <!-- Shapes Primitives Buttons -->
       <div>
-        <div class="flex items-center gap-1.5 text-indigo-400 font-bold text-[11px] uppercase tracking-wider mb-1.5">
+        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1.5">
           <span class="material-symbols-outlined text-xs">category</span> Shapes & Text 3D
         </div>
         <div class="grid grid-cols-4 gap-1.5 mb-2">
-          <button onclick="addShapeToScene('box')" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-700/60 transition-all">
-            <span class="material-symbols-outlined text-sm text-blue-400">deployed_code</span> Box
+          <button onclick="addShapeToScene('box')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
+            <span class="material-symbols-outlined text-sm text-blue-600">deployed_code</span> Box
           </button>
-          <button onclick="addShapeToScene('sphere')" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-700/60 transition-all">
-            <span class="material-symbols-outlined text-sm text-pink-400">brightness_1</span> Sphere
+          <button onclick="addShapeToScene('sphere')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
+            <span class="material-symbols-outlined text-sm text-pink-600">brightness_1</span> Sphere
           </button>
-          <button onclick="addShapeToScene('cylinder')" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-700/60 transition-all">
-            <span class="material-symbols-outlined text-sm text-emerald-400">database</span> Cylinder
+          <button onclick="addShapeToScene('cylinder')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
+            <span class="material-symbols-outlined text-sm text-emerald-600">database</span> Cylinder
           </button>
-          <button onclick="addShapeToScene('plane')" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-700/60 transition-all">
-            <span class="material-symbols-outlined text-sm text-amber-400">crop_landscape</span> Plane
+          <button onclick="addShapeToScene('plane')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
+            <span class="material-symbols-outlined text-sm text-amber-600">crop_landscape</span> Plane
           </button>
         </div>
         <div class="flex gap-2">
-          <input type="text" id="input-text-3d" value="Magic AR" placeholder="Ketik teks..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-100 font-semibold focus:border-indigo-500 focus:outline-none" />
-          <button onclick="addTextToScene()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all shadow-md shrink-0">
+          <input type="text" id="input-text-3d" value="Magic AR" placeholder="Ketik teks..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
+          <button onclick="addTextToScene()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all shadow-md shrink-0">
             <span class="material-symbols-outlined text-xs">add</span> Teks
           </button>
         </div>
@@ -118,33 +121,33 @@
     </div>
 
     <!-- Section 1.3: Add Image / Video Media Objects -->
-    <div class="p-3 border-b border-slate-800 space-y-2">
+    <div class="p-3 border-b border-slate-200/80 space-y-2">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-indigo-400 font-bold text-[11px] uppercase tracking-wider">
+        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider">
           <span class="material-symbols-outlined text-xs">perm_media</span> Gambar & Video 2D/3D
         </div>
-        <label class="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all">
+        <label class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-sm">
           <span class="material-symbols-outlined text-xs">upload</span> Upload
           <input type="file" id="media-upload-input" accept="image/*,video/*" onchange="uploadMediaFile(this)" class="hidden" />
         </label>
       </div>
       <div id="media-list" class="space-y-1.5 overflow-y-auto max-h-28 custom-scrollbar">
-        <div class="text-xs text-slate-500 text-center py-2">Memuat media...</div>
+        <div class="text-xs text-slate-400 text-center py-2">Memuat media...</div>
       </div>
     </div>
 
     <!-- Section 2: Objects in Scene Hierarchy -->
-    <div class="p-3 bg-slate-900/50 flex-1 flex flex-col overflow-hidden">
+    <div class="p-3 bg-slate-50/50 flex-1 flex flex-col overflow-hidden">
       <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-1.5 text-amber-400">
-          <span class="material-symbols-outlined text-xs">inventory_2</span>
+        <div class="flex items-center gap-1.5 text-slate-700">
+          <span class="material-symbols-outlined text-xs text-emerald-600">inventory_2</span>
           <h2 class="font-bold text-[11px] uppercase tracking-wider">Objek di Scene</h2>
         </div>
-        <span id="scene-obj-count" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">0 Objek</span>
+        <span id="scene-obj-count" class="bg-slate-200/80 text-slate-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0 Objek</span>
       </div>
 
       <div id="scene-objects-list" class="space-y-1.5 overflow-y-auto flex-1 custom-scrollbar">
-        <div class="text-xs text-slate-500 text-center py-6 flex flex-col items-center">
+        <div class="text-xs text-slate-400 text-center py-6 flex flex-col items-center">
           <span class="material-symbols-outlined text-3xl opacity-30 mb-2">layers</span>
           <span>Belum ada objek di scene.<br/>Klik model/shape/media di atas.</span>
         </div>
@@ -154,17 +157,17 @@
   </aside>
 
   <!-- ── Right Sidebar (Properties Panel) ───────────────────── -->
-  <aside class="absolute top-20 right-4 w-80 bg-slate-900/95 backdrop-blur-md border border-slate-800/80 rounded-2xl shadow-2xl z-10 flex flex-col overflow-hidden pointer-events-auto">
-    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-      <div class="flex items-center gap-2 text-indigo-400">
+  <aside class="absolute top-20 right-4 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
+    <div class="p-4 border-b border-slate-200/80 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-emerald-700">
         <span class="material-symbols-outlined text-sm">tune</span>
         <h2 class="font-bold text-xs uppercase tracking-wider">Properties Panel</h2>
       </div>
-      <span id="selected-obj-type-badge" class="bg-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase">None</span>
+      <span id="selected-obj-type-badge" class="bg-slate-100 border border-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold uppercase">None</span>
     </div>
 
     <div id="properties-content" class="p-4 space-y-4 overflow-y-auto custom-scrollbar max-h-[calc(100vh-180px)]">
-      <div class="text-xs text-slate-500 text-center py-10 flex flex-col items-center">
+      <div class="text-xs text-slate-400 text-center py-10 flex flex-col items-center">
         <span class="material-symbols-outlined text-4xl opacity-30 mb-2">ads_click</span>
         <span>Pilih objek di canvas 3D atau sidebar<br/>untuk mengedit properti transform.</span>
       </div>
@@ -173,20 +176,20 @@
 
   <!-- Navigation / Return button -->
   <div class="absolute bottom-4 left-4 z-10 pointer-events-auto">
-    <a href="/" class="bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white px-4 py-2 rounded-xl border border-slate-800 text-xs font-bold flex items-center gap-2 transition-colors shadow-lg">
+    <a href="/" class="bg-white/95 hover:bg-slate-50 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold flex items-center gap-2 transition-colors shadow-md">
       <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Beranda
     </a>
   </div>
 
   <!-- Help Overlay -->
-  <div class="absolute bottom-4 right-4 bg-slate-900/90 backdrop-blur-md border border-slate-800 px-4 py-3 rounded-2xl text-xs text-slate-400 z-10 pointer-events-auto flex items-center gap-3">
+  <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md border border-slate-200 px-4 py-3 rounded-2xl text-xs text-slate-600 z-10 pointer-events-auto flex items-center gap-3 shadow-md">
     <div class="flex items-center gap-1.5">
-      <span class="material-symbols-outlined text-indigo-400 text-sm">mouse</span>
+      <span class="material-symbols-outlined text-emerald-600 text-sm">mouse</span>
       <span><strong>Klik Objek:</strong> Pilih Objek</span>
     </div>
-    <span class="text-slate-700">|</span>
+    <span class="text-slate-300">|</span>
     <div class="flex items-center gap-1.5">
-      <span class="material-symbols-outlined text-indigo-400 text-sm">open_with</span>
+      <span class="material-symbols-outlined text-emerald-600 text-sm">open_with</span>
       <span><strong>W / E / R:</strong> Mode Gizmo</span>
     </div>
   </div>
@@ -207,10 +210,10 @@
     function initStudio() {
       const container = document.getElementById('canvas-container');
 
-      // 1. Scene
+      // 1. Scene (Bright Slate-50 Light Theme Canvas)
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x0f172a); // Slate-900
-      scene.fog = new THREE.FogExp2(0x0f172a, 0.03);
+      scene.background = new THREE.Color(0xf8fafc); // Slate-50 bright light theme
+      scene.fog = new THREE.FogExp2(0xf8fafc, 0.03);
 
       // 2. Camera
       camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -248,8 +251,8 @@
         }
       });
 
-      // 6. Grid Floor Helper
-      const gridHelper = new THREE.GridHelper(20, 20, 0x632ce5, 0x334155);
+      // 6. Grid Floor Helper (Refined Light Theme Colors)
+      const gridHelper = new THREE.GridHelper(20, 20, 0x059669, 0xcb90fd);
       gridHelper.position.y = 0;
       scene.add(gridHelper);
 
@@ -643,15 +646,15 @@
       if (selectedSceneObject.type === 'video' && selectedSceneObject.videoElement) {
         const video = selectedSceneObject.videoElement;
         extraControlsHtml = `
-          <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 space-y-2">
-            <div class="text-[10px] text-rose-400 uppercase font-bold flex items-center gap-1">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+            <div class="text-[10px] text-rose-600 uppercase font-bold flex items-center gap-1">
               <span class="material-symbols-outlined text-xs">movie</span> Kontrol Putar Video
             </div>
             <div class="flex gap-2">
-              <button onclick="toggleVideoPlay()" class="flex-1 bg-slate-900 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-700">
+              <button onclick="toggleVideoPlay()" class="flex-1 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-200 shadow-sm">
                 <span class="material-symbols-outlined text-sm">${video.paused ? 'play_arrow' : 'pause'}</span> ${video.paused ? 'Play' : 'Pause'}
               </button>
-              <button onclick="toggleVideoMute()" class="bg-slate-900 hover:bg-slate-750 text-slate-200 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-700">
+              <button onclick="toggleVideoMute()" class="bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-200 shadow-sm">
                 <span class="material-symbols-outlined text-sm">${video.muted ? 'volume_off' : 'volume_up'}</span> ${video.muted ? 'Unmute' : 'Mute'}
               </button>
             </div>
@@ -661,72 +664,72 @@
 
       container.innerHTML = `
         <!-- Object Name -->
-        <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60">
-          <div class="text-[10px] text-slate-400 uppercase font-bold mb-1">Nama Objek</div>
-          <input type="text" id="prop-name-input" value="${escHtml(selectedSceneObject.name)}" onchange="updateSelectedObjectName(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 font-semibold focus:border-indigo-500 focus:outline-none" />
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+          <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Nama Objek</div>
+          <input type="text" id="prop-name-input" value="${escHtml(selectedSceneObject.name)}" onchange="updateSelectedObjectName(this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
         </div>
 
         ${extraControlsHtml}
 
         <!-- Position -->
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-800 space-y-2">
-          <div class="flex items-center gap-1.5 text-rose-400 font-bold text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+          <div class="flex items-center gap-1.5 text-rose-600 font-bold text-xs">
             <span class="material-symbols-outlined text-sm">open_with</span> Posisi (Position Meter)
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">X</label>
-              <input type="number" step="0.05" id="prop-pos-x" value="${pos.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-rose-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">X</label>
+              <input type="number" step="0.05" id="prop-pos-x" value="${pos.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Y</label>
-              <input type="number" step="0.05" id="prop-pos-y" value="${pos.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-emerald-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Y</label>
+              <input type="number" step="0.05" id="prop-pos-y" value="${pos.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Z</label>
-              <input type="number" step="0.05" id="prop-pos-z" value="${pos.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-indigo-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Z</label>
+              <input type="number" step="0.05" id="prop-pos-z" value="${pos.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
           </div>
         </div>
 
         <!-- Rotation -->
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-800 space-y-2">
-          <div class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+          <div class="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
             <span class="material-symbols-outlined text-sm">sync</span> Rotasi (Degrees °)
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">X°</label>
-              <input type="number" step="5" id="prop-rot-x" value="${THREE.MathUtils.radToDeg(rot.x).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-amber-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">X°</label>
+              <input type="number" step="5" id="prop-rot-x" value="${THREE.MathUtils.radToDeg(rot.x).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Y°</label>
-              <input type="number" step="5" id="prop-rot-y" value="${THREE.MathUtils.radToDeg(rot.y).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-amber-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Y°</label>
+              <input type="number" step="5" id="prop-rot-y" value="${THREE.MathUtils.radToDeg(rot.y).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Z°</label>
-              <input type="number" step="5" id="prop-rot-z" value="${THREE.MathUtils.radToDeg(rot.z).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-amber-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Z°</label>
+              <input type="number" step="5" id="prop-rot-z" value="${THREE.MathUtils.radToDeg(rot.z).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
           </div>
         </div>
 
         <!-- Scale -->
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-800 space-y-2">
-          <div class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
+          <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
             <span class="material-symbols-outlined text-sm">aspect_ratio</span> Skala (Scale Ratio)
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Scale X</label>
-              <input type="number" step="0.1" id="prop-scale-x" value="${scale.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-emerald-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale X</label>
+              <input type="number" step="0.1" id="prop-scale-x" value="${scale.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Scale Y</label>
-              <input type="number" step="0.1" id="prop-scale-y" value="${scale.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-emerald-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale Y</label>
+              <input type="number" step="0.1" id="prop-scale-y" value="${scale.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
             <div>
-              <label class="text-[9px] text-slate-400 font-bold block mb-1">Scale Z</label>
-              <input type="number" step="0.1" id="prop-scale-z" value="${scale.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 text-center font-mono focus:border-emerald-500 focus:outline-none" />
+              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale Z</label>
+              <input type="number" step="0.1" id="prop-scale-z" value="${scale.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
             </div>
           </div>
         </div>
@@ -890,7 +893,7 @@
 
       container.innerHTML = loadedSceneObjects.map(item => {
         const isSelected = selectedSceneObject && selectedSceneObject.id === item.id;
-        const activeClass = isSelected ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300 font-bold' : 'bg-slate-800/90 border-amber-500/20 text-slate-200 hover:bg-slate-800';
+        const activeClass = isSelected ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm' : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100';
 
         let icon = 'view_in_ar';
         if (item.type === 'shape') icon = 'category';
@@ -899,12 +902,12 @@
         if (item.type === 'video') icon = 'movie';
 
         return `
-          <div onclick="selectSceneObject('${item.id}')" class="${activeClass} p-2 rounded-xl flex items-center justify-between border shadow-sm cursor-pointer transition-all">
+          <div onclick="selectSceneObject('${item.id}')" class="${activeClass} p-2 rounded-xl flex items-center justify-between border cursor-pointer transition-all">
             <div class="flex items-center gap-2 overflow-hidden">
-              <span class="material-symbols-outlined ${isSelected ? 'text-indigo-400' : 'text-amber-400'} text-sm">${icon}</span>
+              <span class="material-symbols-outlined ${isSelected ? 'text-emerald-600' : 'text-slate-500'} text-sm">${icon}</span>
               <div class="text-xs truncate">${escHtml(item.name)}</div>
             </div>
-            <button onclick="event.stopPropagation(); removeObjectFromScene('${item.id}')" class="text-slate-400 hover:text-rose-400 p-1 rounded transition-colors" title="Hapus dari Scene">
+            <button onclick="event.stopPropagation(); removeObjectFromScene('${item.id}')" class="text-slate-400 hover:text-rose-500 p-1 rounded transition-colors" title="Hapus dari Scene">
               <span class="material-symbols-outlined text-sm">delete</span>
             </button>
           </div>
@@ -967,24 +970,24 @@
   </script>
 
   <!-- ── Print Barcode & Kartu AR Modal ───────────────────────── -->
-  <div id="modal-print-barcode" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-md shadow-2xl text-center space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+  <div id="modal-print-barcode" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl text-center space-y-4 text-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-indigo-400">qr_code_2</span>
-          <h3 class="font-bold text-slate-100 text-base">Cetak Barcode & Kartu AR</h3>
+          <span class="material-symbols-outlined text-emerald-600">qr_code_2</span>
+          <h3 class="font-bold text-slate-800 text-base">Cetak Barcode & Kartu AR</h3>
         </div>
-        <button onclick="closePrintBarcodeModal()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg">
+        <button onclick="closePrintBarcodeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
       <!-- QR Code Image Preview -->
-      <div class="bg-white p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner flex items-center justify-center border-4 border-indigo-500/20">
+      <div class="bg-slate-50 p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner flex items-center justify-center border-4 border-emerald-500/20">
         <img id="studio-qr-img" class="w-full h-full object-contain" src="" alt="QR Code AR Studio" />
       </div>
 
-      <p class="text-xs text-slate-400 font-medium leading-relaxed">
+      <p class="text-xs text-slate-500 font-medium leading-relaxed">
         Scan QR Code ini dengan HP atau cetak Kartu AR untuk melihat gabungan scene 3D secara markerless di ruang nyata.
       </p>
 
