@@ -1,3 +1,10 @@
+databases:
+  - name: eduar-db
+    plan: free
+    region: singapore
+    databaseName: eduar
+    user: eduar_user
+
 services:
   - type: web
     name: eduar-platform-backend
@@ -12,7 +19,9 @@ services:
       - key: PORT
         value: 3001
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: eduar-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: R2_ACCOUNT_ID
@@ -25,3 +34,4 @@ services:
         value: eduar-assets
       - key: R2_PUBLIC_URL_BASE
         value: https://assets.eduar-platform.com
+
