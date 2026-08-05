@@ -66,6 +66,9 @@ function loadEcosystemPresets() {
   try { return JSON.parse(fs.readFileSync(ECOSYSTEM_PRESETS_FILE, 'utf8')); }
   catch { return []; }
 }
+function saveEcosystemPresets(presets) {
+  fs.writeFileSync(ECOSYSTEM_PRESETS_FILE, JSON.stringify(presets, null, 2), 'utf8');
+}
 
 const mediaStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, MEDIA_DIR),
@@ -603,6 +606,32 @@ app.get('/api/ecosystem/presets/:id', (req, res) => {
   const preset = presets.find(p => p.id === id);
   if (!preset) return res.status(404).json({ error: 'Preset tidak ditemukan' });
   res.json({ success: true, preset });
+});
+
+app.post('/api/ecosystem/presets/:id/slot', upload.single('model'), (req, res) => {
+  try {
+    const { id } = req.params;
+    const { slotIndex, label } = req.body;
+    const presets = loadEcosystemPresets();
+    const preset = presets.find(p => p.id === id);
+    if (!preset) return res.status(404).json({ error: 'Preset tidak ditemukan' });
+
+    const idx = parseInt(slotIndex, 10);
+    if (isNaN(idx) || idx < 0 || idx >= preset.slots.length) {
+      return res.status(400).json({ error: 'Index slot tidak valid' });
+    }
+
+    if (label !== undefined) preset.slots[idx].label = String(label).trim();
+    if (req.file) {
+      preset.slots[idx].modelSrc = `/assets/${req.file.filename}`;
+    }
+
+    saveEcosystemPresets(presets);
+    res.json({ success: true, preset, updatedSlot: preset.slots[idx] });
+  } catch (err) {
+    console.error('Error updating slot:', err);
+    res.status(500).json({ error: 'Gagal memperbarui slot: ' + err.message });
+  }
 });
 
 // ─── Catch-all: serve frontend ────────────────────────────────────────────────

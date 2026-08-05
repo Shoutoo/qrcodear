@@ -80,7 +80,25 @@
   <!-- ── Left Sidebar (Object Library & Scene Objects) ──────── -->
   <aside class="absolute top-20 left-4 bottom-16 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
     
-    <!-- Section 1.1: Add 3D Model -->
+    <!-- Section 1.0: Ecosystem Preset Picker (FASE P3) -->
+    <div class="p-3 border-b border-emerald-200/80 bg-emerald-50/50">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px] uppercase tracking-wider">
+          <span class="material-symbols-outlined text-xs text-emerald-600">cyclone</span> Preset Rantai Makanan
+        </div>
+        <span class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded">6 Slot Siklus</span>
+      </div>
+
+      <!-- Dropdown Preset -->
+      <select id="ecosystem-preset-select" onchange="onEcosystemPresetChange(this.value)" class="w-full bg-white border border-emerald-300 rounded-lg px-2 py-1 text-xs text-slate-800 font-bold mb-2 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm">
+        <option value="preset-darat">🌱 Ekosistem Darat</option>
+      </select>
+
+      <!-- 6 Slots Configurator List -->
+      <div id="ecosystem-slots-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
+        <div class="text-xs text-slate-400 text-center py-2">Memuat slot preset...</div>
+      </div>
+    </div>
     <div class="p-3 border-b border-slate-200/80">
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider">
@@ -281,10 +299,10 @@
       dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
       gltfLoader.setDRACOLoader(dracoLoader);
 
-      // 9. Fetch Available Assets & Media & Preset Ekosistem (FASE P2)
+      // 9. Fetch Available Assets & Media & Preset Ekosistem (FASE P3)
       fetchAvailableAssets();
       fetchAvailableMedia();
-      fetchDefaultEcosystemPreset();
+      loadEcosystemPresetsUI();
 
       // 10. Event Listeners
       renderer.domElement.addEventListener('pointerdown', onCanvasPointerDown);
@@ -295,18 +313,130 @@
       animate();
     }
 
-    // ─── FASE P2: Ecosystem Preset Circular Layout Generator ──────
+    // ─── FASE P3: Ecosystem Preset Picker & Slot Editor ───────────
     let ecosystemGroup = null;
+    let currentActivePreset = null;
 
-    async function fetchDefaultEcosystemPreset() {
+    async function loadEcosystemPresetsUI() {
       try {
-        const res = await fetch('/api/ecosystem/presets/preset-darat');
+        const res = await fetch('/api/ecosystem/presets');
         const data = await res.json();
-        if (data.success && data.preset) {
-          renderEcosystemLayout(data.preset);
+        if (data.success && data.presets && data.presets.length) {
+          const selectEl = document.getElementById('ecosystem-preset-select');
+          if (selectEl) {
+            selectEl.innerHTML = data.presets.map(p => `
+              <option value="${p.id}">${escHtml(p.name)}</option>
+            `).join('');
+          }
+          currentActivePreset = data.presets[0];
+          renderEcosystemSlotsUI(currentActivePreset);
+          renderEcosystemLayout(currentActivePreset);
         }
       } catch (err) {
-        console.error('Failed to fetch default ecosystem preset:', err);
+        console.error('Failed to load ecosystem presets:', err);
+      }
+    }
+
+    function onEcosystemPresetChange(presetId) {
+      fetch(`/api/ecosystem/presets/${presetId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.preset) {
+            currentActivePreset = data.preset;
+            renderEcosystemSlotsUI(currentActivePreset);
+            renderEcosystemLayout(currentActivePreset);
+          }
+        });
+    }
+
+    function renderEcosystemSlotsUI(preset) {
+      const container = document.getElementById('ecosystem-slots-list');
+      if (!container || !preset || !preset.slots) return;
+
+      const roleIcons = ['eco', 'bug_report', 'pest_control', 'pets', 'cruelty_free', 'coronavirus'];
+      const roleNames = ['Produsen', 'Konsumen I', 'Konsumen II', 'Konsumen III', 'Konsumen Final', 'Decomposer'];
+
+      container.innerHTML = preset.slots.map((slot, index) => {
+        const icon = roleIcons[index] || 'category';
+        const roleTitle = roleNames[index] || slot.role;
+
+        return `
+          <div class="bg-white p-2 rounded-xl border border-slate-200/90 shadow-sm flex flex-col gap-1.5 text-[11px]">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1 font-bold text-slate-800">
+                <span class="material-symbols-outlined text-xs text-emerald-600">${icon}</span>
+                <span>#${index+1} ${roleTitle}</span>
+              </div>
+              <label class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-lg cursor-pointer border border-emerald-300 flex items-center gap-0.5 transition-colors">
+                <span class="material-symbols-outlined text-[12px]">upload</span> Swap 3D
+                <input type="file" accept=".glb,.gltf" onchange="uploadSlotModelFile(${index}, this)" class="hidden" />
+              </label>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-[9px] text-slate-400 font-bold w-10 shrink-0">Label:</span>
+              <input type="text" value="${escHtml(slot.label)}" onchange="updateSlotLabelInput(${index}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-0.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" placeholder="Ubah Teks Label..." />
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function updateSlotLabelInput(slotIndex, newLabel) {
+      if (!currentActivePreset) return;
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = `Memperbarui Slot #${slotIndex + 1}...`;
+
+      const formData = new FormData();
+      formData.append('slotIndex', slotIndex);
+      formData.append('label', newLabel);
+
+      try {
+        const res = await fetch(`/api/ecosystem/presets/${currentActivePreset.id}/slot`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success && data.preset) {
+          currentActivePreset = data.preset;
+          renderEcosystemLayout(currentActivePreset);
+          statusEl.textContent = `Label Slot #${slotIndex + 1} Berhasil Diperbarui! ✨`;
+        }
+      } catch (err) {
+        console.error('Failed to update slot label:', err);
+        statusEl.textContent = 'Gagal update slot';
+      }
+    }
+
+    async function uploadSlotModelFile(slotIndex, input) {
+      if (!input.files || !input.files[0] || !currentActivePreset) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('slotIndex', slotIndex);
+      formData.append('model', file);
+
+      const statusEl = document.getElementById('studio-status');
+      statusEl.textContent = `Mengunggah Model Slot #${slotIndex + 1}...`;
+
+      try {
+        const res = await fetch(`/api/ecosystem/presets/${currentActivePreset.id}/slot`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.preset) {
+          currentActivePreset = data.preset;
+          renderEcosystemLayout(currentActivePreset);
+          statusEl.textContent = `Model Slot #${slotIndex + 1} Berhasil Di-Swap! ✨`;
+        } else {
+          alert('Gagal swap model: ' + (data.error || 'Unknown error'));
+          statusEl.textContent = 'Gagal swap model';
+        }
+      } catch (err) {
+        console.error('Failed to upload slot model:', err);
+        alert('Gagal upload model slot: ' + err.message);
+        statusEl.textContent = 'Gagal upload model';
+      } finally {
+        input.value = '';
       }
     }
 
