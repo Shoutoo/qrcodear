@@ -109,5 +109,42 @@
         "modelSrc": "/uploads/ecosystem-models/library/laut/bakteri.glb"
       }
     ]
+  },
+  {
+    "id": "preset-sawah",
+    "name": "Ekosistem Sawah",
+    "description": "Rantai makanan siklus ekosistem sawah (Padi → Belalang → Katak → Ular Sawah → Elang → Jamur)",
+    "slots": [
+      {
+        "role": "produsen",
+        "label": "Padi",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/padi.glb"
+      },
+      {
+        "role": "konsumen_primer",
+        "label": "Belalang",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/belalang.glb"
+      },
+      {
+        "role": "konsumen_sekunder",
+        "label": "Katak",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/katak.glb"
+      },
+      {
+        "role": "konsumen_tersier",
+        "label": "Ular Sawah",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/ular.glb"
+      },
+      {
+        "role": "konsumen_final",
+        "label": "Elang / Burung Hantu",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/elang.glb"
+      },
+      {
+        "role": "decomposer",
+        "label": "Jamur",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/jamur.glb"
+      }
+    ]
   }
 ]

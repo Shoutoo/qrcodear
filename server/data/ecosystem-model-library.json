@@ -214,5 +214,77 @@
         "license": "CC0"
       }
     ]
+  },
+  {
+    "ecosystem": "sawah",
+    "name": "Ekosistem Sawah",
+    "items": [
+      {
+        "id": "lib-sawah-padi",
+        "name": "Padi",
+        "role": "produsen",
+        "icon": "grass",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/padi.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/padi-thumb.png",
+        "source": "Poly Pizza / Low-Poly Agriculture",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-sawah-belalang",
+        "name": "Belalang",
+        "role": "konsumen_primer",
+        "icon": "bug_report",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/belalang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/belalang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Insect",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-sawah-katak",
+        "name": "Katak",
+        "role": "konsumen_sekunder",
+        "icon": "water_drop",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/katak.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/katak-thumb.png",
+        "source": "Poly Pizza / Low-Poly Animal",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-sawah-ular",
+        "name": "Ular Sawah",
+        "role": "konsumen_tersier",
+        "icon": "waves",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/ular.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/ular-thumb.png",
+        "source": "Poly Pizza / Low-Poly Reptile",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-sawah-elang",
+        "name": "Elang / Burung Hantu",
+        "role": "konsumen_final",
+        "icon": "flight",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/elang.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/elang-thumb.png",
+        "source": "Poly Pizza / Low-Poly Bird",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      },
+      {
+        "id": "lib-sawah-jamur",
+        "name": "Jamur",
+        "role": "decomposer",
+        "icon": "forest",
+        "modelSrc": "/uploads/ecosystem-models/library/sawah/jamur.glb",
+        "thumbnail": "/uploads/ecosystem-models/library/sawah/jamur-thumb.png",
+        "source": "Poly Pizza / Low-Poly Fungi",
+        "sourceUrl": "https://poly.pizza",
+        "license": "CC0"
+      }
+    ]
   }
 ]
