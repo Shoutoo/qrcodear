@@ -72,6 +72,130 @@ function saveEcosystemPresets(presets) {
 
 const ECOSYSTEM_MODEL_LIBRARY_FILE = path.join(__dirname, 'data', 'ecosystem-model-library.json');
 
+// ─── THREE.js & Server Auto-Bake Engine ─────────────────────────────────────────
+const THREE = require('./node_modules/three');
+const { GLTFExporter } = require('./node_modules/three/examples/jsm/exporters/GLTFExporter.js');
+const { Blob } = require('buffer');
+global.Blob = Blob;
+global.FileReader = class FileReader {
+  readAsArrayBuffer(blob) {
+    blob.arrayBuffer().then(buf => {
+      this.result = buf;
+      if (this.onload)    this.onload({ target: this });
+      if (this.onloadend) this.onloadend({ target: this });
+    });
+  }
+};
+
+const { buildUlarToy } = require('./build_ular_f22a.js');
+const { buildBelalangToy, buildUlatToy, buildUdangToy, buildBakteriToy, buildJamurToy } = require('./build_batch1_f22b.js');
+const { buildKatakToy, buildRumputToy, buildPadiToy, buildPohonToy, buildAlgaToy } = require('./build_batch2_f22b.js');
+const { buildIkanKecilToy, buildIkanBesarToy, buildHiuToy, buildElangToy, buildBurungToy } = require('./build_batch3_f22b.js');
+
+const speciesMap = {
+  'darat/rumput.glb': buildRumputToy,
+  'darat/belalang.glb': buildBelalangToy,
+  'sawah/belalang.glb': buildBelalangToy,
+  'darat/katak.glb': buildKatakToy,
+  'sawah/katak.glb': buildKatakToy,
+  'darat/ular.glb': buildUlarToy,
+  'hutan/ular.glb': buildUlarToy,
+  'sawah/ular.glb': buildUlarToy,
+  'darat/elang.glb': buildElangToy,
+  'hutan/elang.glb': buildElangToy,
+  'sawah/elang.glb': buildElangToy,
+  'darat/jamur.glb': buildJamurToy,
+  'hutan/jamur.glb': buildJamurToy,
+  'sawah/jamur.glb': buildJamurToy,
+  'hutan/pohon.glb': buildPohonToy,
+  'hutan/ulat.glb': buildUlatToy,
+  'hutan/burung.glb': buildBurungToy,
+  'laut/alga.glb': buildAlgaToy,
+  'laut/udang.glb': buildUdangToy,
+  'laut/ikan_kecil.glb': buildIkanKecilToy,
+  'laut/ikan_besar.glb': buildIkanBesarToy,
+  'laut/hiu.glb': buildHiuToy,
+  'laut/bakteri.glb': buildBakteriToy,
+  'sawah/padi.glb': buildPadiToy,
+};
+
+async function ensureEcosystemGlbExists(id) {
+  const glbFilename = id.endsWith('.glb') ? id : `${id}.glb`;
+  const glbPath = path.join(ASSETS_DIR, glbFilename);
+
+  if (fs.existsSync(glbPath)) {
+    const stat = fs.statSync(glbPath);
+    if (stat.size > 10000) return glbFilename;
+  }
+
+  console.log(`[Auto-Bake Engine] Real-time baking missing GLB for ecosystem ID "${id}"...`);
+  const publishedList = loadEcosystemPublished();
+  const pubItem = publishedList.find(p => p.id === id || p.filename === glbFilename);
+
+  const presets = loadEcosystemPresets();
+  let targetPreset = null;
+
+  if (pubItem && pubItem.presetId) {
+    targetPreset = presets.find(p => p.id === pubItem.presetId);
+  }
+  if (!targetPreset) {
+    targetPreset = presets.find(p => p.id === id || p.id === `preset-${id}` || (p.name || '').toLowerCase().includes(id.toLowerCase())) || presets[0];
+  }
+
+  if (!targetPreset) return null;
+
+  const sceneGroup = new THREE.Group();
+  sceneGroup.name = 'ecosystem_preset_group';
+
+  const slots = targetPreset.slots || [];
+  const numSlots = slots.length || 6;
+  const radius = 2.2;
+
+  slots.forEach((slot, i) => {
+    const angle = (i * 2 * Math.PI) / numSlots;
+    const slotGroup = new THREE.Group();
+    slotGroup.position.set(radius * Math.cos(angle), 0.5, radius * Math.sin(angle));
+
+    let relPath = (slot.modelSrc || '').replace(/^\/assets\/ecosystem-models\/library\//, '');
+    let builderFn = speciesMap[relPath] || buildRumputToy;
+
+    try {
+      const modelObj = builderFn();
+      const box = new THREE.Box3().setFromObject(modelObj);
+      if (!box.isEmpty()) {
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        if (maxDim > 0) {
+          modelObj.scale.setScalar(0.75 / maxDim);
+        }
+        const normBox = new THREE.Box3().setFromObject(modelObj);
+        if (!normBox.isEmpty()) {
+          modelObj.position.y -= normBox.min.y;
+        }
+      }
+      slotGroup.add(modelObj);
+    } catch (e) {
+      console.warn(`[Auto-Bake Warning] Slot ${i} model error:`, e.message);
+    }
+
+    sceneGroup.add(slotGroup);
+  });
+
+  const exporter = new GLTFExporter();
+  const buf = await new Promise((resolve, reject) => {
+    exporter.parse(
+      sceneGroup,
+      res => resolve(res instanceof ArrayBuffer ? Buffer.from(res) : Buffer.from(JSON.stringify(res))),
+      err => reject(err),
+      { binary: true, embedImages: true }
+    );
+  });
+
+  fs.writeFileSync(glbPath, buf);
+  console.log(`[Auto-Bake Engine] Successfully baked & saved ${glbFilename}: ${(buf.length / 1024).toFixed(1)} KB`);
+  return glbFilename;
+}
+
 function loadEcosystemModelLibrary() {
   if (!fs.existsSync(ECOSYSTEM_MODEL_LIBRARY_FILE)) return [];
   try { return JSON.parse(fs.readFileSync(ECOSYSTEM_MODEL_LIBRARY_FILE, 'utf8')); }
@@ -527,8 +651,16 @@ app.get('/studio/view/:id', (req, res) => {
 });
 
 // ─── Ecosystem Preset Baked AR Viewer Route (FASE P5) ─────────────────────────
-app.get('/ecosystem/view/:id', (req, res) => {
+app.get('/ecosystem/view/:id', async (req, res) => {
   const { id } = req.params;
+
+  // Auto-bake engine: ensure the combined GLB file exists on disk
+  try {
+    await ensureEcosystemGlbExists(id);
+  } catch (err) {
+    console.error(`[Auto-Bake Error] Failed to auto-bake GLB for ${id}:`, err.message);
+  }
+
   const publishedList = loadEcosystemPublished();
   const item = publishedList.find(p => p.id === id || p.filename === `${id}.glb`);
 
@@ -723,10 +855,19 @@ const uploadEcoBake = multer({
 
 app.post('/api/ecosystem/publish', uploadEcoBake.single('bakedGlb'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'File GLB hasil bake tidak ditemukan' });
-
     const { presetId, presetName } = req.body;
-    const id = path.parse(req.file.filename).name;
+    let id = req.file ? path.parse(req.file.filename).name : ('eco_' + nanoid(10));
+    let filename = req.file ? req.file.filename : `${id}.glb`;
+    let filePath = path.join(ASSETS_DIR, filename);
+
+    // If uploaded file is missing or less than 10KB, trigger server-side auto bake
+    if (!req.file || !fs.existsSync(filePath) || fs.statSync(filePath).size < 10000) {
+      console.log(`[Publish API] Auto-baking GLB for published preset "${presetId || id}"...`);
+      await ensureEcosystemGlbExists(id);
+    }
+
+    const fileSize = fs.existsSync(filePath) ? fs.statSync(filePath).size : 100000;
+
     const hostHeader = req.get('host') || 'localhost:3001';
     let isLocal = hostHeader.includes('localhost') || hostHeader.includes('127.0.0.1');
     let protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
@@ -749,9 +890,9 @@ app.post('/api/ecosystem/publish', uploadEcoBake.single('bakedGlb'), async (req,
       id,
       presetId: presetId || 'preset-darat',
       name: presetName || 'Rantai Makanan AR',
-      filename: req.file.filename,
-      glbUrl: `/assets/${req.file.filename}`,
-      size: req.file.size,
+      filename,
+      glbUrl: `/assets/${filename}`,
+      size: fileSize,
       directUrl,
       qrFilename,
       qrCodeDataUrl,
