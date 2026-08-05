@@ -8,7 +8,7 @@ export declare class ViewsService {
     renderStudioApp(): Promise<string>;
     renderArViewer(id: string, hostHeader: string, protocol?: string): Promise<string>;
     renderStudioViewer(id: string): Promise<string>;
-    renderPrintCard(id: string): Promise<string>;
+    renderPrintCard(id: string, hostHeader?: string, protocol?: string): Promise<string>;
     renderEcosystemViewer(id: string, hostHeader: string, protocol?: string): Promise<string>;
     ensureEcosystemGlbExists(id: string): Promise<string>;
 }

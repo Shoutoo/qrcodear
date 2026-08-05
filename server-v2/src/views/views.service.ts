@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+import * as qrcode from 'qrcode';
 
 // Polyfill FileReader for THREE.GLTFExporter in Node.js
 if (typeof global.FileReader === 'undefined') {
@@ -154,7 +155,7 @@ export class ViewsService {
     return html;
   }
 
-  async renderPrintCard(id: string): Promise<string> {
+  async renderPrintCard(id: string, hostHeader?: string, protocol = 'http'): Promise<string> {
     const asset = await this.prisma.asset.findUnique({ where: { id } });
     const scene = !asset ? await this.prisma.scene.findFirst({ where: { OR: [{ id }, { id: id.replace(/^scene_/, '') }] } }) : null;
     const preset = (!asset && !scene) ? await this.prisma.ecosystemPreset.findFirst({ where: { OR: [{ id }, { id: `preset-${id}` }] } }) : null;
@@ -162,24 +163,42 @@ export class ViewsService {
 
     if (!asset && !scene && !preset && !pub) throw new NotFoundException('Model / Scene 3D tidak ditemukan');
 
-    const name = asset ? asset.label : scene ? (scene.data as any)?.name : preset ? preset.name : 'Rantai Makanan AR';
+    const name = asset ? asset.label : scene ? (scene.data as any)?.name : preset ? preset.name : pub ? 'Rantai Makanan AR' : 'Rantai Makanan AR';
     const desc = asset ? asset.source : scene ? (scene.data as any)?.description : preset ? 'Rantai Makanan AR Preset' : 'AR Scene';
-    const qrFilename = pub ? `${pub.id}_qr.png` : `${id}_qr.png`;
     const createdAt = asset ? asset.createdAt : scene ? scene.createdAt : preset ? preset.createdAt : pub ? pub.createdAt : new Date();
 
     const templatePath = path.join(VIEWS_DIR, 'print-card.html');
     let html = fs.readFileSync(templatePath, 'utf8');
 
     const isEcosystem = preset || pub || id.startsWith('preset-') || id.startsWith('eco_');
-    const viewerUrl = isEcosystem ? `/ecosystem/view/${id}` : `/ar/${id}`;
+    const viewerRelativePath = isEcosystem ? `/ecosystem/view/${id}` : `/ar/${id}`;
+
+    const host = hostHeader || 'localhost:3002';
+    const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+    const finalProto = isLocal ? protocol : 'https';
+    const fullViewerUrl = `${finalProto}://${host}${viewerRelativePath}`;
+
+    let qrDataUrl = '';
+    try {
+      qrDataUrl = await qrcode.toDataURL(fullViewerUrl, {
+        errorCorrectionLevel: 'M',
+        margin: 2,
+        width: 400,
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+    } catch (e) {
+      qrDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullViewerUrl)}`;
+    }
 
     html = html
       .replace(/{{MODEL_NAME}}/g, this.escapeHtml(name || 'Model 3D'))
       .replace(/{{MODEL_DESC}}/g, this.escapeHtml(desc || ''))
-      .replace(/{{QR_FILENAME}}/g, qrFilename)
+      .replace(/{{QR_DATA_URL}}/g, qrDataUrl)
+      .replace(/\/assets\/{{QR_FILENAME}}/g, qrDataUrl)
+      .replace(/{{QR_FILENAME}}/g, qrDataUrl)
       .replace(/{{MARKER_IMAGE_URL}}/g, '/assets/markers/custom-marker.png')
       .replace(/{{ASSET_ID}}/g, id)
-      .replace(/{{VIEWER_URL}}/g, viewerUrl)
+      .replace(/{{VIEWER_URL}}/g, viewerRelativePath)
       .replace(/{{UPLOAD_DATE}}/g, this.formatDateId(createdAt));
 
     return html;

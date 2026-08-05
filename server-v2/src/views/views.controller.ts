@@ -37,8 +37,10 @@ export class ViewsController {
   }
 
   @Get('print/:id')
-  async getPrintCard(@Param('id') id: string, @Res() res: any) {
-    const html = await this.viewsService.renderPrintCard(id);
+  async getPrintCard(@Param('id') id: string, @Req() req: any, @Res() res: any) {
+    const hostHeader = req.get('host') || 'localhost:3002';
+    const protocol = req.headers['x-forwarded-proto']?.toString() || req.protocol || 'http';
+    const html = await this.viewsService.renderPrintCard(id, hostHeader, protocol);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
   }

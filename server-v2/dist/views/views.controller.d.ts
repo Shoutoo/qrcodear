@@ -6,6 +6,6 @@ export declare class ViewsController {
     getStudioApp(res: any): Promise<void>;
     getArViewer(id: string, req: any, res: any): Promise<void>;
     getStudioViewer(id: string, res: any): Promise<void>;
-    getPrintCard(id: string, res: any): Promise<void>;
+    getPrintCard(id: string, req: any, res: any): Promise<void>;
     getEcosystemViewer(id: string, req: any, res: any): Promise<void>;
 }

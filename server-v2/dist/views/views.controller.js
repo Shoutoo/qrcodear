@@ -42,8 +42,10 @@ let ViewsController = class ViewsController {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
     }
-    async getPrintCard(id, res) {
-        const html = await this.viewsService.renderPrintCard(id);
+    async getPrintCard(id, req, res) {
+        const hostHeader = req.get('host') || 'localhost:3002';
+        const protocol = req.headers['x-forwarded-proto']?.toString() || req.protocol || 'http';
+        const html = await this.viewsService.renderPrintCard(id, hostHeader, protocol);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
     }
@@ -90,9 +92,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)('print/:id'),
     __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Res)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ViewsController.prototype, "getPrintCard", null);
 __decorate([
