@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Anotasi 3D — {{MODEL_NAME}}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#632ce5",
+            "primary-container": "#7c4dff",
+            "surface-container": "#dff1fb",
+            "surface": "#f4faff",
+            "on-surface": "#0d1e25",
+            "on-surface-variant": "#494455",
+            "secondary": "#fdd400",
+            "on-secondary": "#6f5c00"
+          },
+          fontFamily: {
+            sans: ['Quicksand', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Quicksand', sans-serif; }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background-color: #f4faff;
+      --poster-color: transparent;
+      cursor: crosshair;
+    }
+    .view-hotspot {
+      background: #fdd400;
+      color: #6f5c00;
+      border: 2px solid #ffffff;
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 16px rgba(111, 92, 0, 0.25);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .view-hotspot:hover { transform: scale(1.08); }
+    .view-hotspot .hotspot-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #6f5c00; color: #fdd400;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface h-full flex flex-col overflow-hidden">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-20 flex-shrink-0 shadow-sm">
+    <div class="flex items-center gap-3">
+      <a href="/" class="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors" title="Kembali ke Dashboard">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <div class="bg-primary-container p-2 rounded-xl">
+        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
+      </div>
+      <div>
+        <h1 class="font-bold text-slate-800 text-lg leading-tight">{{MODEL_NAME}}</h1>
+        <p class="text-xs text-slate-500 font-medium">Visual 3D Annotation Editor</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/ar/{{ASSET_ID}}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-colors">
+        <span class="material-symbols-outlined text-sm">visibility</span> Preview Viewer
+      </a>
+      <button onclick="saveAllAnnotations()" id="save-btn" class="bg-primary hover:bg-primary-container text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md transition-all">
+        <span class="material-symbols-outlined text-sm">save</span> Simpan Perubahan
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- 3D Canvas Area -->
+    <div class="flex-1 relative">
+      <model-viewer
+        id="editor-viewer"
+        src="{{MODEL_URL}}"
+        camera-controls
+        shadow-intensity="1"
+        alt="{{MODEL_NAME}}"
+        loading="eager"
+        interaction-prompt="none"
+      >
+      </model-viewer>
+
+      <!-- Floating Click Banner -->
+      <div class="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md border border-slate-200/80 px-5 py-2.5 rounded-full shadow-lg pointer-events-none flex items-center gap-2 z-10">
+        <span class="material-symbols-outlined text-primary text-sm animate-pulse">ads_click</span>
+        <span class="text-xs font-bold text-slate-700">Klik di mana saja pada permukaan model 3D untuk menambah label</span>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Panel -->
+    <aside class="w-80 md:w-96 bg-white border-l border-slate-200 flex flex-col z-10 flex-shrink-0 shadow-lg">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">sell</span>
+          <h2 class="font-bold text-slate-800 text-base">Daftar Anotasi (<span id="ann-count">0</span>)</h2>
+        </div>
+      </div>
+
+      <!-- Annotation List Scroll Area -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3" id="ann-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Add/Edit Annotation Modal -->
+  <div id="ann-modal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">add_location_alt</span>
+          <h3 class="font-bold text-slate-800 text-lg" id="modal-title">Tambah Label Anotasi</h3>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form id="ann-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nama Label <span class="text-red-500">*</span></label>
+          <input id="form-name" type="text" required placeholder="cth: Sirip Dada / Inti Sel" maxlength="60" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-semibold focus:outline-none focus:border-primary focus:bg-white transition-colors" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Deskripsi (Opsional)</label>
+          <textarea id="form-desc" rows="3" placeholder="Penjelasan singkat tentang bagian ini..." maxlength="300" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium focus:outline-none focus:border-primary focus:bg-white transition-colors"></textarea>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60 space-y-1">
+          <div class="flex items-center justify-between text-[11px] text-slate-500">
+            <span class="font-bold">Koordinat 3D:</span>
+            <span id="form-pos-display" class="font-mono text-primary font-bold">0m 0m 0m</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500">
+            <span class="font-bold">Vector Normal:</span>
+            <span id="form-norm-display" class="font-mono text-slate-600 font-semibold">0 1 0</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-colors">
+            Batal
+          </button>
+          <button type="submit" class="flex-1 bg-primary hover:bg-primary-container text-white font-bold py-3 rounded-xl text-sm shadow-md transition-all">
+            Simpan Label
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="application/json" id="initial-annotations">
+  {{ANNOTATIONS_JSON}}
+  </script>
+
+  <script>
+    const ASSET_ID = "{{ASSET_ID}}";
+    let annotations = JSON.parse(document.getElementById('initial-annotations').textContent || '[]');
+    let currentHit = null; // { dataPosition, dataNormal }
+    let editingIndex = null;
+
+    const viewer = document.getElementById('editor-viewer');
+    const annListEl = document.getElementById('ann-list');
+    const annCountEl = document.getElementById('ann-count');
+    const modal = document.getElementById('ann-modal');
+
+    // Preset mapping fallback
+    const POS_PRESETS = {
+      'top':          '0m 0.55m 0m',
+      'top-left':     '-0.25m 0.45m 0m',
+      'top-right':    '0.25m 0.45m 0m',
+      'left':         '-0.32m 0.22m 0m',
+      'right':        '0.32m 0.22m 0m',
+      'center-left':  '-0.28m 0.10m 0m',
+      'center-right': '0.28m 0.10m 0m',
+      'bottom-left':  '-0.22m -0.02m 0m',
+      'bottom-right': '0.22m -0.02m 0m',
+      'bottom':       '0m -0.08m 0m',
+    };
+
+    // ─── Click 3D Surface to Pick Position & Normal ──────────
+    viewer.addEventListener('click', (event) => {
+      const rect = viewer.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      const hit = viewer.positionAndNormalFromPoint(x, y);
+      if (hit) {
+        currentHit = {
+          dataPosition: hit.position.toString(),
+          dataNormal: hit.normal.toString()
+        };
+        editingIndex = null;
+        openAddModal(currentHit);
+      }
+    });
+
+    // ─── Modal Control ───────────────────────────────────────
+    function openAddModal(hit) {
+      document.getElementById('modal-title').textContent = 'Tambah Label Anotasi';
+      document.getElementById('form-name').value = '';
+      document.getElementById('form-desc').value = '';
+      document.getElementById('form-pos-display').textContent = hit.dataPosition;
+      document.getElementById('form-norm-display').textContent = hit.dataNormal;
+      modal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('form-name').focus(), 100);
+    }
+
+    function openEditModal(index) {
+      editingIndex = index;
+      const ann = annotations[index];
+      let posStr = ann.dataPosition || POS_PRESETS[ann.position] || '0m 0.25m 0m';
+      let normStr = ann.dataNormal || ann.normal || '0 1 0';
+
+      currentHit = { dataPosition: posStr, dataNormal: normStr };
+
+      document.getElementById('modal-title').textContent = 'Edit Label Anotasi';
+      document.getElementById('form-name').value = ann.name || '';
+      document.getElementById('form-desc').value = ann.description || '';
+      document.getElementById('form-pos-display').textContent = posStr;
+      document.getElementById('form-norm-display').textContent = normStr;
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      modal.classList.add('hidden');
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById('form-name').value.trim();
+      const description = document.getElementById('form-desc').value.trim();
+      if (!name) return;
+
+      const annData = {
+        name,
+        description,
+        dataPosition: currentHit.dataPosition,
+        dataNormal: currentHit.dataNormal
+      };
+
+      if (editingIndex !== null) {
+        annotations[editingIndex] = annData;
+      } else {
+        annotations.push(annData);
+      }
+
+      closeModal();
+      renderAll();
+    }
+
+    function deleteAnnotation(index) {
+      if (confirm('Hapus label anotasi ini?')) {
+        annotations.splice(index, 1);
+        renderAll();
+      }
+    }
+
+    // ─── Render Hotspots & Sidebar Items ─────────────────────
+    function renderAll() {
+      // Remove existing hotspots from viewer
+      const oldHotspots = viewer.querySelectorAll('.view-hotspot');
+      oldHotspots.forEach(h => h.remove());
+
+      annCountEl.textContent = annotations.length;
+
+      if (!annotations.length) {
+        annListEl.innerHTML = `
+          <div class="text-center py-10 px-4 border-2 border-dashed border-slate-200 rounded-2xl">
+            <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">sell</span>
+            <p class="text-xs font-bold text-slate-500">Belum Ada Anotasi</p>
+            <p class="text-[11px] text-slate-400 mt-1">Klik di permukaan model 3D untuk menambah anotasi pertama</p>
+          </div>
+        `;
+        return;
+      }
+
+      annListEl.innerHTML = annotations.map((ann, i) => {
+        let posStr = ann.dataPosition || POS_PRESETS[ann.position] || '0m 0.25m 0m';
+        let normStr = ann.dataNormal || ann.normal || '0 1 0';
+
+        // Add hotspot to <model-viewer>
+        const btn = document.createElement('button');
+        btn.className = 'view-hotspot';
+        btn.setAttribute('slot', `hotspot-${i + 1}`);
+        btn.setAttribute('data-position', posStr);
+        btn.setAttribute('data-normal', normStr);
+
+        btn.innerHTML = `
+          <span>${escHtml(ann.name)}</span>
+          ${ann.description ? `<span class="hotspot-icon"><span class="material-symbols-outlined text-[14px]">info</span></span>` : ''}
+        `;
+        viewer.appendChild(btn);
+
+        // Sidebar card HTML
+        return `
+          <div class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 p-3.5 rounded-2xl flex flex-col gap-2 transition-colors">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="bg-primary text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0">${i + 1}</span>
+                <span class="font-bold text-slate-800 text-sm truncate" title="${escHtml(ann.name)}">${escHtml(ann.name)}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="openEditModal(${i})" class="text-slate-400 hover:text-primary p-1 rounded-lg transition-colors" title="Edit">
+                  <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button onclick="deleteAnnotation(${i})" class="text-slate-400 hover:text-red-500 p-1 rounded-lg transition-colors" title="Hapus">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+            </div>
+            ${ann.description ? `<p class="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed">${escHtml(ann.description)}</p>` : ''}
+            <div class="text-[10px] text-slate-400 font-mono flex items-center gap-2 pt-1 border-t border-slate-200/50">
+              <span class="truncate" title="Position">${posStr}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ─── Save Annotations via API ────────────────────────────
+    async function saveAllAnnotations() {
+      const saveBtn = document.getElementById('save-btn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Menyimpan...';
+
+      try {
+        const res = await fetch(`/api/assets/${ASSET_ID}/annotations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ annotations })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
+        
+        alert('✨ Anotasi berhasil disimpan!');
+      } catch (err) {
+        alert('⚠️ Error: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Simpan Perubahan';
+      }
+    }
+
+    function escHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial render when viewer loads
+    viewer.addEventListener('load', renderAll);
+    if (viewer.loaded) renderAll();
+  </script>
+</body>
+</html>

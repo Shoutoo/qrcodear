@@ -3,7 +3,14 @@
     "id": "GgFRJz4dhf",
     "name": "Model iOS USDZ Test",
     "description": "Uji coba upload usdz untuk iOS",
-    "annotations": [],
+    "annotations": [
+      {
+        "name": "Titik Uji Presisi",
+        "description": "Hasil klik langsung permukaan model 3D di editor",
+        "dataPosition": "0.15m 0.40m 0.05m",
+        "dataNormal": "0 1 0"
+      }
+    ],
     "filename": "GgFRJz4dhf.glb",
     "originalName": "draco_test.glb",
     "usdzFilename": "GgFRJz4dhf.usdz",

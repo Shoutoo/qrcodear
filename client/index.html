@@ -741,6 +741,9 @@ function renderGallery(assets) {
         </div>
         
         <div class="flex gap-2">
+          <a class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" href="/editor/${a.id}" title="Editor Anotasi 3D">
+            <span class="material-symbols-outlined text-sm">edit_location_alt</span>
+          </a>
           <button class="flex-1 bg-surface-container p-2 rounded flex items-center justify-center hover:bg-primary/10 transition-colors text-primary" onclick="viewQR('${a.id}')" title="Lihat QR Code">
             <span class="material-symbols-outlined text-sm">qr_code</span>
           </button>

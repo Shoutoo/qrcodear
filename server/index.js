@@ -217,6 +217,59 @@ app.get('/print/:id', (req, res) => {
   res.send(html);
 });
 
+// ─── Route: Visual 3D Annotation Editor ───────────────────────────────────────
+app.get('/editor/:id', (req, res) => {
+  const { id } = req.params;
+  const assets = loadAssets();
+  const asset  = assets.find(a => a.id === id);
+
+  if (!asset) return res.status(404).send('Model tidak ditemukan');
+
+  const assetUrl = `/assets/${asset.filename}`;
+  const templatePath = path.join(VIEWS_DIR, 'editor.html');
+  let html = fs.readFileSync(templatePath, 'utf8');
+
+  html = html
+    .replace(/{{MODEL_URL}}/g,        assetUrl)
+    .replace(/{{MODEL_NAME}}/g,       escapeHtml(asset.name || 'Model 3D'))
+    .replace(/{{MODEL_DESC}}/g,       escapeHtml(asset.description || ''))
+    .replace(/{{ASSET_ID}}/g,         asset.id)
+    .replace(/{{UPLOAD_DATE}}/g,      formatDateId(asset.uploadedAt))
+    .replace(/{{ANNOTATIONS_JSON}}/g, JSON.stringify(asset.annotations || []));
+
+  res.send(html);
+});
+
+// ─── API Route: Save Annotations for Asset ────────────────────────────────────
+app.post('/api/assets/:id/annotations', (req, res) => {
+  const { id } = req.params;
+  const { annotations } = req.body;
+
+  if (!Array.isArray(annotations)) {
+    return res.status(400).json({ error: 'Annotations harus berupa array' });
+  }
+
+  const assets = loadAssets();
+  const assetIndex = assets.findIndex(a => a.id === id);
+
+  if (assetIndex === -1) {
+    return res.status(404).json({ error: 'Asset tidak ditemukan' });
+  }
+
+  // Sanitize annotations array
+  const sanitized = annotations.map(a => ({
+    name:         String(a.name || '').trim().slice(0, 60),
+    description:  String(a.description || '').trim().slice(0, 300),
+    dataPosition: String(a.dataPosition || a.position || '0m 0.25m 0m').trim(),
+    dataNormal:   String(a.dataNormal || a.normal || '0 1 0').trim()
+  }));
+
+  assets[assetIndex].annotations = sanitized;
+  saveAssets(assets);
+
+  res.json({ success: true, annotations: sanitized });
+});
+
 // ─── Route: Upload asset ──────────────────────────────────────────────────────
 app.post('/api/upload', upload.fields([
   { name: 'model', maxCount: 1 },

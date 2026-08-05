@@ -248,8 +248,11 @@
       <h1 class="font-bold text-on-surface text-lg leading-tight">{{MODEL_NAME}}</h1>
       <p class="text-xs text-on-surface-variant font-medium">Magic AR Edu • {{UPLOAD_DATE}}</p>
     </div>
-    <div class="ml-auto pointer-events-auto">
-      <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-4 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/print/{{ASSET_ID}}" target="_blank">
+    <div class="ml-auto pointer-events-auto flex items-center gap-2">
+      <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/editor/{{ASSET_ID}}" target="_blank">
+        <span class="material-symbols-outlined text-sm">edit_location_alt</span> Edit 3D
+      </a>
+      <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/print/{{ASSET_ID}}" target="_blank">
         <span class="material-symbols-outlined text-sm">print</span> Cetak
       </a>
     </div>
