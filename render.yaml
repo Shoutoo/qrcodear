@@ -12,7 +12,7 @@ services:
     region: singapore
     plan: free
     buildCommand: cd server-v2 && npm install && npx prisma generate
-    startCommand: cd server-v2 && npx prisma db push && node dist/main
+    startCommand: cd server-v2 && npx prisma db push && npm run seed:prod; node dist/main
     envVars:
       - key: NODE_ENV
         value: production

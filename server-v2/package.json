@@ -12,6 +12,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "seed:prod": "node dist/prisma/seed.js",
     "test:connection": "ts-node src/test-connection.ts",
     "test:r3-api": "ts-node src/test-r3-api.ts",
     "test:r4-rewiring": "ts-node src/test-r4-rewiring.ts",
