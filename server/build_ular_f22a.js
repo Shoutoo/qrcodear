@@ -142,133 +142,144 @@ function buildUlarToy() {
   g.add(bellyMesh);
 
   // =====================================================================
-  // HEAD — elevated, chubby oval, connected to end of spiral
-  // FIX: larger head, eyes properly on upper-sides, no red nostrils,
-  //      longer visible tongue, belly yellow strip extended to chin
+  // HEAD — LOGIKA KONSTRUKSI BENAR (FASE F2.2a-logika)
+  //
+  // Prinsip:
+  //  1. neckPos  = curve.getPointAt(1)   → posisi ujung badan
+  //  2. neckTan  = curve.getTangentAt(1) → arah badan menuju → arah moncong
+  //  3. headGroup.position = neckPos + neckTan * offset → kepala DI DEPAN ujung badan
+  //  4. headGroup.lookAt(headGroup.position + neckTan) → rotasi otomatis ikut tangent
+  //  5. Semua anak (mata, mulut, lidah, chin) pakai posisi LOKAL headGroup
+  //     → otomatis simetris & ikut orientasi kepala yang benar
   // =====================================================================
-  const neckPos = bodyCurve.getPoint(1.0);
-  const neckTan = bodyCurve.getTangent(1.0).normalize();
+  const neckPos = bodyCurve.getPointAt(1.0);
+  const neckTan = bodyCurve.getTangentAt(1.0).normalize();
 
-  // Head: bigger chubby oval — radius 0.24 (was 0.2), wider + taller
-  const headGeo  = new THREE.SphereGeometry(0.24, 28, 20);
-  const headMesh = new THREE.Mesh(headGeo, glossyMat(0x4caf50, 0.13));
-  headMesh.scale.set(1.2, 1.0, 1.15); // wide oval, taller than before
-  headMesh.position.set(
-    neckPos.x + neckTan.x * 0.22,
-    neckPos.y + 0.14,   // raised higher above last coil
-    neckPos.z + neckTan.z * 0.22
-  );
-  g.add(headMesh);
+  // Neck connector tube (body end → head base) — built BEFORE headGroup
+  // because we need world positions for the tube control points
+  const headCenter = neckPos.clone().addScaledVector(neckTan, 0.26)
+                       .add(new THREE.Vector3(0, 0.08, 0)); // slight Y lift for "alert" pose
 
-  // Neck connector — fat tube, same green
   const neckPts = [
     neckPos.clone(),
-    neckPos.clone().addScaledVector(neckTan, 0.11).add(new THREE.Vector3(0, 0.07, 0)),
-    headMesh.position.clone().add(new THREE.Vector3(-neckTan.x * 0.12, -0.07, -neckTan.z * 0.12))
+    neckPos.clone().addScaledVector(neckTan, 0.13).add(new THREE.Vector3(0, 0.04, 0)),
+    headCenter.clone().addScaledVector(neckTan, -0.12)
   ];
   g.add(tubeMesh(neckPts, TUBE_R * 0.92, 10, 22, glossyMat(0x4caf50, 0.13)));
 
-  // Yellow belly strip extended from neck tube INTO chin of head
-  // Approach: large flattened sphere for chin, positioned clearly under front of head
-  const chinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 22, 16), glossyMat(0xfff176, 0.16));
-  chinMesh.scale.set(1.05, 0.52, 1.0); // flat wide oval underside
-  chinMesh.position.set(
-    headMesh.position.x + neckTan.x * 0.04,
-    headMesh.position.y - 0.07,  // clearly below head centre
-    headMesh.position.z + neckTan.z * 0.04 + 0.06
-  );
-  g.add(chinMesh);
-
-  // Yellow neck belly strip connector — matches body belly tube end to chin
+  // Yellow belly connector from body belly tube to head chin area
+  const bellyNeckEnd = headCenter.clone().add(new THREE.Vector3(0, -0.09, 0));
   const bellyNeckPts = [
-    new THREE.Vector3(
-      neckPos.x * 0.78,
-      neckPos.y * 1.0 - 0.02,
-      neckPos.z * 0.78
-    ),
-    chinMesh.position.clone().add(new THREE.Vector3(0, 0.04, -0.05))
+    neckPos.clone().addScaledVector(neckTan, -0.05).add(new THREE.Vector3(0, -0.06, 0)),
+    bellyNeckEnd.clone().addScaledVector(neckTan, -0.08)
   ];
-  g.add(tubeMesh(bellyNeckPts, TUBE_R * 0.52, 8, 16, glossyMat(0xfff176, 0.16)));
+  g.add(tubeMesh(bellyNeckPts, TUBE_R * 0.5, 8, 16, glossyMat(0xfff176, 0.16)));
 
-  // ---- EYES: big, on upper-SIDES of head (not front center) ----
-  // Position: offset sideways (±X) + slightly back (−Z) + high up (+Y)
-  // so they sit on top-side, like real snake eyes
-  const hp = headMesh.position; // shorthand
-  [
-    { side: -1 },
-    { side:  1 }
-  ].forEach(({ side }) => {
-    // Eye BASE (white sclera — large so pupil reads as big)
-    const eyeBase = new THREE.Mesh(
-      new THREE.SphereGeometry(0.072, 16, 14),
-      matteMat(0xfafafa, 0.35)
-    );
-    eyeBase.position.set(
-      hp.x + side * 0.19,   // wide to the side
-      hp.y + 0.10,           // high on head (upper hemisphere)
-      hp.z + 0.04            // slightly forward
-    );
-    g.add(eyeBase);
+  // ---- HEAD GROUP — all face children go inside this ----
+  const headGroup = new THREE.Group();
+  headGroup.position.copy(headCenter);
+  // Orient headGroup so its LOCAL +Z axis points along neckTan
+  // lookAt target = headCenter + neckTan (a point directly in front)
+  const lookTarget = headCenter.clone().add(neckTan);
+  headGroup.lookAt(lookTarget);
+  g.add(headGroup);
 
-    // Black pupil — fills almost all of eye white (cute big-eye style)
+  // HEAD MESH — in local space: centre at origin, moncong points +Z
+  const headMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.24, 28, 20),
+    glossyMat(0x4caf50, 0.13)
+  );
+  headMesh.scale.set(1.18, 0.95, 1.22); // wider in Z (moncong direction), oval
+  // No position needed — sits at group origin (= headCenter in world)
+  headGroup.add(headMesh);
+
+  // CHIN / BELLY — flattened sphere below and slightly forward in local space
+  // Local: -Y = below head, +Z = toward moncong
+  const chin = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 22, 16),
+    glossyMat(0xfff176, 0.16)
+  );
+  chin.scale.set(1.1, 0.45, 1.05);
+  chin.position.set(0, -0.1, 0.04); // local: below centre, slightly forward
+  headGroup.add(chin);
+
+  // ---- EYES — local space, perfectly symmetric ----
+  // Local axes: +X=right, +Y=up, +Z=forward(moncong)
+  // Eyes sit on upper-front-sides of head
+  const EYE_SIDE   = 0.18;  // lateral offset (X)
+  const EYE_UP     = 0.09;  // upward offset (Y)
+  const EYE_FWD    = 0.12;  // forward offset (Z) → ensures both eyes visible from front
+
+  [-1, 1].forEach(side => {
+    const eyeGroup = new THREE.Group();
+    eyeGroup.position.set(side * EYE_SIDE, EYE_UP, EYE_FWD);
+    headGroup.add(eyeGroup);
+
+    // White sclera base
+    const sclera = new THREE.Mesh(
+      new THREE.SphereGeometry(0.075, 16, 14),
+      matteMat(0xfafafa, 0.3)
+    );
+    // Sclera sits at eyeGroup origin; push slightly outward (X) so it protrudes from head
+    sclera.position.set(side * 0.02, 0, 0.02);
+    eyeGroup.add(sclera);
+
+    // Big black pupil — fills almost entire eye (cute toy style)
     const pupil = new THREE.Mesh(
-      new THREE.SphereGeometry(0.058, 14, 12),
-      matteMat(0x0a0a0a, 0.9)
+      new THREE.SphereGeometry(0.062, 14, 12),
+      matteMat(0x080808, 0.95)
     );
-    pupil.position.copy(eyeBase.position);
-    // Push outward to sit on surface
-    pupil.position.x += side * 0.022;
-    pupil.position.z += 0.018;
-    g.add(pupil);
+    pupil.position.set(side * 0.03, 0, 0.04);
+    eyeGroup.add(pupil);
 
-    // Highlight dot — offset upper-inside of pupil (not centered)
+    // Highlight — small white dot, upper-inside offset (not perfectly centered)
     const hl = new THREE.Mesh(
-      new THREE.SphereGeometry(0.02, 8, 6),
+      new THREE.SphereGeometry(0.022, 8, 6),
       matteMat(0xffffff, 0.05)
     );
-    hl.position.copy(pupil.position);
-    hl.position.y += 0.024;
-    hl.position.x += side * -0.014; // toward nose
-    hl.position.z += 0.018;
-    g.add(hl);
+    hl.position.set(side * 0.018, 0.028, 0.06);
+    eyeGroup.add(hl);
   });
 
-  // ---- MOUTH — dark interior, NOT red, sits at front-bottom of head ----
-  const mouthPos = hp.clone().add(new THREE.Vector3(0, -0.1, 0.22));
+  // ---- MOUTH — dark interior slot, front-bottom in local space ----
   const mouth = new THREE.Mesh(
     new THREE.SphereGeometry(0.065, 12, 8),
-    matteMat(0x5d1010, 0.8) // dark red-brown, not bright red
+    matteMat(0x5d1010, 0.85)
   );
-  mouth.scale.set(1.0, 0.38, 0.9); // wide flat slot
-  mouth.position.copy(mouthPos);
-  g.add(mouth);
+  mouth.scale.set(1.05, 0.35, 0.9); // wide flat oval
+  mouth.position.set(0, -0.1, 0.22); // local: below + forward
+  headGroup.add(mouth);
 
-  // ---- FORKED TONGUE — longer, clearly visible, bright red ----
-  // Starts from mouth opening, projects forward+down
-  const tongueRoot = mouthPos.clone().add(new THREE.Vector3(0, 0.01, 0.06));
-  // Stem: longer than before
-  const stemPts = [
-    tongueRoot.clone(),
-    tongueRoot.clone().add(new THREE.Vector3(0, -0.02, 0.1)),
-    tongueRoot.clone().add(new THREE.Vector3(0, -0.03, 0.2))  // extended further
-  ];
-  g.add(tubeMesh(stemPts, 0.016, 6, 8, glossyMat(0xe53935, 0.18)));
+  // ---- FORKED TONGUE — curved tubes in local space, from mouth forward ----
+  // All positions are LOCAL to headGroup → correctly follows head orientation
+  // Stem starts from mouth opening (+Z) and projects forward (+Z) and slightly down (-Y)
+  const TONGUE_START = new THREE.Vector3(0, -0.09, 0.24);
+  const TONGUE_MID   = new THREE.Vector3(0, -0.12, 0.34);
+  const FORK_BASE    = new THREE.Vector3(0, -0.14, 0.42);
 
-  // Fork tips: wider spread and longer so they're clearly visible
-  const forkBase = tongueRoot.clone().add(new THREE.Vector3(0, -0.03, 0.2));
-  for (let s = -1; s <= 1; s += 2) {
-    const forkPts = [
-      forkBase.clone(),
-      forkBase.clone().add(new THREE.Vector3(s * 0.05, -0.015, 0.08)),
-      forkBase.clone().add(new THREE.Vector3(s * 0.09, -0.02, 0.15))  // longer fork
-    ];
-    g.add(tubeMesh(forkPts, 0.011, 5, 7, glossyMat(0xe53935, 0.18)));
-  }
+  // Stem tube (single, going forward from mouth)
+  const stemCurve = new THREE.CatmullRomCurve3([
+    TONGUE_START,
+    TONGUE_MID,
+    FORK_BASE
+  ]);
+  const stemGeo = new THREE.TubeGeometry(stemCurve, 8, 0.016, 8, false);
+  headGroup.add(new THREE.Mesh(stemGeo, glossyMat(0xe53935, 0.18)));
 
-  // NO red nostrils — removed completely
+  // Fork: 2 branches from FORK_BASE, curving gently left and right
+  // Using local +X for lateral spread — guaranteed symmetric
+  [-1, 1].forEach(s => {
+    const forkCurve = new THREE.CatmullRomCurve3([
+      FORK_BASE.clone(),
+      new THREE.Vector3(s * 0.055, -0.155, 0.50),
+      new THREE.Vector3(s * 0.095, -0.165, 0.58) // tip
+    ]);
+    const forkGeo = new THREE.TubeGeometry(forkCurve, 6, 0.011, 7, false);
+    headGroup.add(new THREE.Mesh(forkGeo, glossyMat(0xe53935, 0.18)));
+  });
 
   // ---- TAIL TIP — rounded nub at start of spiral ----
-  const tailPos = bodyCurve.getPoint(0);
+  const tailPos = bodyCurve.getPointAt(0);
   const tailCap = new THREE.Mesh(
     new THREE.SphereGeometry(TUBE_R * 0.85, 12, 10),
     glossyMat(0x4caf50, 0.13)
@@ -278,6 +289,8 @@ function buildUlarToy() {
 
   return g;
 }
+
+
 
 // ------------------------------------------------------------------
 // Main — only build Ular for F2.2a review
