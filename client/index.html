@@ -469,6 +469,12 @@
             </button>
 
             <div id="quiz-feedback-box" class="hidden p-4 rounded-xl text-sm font-bold"></div>
+
+            <!-- Tombol Selesaikan Kuis — muncul setelah semua soal dijawab -->
+            <button id="btn-finish-quiz" onclick="finishQuiz()" class="hidden chunky-button w-full py-3 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg">
+              <span class="material-symbols-outlined text-xl">emoji_events</span>
+              Selesaikan Kuis & Lihat Nilai
+            </button>
           </div>
         </div>
       </div>
@@ -1437,7 +1443,16 @@
       }).join('');
     }
 
+    // ─── QUIZ STATE ───────────────────────────────────────────────────────
+    let allLoadedQuizzes = [];      // semua soal dari API
+    let quizAnswers = {};           // { quizId: selectedAnswer }
+    let quizResults = {};           // { quizId: { isCorrect, correctAnswer } }
+
     function renderQuizzes(quizzes) {
+      allLoadedQuizzes = quizzes;
+      quizAnswers = {};
+      quizResults = {};
+
       const listContainer = document.getElementById('quiz-questions-list');
       if (!listContainer) return;
 
@@ -1448,25 +1463,40 @@
 
       listContainer.innerHTML = quizzes.map((q, idx) => {
         const lessonTitle = q.lesson ? q.lesson.title : 'Kuis Ekosistem SD';
-        const qEscaped = (q.question || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-        const optionsJson = JSON.stringify(q.options || []).replace(/'/g, "\\'");
-        
         return `
-          <div onclick="selectQuiz('${q.id}', '${qEscaped}', '${optionsJson}')" class="magic-card p-4 rounded-2xl border border-surface-variant hover:border-primary cursor-pointer transition-all space-y-2 group hover:shadow-md">
+          <div
+            data-quiz-id="${q.id}"
+            data-quiz-idx="${idx}"
+            class="quiz-item magic-card p-4 rounded-2xl border border-surface-variant hover:border-primary cursor-pointer transition-all space-y-2 group hover:shadow-md"
+          >
             <div class="flex items-center justify-between">
               <span class="text-[10px] font-extrabold text-emerald-800 px-2.5 py-0.5 rounded-full bg-emerald-100">${lessonTitle}</span>
-              <span class="text-[10px] font-bold text-outline">Soal #${idx + 1}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="quiz-status-dot w-2 h-2 rounded-full bg-gray-300 hidden" data-dot-id="${q.id}"></span>
+                <span class="text-[10px] font-bold text-outline">Soal #${idx + 1}</span>
+              </div>
             </div>
             <p class="text-xs font-bold text-on-surface line-clamp-2 group-hover:text-primary transition-colors">${q.question}</p>
           </div>
         `;
       }).join('');
+
+      // Attach click events via data attributes (aman untuk semua karakter)
+      listContainer.querySelectorAll('.quiz-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const idx = parseInt(el.dataset.quizIdx);
+          selectQuiz(idx);
+        });
+      });
+
+      // Auto-klik soal pertama
+      const first = listContainer.querySelector('.quiz-item');
+      if (first) first.click();
     }
 
     function renderQuizzesFromLessons(lessons) {
       const listContainer = document.getElementById('quiz-questions-list');
       if (!listContainer || !lessons) return;
-
       let quizzes = [];
       lessons.forEach(l => {
         if (l.quizzes && l.quizzes.length > 0) {
@@ -1476,50 +1506,214 @@
       renderQuizzes(quizzes);
     }
 
-    function selectQuiz(id, question, optionsJson) {
-      selectedQuizId = id;
-      selectedAnswer = '';
+    function selectQuiz(idx) {
+      const q = allLoadedQuizzes[idx];
+      if (!q) return;
 
-      document.getElementById('quiz-question-title').innerText = question;
-      const options = JSON.parse(optionsJson || '[]');
+      selectedQuizId = q.id;
+      selectedAnswer = quizAnswers[q.id] || '';
+
+      // Highlight soal aktif di kiri
+      document.querySelectorAll('.quiz-item').forEach(el => {
+        el.classList.remove('border-primary', 'bg-primary/5', 'shadow-md');
+      });
+      const activeEl = document.querySelector(`[data-quiz-id="${q.id}"]`);
+      if (activeEl) activeEl.classList.add('border-primary', 'bg-primary/5', 'shadow-md');
+
+      // Tampilkan soal di kanan
+      document.getElementById('quiz-question-title').innerText = q.question;
+      const options = Array.isArray(q.options) ? q.options : JSON.parse(q.options || '[]');
       const container = document.getElementById('quiz-options-container');
 
-      container.innerHTML = options.map(opt => `
-        <label onclick="selectedAnswer = '${opt}'; document.getElementById('btn-submit-answer').disabled = false;" class="flex items-center space-x-3 p-3 rounded-xl bg-surface-container hover:bg-white border border-surface-variant cursor-pointer text-sm font-bold text-on-surface">
-          <input type="radio" name="quiz_opt" value="${opt}" class="text-primary focus:ring-primary"/>
-          <span>${opt}</span>
-        </label>
-      `).join('');
+      container.innerHTML = options.map(opt => {
+        const isSelected = selectedAnswer === opt;
+        const isAnswered = !!quizResults[q.id];
+        const result = quizResults[q.id];
+        let optClass = 'flex items-center gap-3 p-3 rounded-xl border cursor-pointer text-sm font-bold transition-all ';
+        if (isAnswered) {
+          if (opt === result.correctAnswer) {
+            optClass += 'bg-emerald-50 border-emerald-400 text-emerald-800';
+          } else if (isSelected) {
+            optClass += 'bg-red-50 border-red-400 text-red-800';
+          } else {
+            optClass += 'bg-surface-container border-surface-variant text-on-surface/50';
+          }
+        } else {
+          optClass += isSelected
+            ? 'bg-primary/10 border-primary text-primary'
+            : 'bg-surface-container border-surface-variant text-on-surface hover:bg-white hover:border-primary';
+        }
+        return `
+          <label class="${optClass}" data-opt-val="${opt.replace(/"/g, '&quot;')}">
+            <input type="radio" name="quiz_opt_${q.id}" value="" class="hidden"/>
+            <span class="w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center ${
+              isAnswered
+                ? (opt === result.correctAnswer ? 'border-emerald-500 bg-emerald-500' : (isSelected ? 'border-red-500 bg-red-500' : 'border-gray-300'))
+                : (isSelected ? 'border-primary bg-primary' : 'border-gray-300')
+            }">${isSelected || (isAnswered && opt === result.correctAnswer) ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}</span>
+            <span>${opt}</span>
+          </label>
+        `;
+      }).join('');
 
-      document.getElementById('btn-submit-answer').disabled = true;
-      document.getElementById('quiz-feedback-box').classList.add('hidden');
+      // Attach pilihan click (hanya kalau belum dijawab)
+      if (!quizResults[q.id]) {
+        container.querySelectorAll('label').forEach(lbl => {
+          lbl.addEventListener('click', () => {
+            const val = lbl.dataset.optVal;
+            quizAnswers[q.id] = val;
+            selectedAnswer = val;
+            selectQuiz(idx); // re-render untuk highlight pilihan
+          });
+        });
+      }
+
+      // Submit button
+      const btnSubmit = document.getElementById('btn-submit-answer');
+      if (quizResults[q.id]) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = 'Sudah Dijawab ✓';
+        btnSubmit.className = 'chunky-button w-full py-3 rounded-xl font-bold bg-emerald-500 text-white transition-all';
+      } else {
+        btnSubmit.disabled = !selectedAnswer;
+        btnSubmit.innerText = 'Jawab Pertanyaan';
+        btnSubmit.className = 'chunky-button w-full py-3 rounded-xl font-bold bg-primary text-white disabled:bg-gray-200 disabled:text-gray-400 transition-all';
+      }
+
+      // Tampilkan feedback kalau sudah dijawab
+      const feedback = document.getElementById('quiz-feedback-box');
+      if (quizResults[q.id]) {
+        const r = quizResults[q.id];
+        feedback.classList.remove('hidden');
+        if (r.isCorrect) {
+          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+          feedback.innerText = '🎉 Jawaban Anda BENAR! Lanjutkan ke soal berikutnya.';
+        } else {
+          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-red-100 text-red-800 border border-red-300';
+          feedback.innerText = `❌ Kurang tepat. Jawaban benar: ${r.correctAnswer}`;
+        }
+      } else {
+        feedback.classList.add('hidden');
+      }
+
+      updateFinishButton();
+    }
+
+    function updateFinishButton() {
+      const total = allLoadedQuizzes.length;
+      const answered = Object.keys(quizResults).length;
+      const btnFinish = document.getElementById('btn-finish-quiz');
+      if (!btnFinish) return;
+
+      // Update dot status di daftar kiri
+      allLoadedQuizzes.forEach(q => {
+        const dot = document.querySelector(`[data-dot-id="${q.id}"]`);
+        if (dot) {
+          dot.classList.remove('hidden', 'bg-gray-300', 'bg-emerald-500', 'bg-red-400');
+          if (quizResults[q.id]) {
+            dot.classList.add(quizResults[q.id].isCorrect ? 'bg-emerald-500' : 'bg-red-400');
+          } else {
+            dot.classList.add('bg-gray-300', 'hidden');
+          }
+        }
+      });
+
+      if (answered >= total && total > 0) {
+        btnFinish.classList.remove('hidden');
+        // Update badge skor sementara
+        const correct = Object.values(quizResults).filter(r => r.isCorrect).length;
+        const score = Math.round((correct / total) * 100);
+        const scoreBadge = document.getElementById('quiz-score-badge');
+        if (scoreBadge) scoreBadge.innerText = `Skor Anda: ${score}/100`;
+      } else {
+        btnFinish.classList.add('hidden');
+      }
+    }
+
+    function finishQuiz() {
+      const total = allLoadedQuizzes.length;
+      const correct = Object.values(quizResults).filter(r => r.isCorrect).length;
+      const score = Math.round((correct / total) * 100);
+
+      // Update score badge
+      const scoreBadge = document.getElementById('quiz-score-badge');
+      if (scoreBadge) scoreBadge.innerText = `Skor Anda: ${score}/100`;
+
+      // Tampilkan popup hasil
+      showScorePopup(score, correct, total);
+    }
+
+    function showScorePopup(score, correct, total) {
+      const existing = document.getElementById('quiz-score-popup');
+      if (existing) existing.remove();
+
+      let emoji = '🏆'; let color = 'emerald'; let msg = 'Luar biasa! Nilai sempurna!';
+      if (score < 50) { emoji = '📚'; color = 'red'; msg = 'Terus belajar, kamu pasti bisa lebih baik!'; }
+      else if (score < 80) { emoji = '👍'; color = 'amber'; msg = 'Bagus! Masih ada ruang untuk meningkatkan.'; }
+      else if (score < 100) { emoji = '🌟'; color = 'emerald'; msg = 'Hampir sempurna! Kerja keras terbayar!'; }
+
+      const popup = document.createElement('div');
+      popup.id = 'quiz-score-popup';
+      popup.className = 'fixed inset-0 z-[9999] flex items-center justify-center p-4';
+      popup.innerHTML = `
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="document.getElementById('quiz-score-popup').remove()"></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-[fadeInUp_0.4s_ease]">
+          <div class="text-6xl">${emoji}</div>
+          <div>
+            <h2 class="text-2xl font-extrabold text-on-surface">Kuis Selesai!</h2>
+            <p class="text-on-surface/60 text-sm font-medium mt-1">${msg}</p>
+          </div>
+          <div class="bg-${color}-50 border-2 border-${color}-200 rounded-2xl p-6 space-y-1">
+            <div class="text-5xl font-black text-${color}-600">${score}<span class="text-2xl">/100</span></div>
+            <p class="text-sm font-bold text-${color}-700">${correct} benar dari ${total} soal</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="document.getElementById('quiz-score-popup').remove()" class="py-3 rounded-xl font-bold border-2 border-surface-variant text-on-surface hover:bg-surface-container transition-all text-sm">Tutup</button>
+            <button onclick="document.getElementById('quiz-score-popup').remove(); allLoadedQuizzes=[]; quizAnswers={}; quizResults={}; loadDashboardData();" class="py-3 rounded-xl font-bold bg-primary text-white hover:opacity-90 transition-all text-sm">Ulangi Kuis</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(popup);
     }
 
     async function submitQuizAnswer() {
       if (!selectedQuizId || !selectedAnswer) return;
+      const idx = allLoadedQuizzes.findIndex(q => q.id === selectedQuizId);
 
       try {
         const token = localStorage.getItem('eduar_token') || '';
         const res = await fetch(`/api/quizzes/${selectedQuizId}/attempt`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ answer: selectedAnswer })
         });
-
         const data = await res.json();
-        const feedback = document.getElementById('quiz-feedback-box');
-        feedback.classList.remove('hidden');
 
-        if (data.isCorrect) {
-          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
-          feedback.innerText = '🎉 Jawaban Anda BENAR 100%! Sangat luar biasa.';
-        } else {
-          feedback.className = 'p-4 rounded-xl text-sm font-bold bg-red-100 text-red-800 border border-red-300';
-          feedback.innerText = `❌ Jawaban kurang tepat. Jawaban yang benar: ${data.correctAnswer}`;
+        // Simpan hasil
+        quizResults[selectedQuizId] = {
+          isCorrect: data.isCorrect,
+          correctAnswer: data.correctAnswer,
+        };
+
+        // Update dot di kiri
+        const dot = document.querySelector(`[data-dot-id="${selectedQuizId}"]`);
+        if (dot) {
+          dot.classList.remove('hidden', 'bg-gray-300');
+          dot.classList.add(data.isCorrect ? 'bg-emerald-500' : 'bg-red-400');
         }
+
+        // Re-render panel kanan untuk tampilkan hasil
+        selectQuiz(idx);
+
+        // Otomatis pindah ke soal berikutnya setelah 1.2 detik
+        if (idx < allLoadedQuizzes.length - 1) {
+          setTimeout(() => {
+            const nextEl = document.querySelector(`[data-quiz-idx="${idx + 1}"]`);
+            if (nextEl) nextEl.click();
+          }, 1200);
+        }
+
+        updateFinishButton();
 
       } catch (e) {
         showToast('Error mengirim jawaban kuis', true);
