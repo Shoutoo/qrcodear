@@ -49,10 +49,27 @@ let ViewsController = class ViewsController {
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
     }
+    async getPrintPresetCard(id, req, res) {
+        const hostHeader = req.get('host') || 'localhost:3002';
+        const protocol = req.headers['x-forwarded-proto']?.toString() || req.protocol || 'http';
+        const html = await this.viewsService.renderPrintCard(id, hostHeader, protocol);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
+    }
     async getEcosystemViewer(id, req, res) {
         const hostHeader = req.get('host') || 'localhost:3001';
         const protocol = req.headers['x-forwarded-proto']?.toString() || req.protocol || 'http';
         const html = await this.viewsService.renderEcosystemViewer(id, hostHeader, protocol);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
+    }
+    async getLoginPage(res) {
+        const html = await this.viewsService.renderHomepage();
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
+    }
+    async getRegisterPage(res) {
+        const html = await this.viewsService.renderHomepage();
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.send(html);
     }
@@ -99,6 +116,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ViewsController.prototype, "getPrintCard", null);
 __decorate([
+    (0, common_1.Get)('print-preset/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object, Object]),
+    __metadata("design:returntype", Promise)
+], ViewsController.prototype, "getPrintPresetCard", null);
+__decorate([
     (0, common_1.Get)('ecosystem/view/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Req)()),
@@ -107,6 +133,20 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, Object]),
     __metadata("design:returntype", Promise)
 ], ViewsController.prototype, "getEcosystemViewer", null);
+__decorate([
+    (0, common_1.Get)('login'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ViewsController.prototype, "getLoginPage", null);
+__decorate([
+    (0, common_1.Get)('register'),
+    __param(0, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ViewsController.prototype, "getRegisterPage", null);
 exports.ViewsController = ViewsController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [views_service_1.ViewsService])

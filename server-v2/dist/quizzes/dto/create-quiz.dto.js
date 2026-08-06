@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubmitAnswerDto = exports.CreateQuizDto = void 0;
+exports.SubmitAnswerDto = exports.UpdateQuizDto = exports.CreateQuizDto = void 0;
 class CreateQuizDto {
     lessonId;
     question;
@@ -8,6 +8,13 @@ class CreateQuizDto {
     correctAnswer;
 }
 exports.CreateQuizDto = CreateQuizDto;
+class UpdateQuizDto {
+    lessonId;
+    question;
+    options;
+    correctAnswer;
+}
+exports.UpdateQuizDto = UpdateQuizDto;
 class SubmitAnswerDto {
     answer;
 }

@@ -5,6 +5,9 @@ export declare class AuthController {
     constructor(authService: AuthService);
     register(dto: RegisterDto): Promise<{
         success: boolean;
+        message: string;
+        accessToken: string;
+        refreshToken: string;
         user: {
             name: string;
             id: string;

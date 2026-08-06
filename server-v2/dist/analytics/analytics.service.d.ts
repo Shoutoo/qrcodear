@@ -7,7 +7,7 @@ export declare class AnalyticsService {
         success: boolean;
         logId: string;
     }>;
-    getSummary(): Promise<{
+    getSummary(userId?: string | null, userRole?: string | null): Promise<{
         success: boolean;
         summary: {
             totalLogs: number;
@@ -21,7 +21,7 @@ export declare class AnalyticsService {
             totalQuizAttempts: number;
         };
     }>;
-    getLogs(page?: number, limit?: number, action?: string): Promise<{
+    getLogs(page?: number, limit?: number, action?: string, userId?: string | null, userRole?: string | null): Promise<{
         success: boolean;
         pagination: {
             page: number;

@@ -7,7 +7,7 @@ export declare class AnalyticsController {
         success: boolean;
         logId: string;
     }>;
-    getSummary(): Promise<{
+    getSummary(req: any): Promise<{
         success: boolean;
         summary: {
             totalLogs: number;
@@ -21,7 +21,7 @@ export declare class AnalyticsController {
             totalQuizAttempts: number;
         };
     }>;
-    getLogs(page?: number, limit?: number, action?: string): Promise<{
+    getLogs(page?: number, limit?: number, action?: string, req?: any): Promise<{
         success: boolean;
         pagination: {
             page: number;

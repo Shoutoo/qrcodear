@@ -257,6 +257,9 @@ let ViewsService = class ViewsService {
         return fs.readFileSync(studioPath, 'utf8');
     }
     async renderArViewer(id, hostHeader, protocol = 'http') {
+        await this.prisma.activityLog.create({
+            data: { action: 'VIEW_AR', entityType: 'asset', entityId: id },
+        }).catch(() => { });
         const asset = await this.prisma.asset.findUnique({ where: { id } });
         if (!asset) {
             return `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
@@ -302,6 +305,9 @@ let ViewsService = class ViewsService {
         return html;
     }
     async renderPrintCard(id, hostHeader, protocol = 'http') {
+        await this.prisma.activityLog.create({
+            data: { action: 'SCAN_QR', entityType: 'print_card', entityId: id },
+        }).catch(() => { });
         const asset = await this.prisma.asset.findUnique({ where: { id } });
         const scene = !asset ? await this.prisma.scene.findFirst({ where: { OR: [{ id }, { id: id.replace(/^scene_/, '') }] } }) : null;
         const preset = (!asset && !scene) ? await this.prisma.ecosystemPreset.findFirst({ where: { OR: [{ id }, { id: `preset-${id}` }] } }) : null;
@@ -344,6 +350,9 @@ let ViewsService = class ViewsService {
         return html;
     }
     async renderEcosystemViewer(id, hostHeader, protocol = 'http') {
+        await this.prisma.activityLog.create({
+            data: { action: 'VIEW_AR', entityType: 'ecosystem', entityId: id },
+        }).catch(() => { });
         const isPresetId = id.startsWith('preset-') || ['darat', 'hutan', 'laut', 'sawah'].includes(id);
         const preset = await this.prisma.ecosystemPreset.findFirst({
             where: { OR: [{ id }, { id: `preset-${id}` }] },

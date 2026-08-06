@@ -25,8 +25,14 @@ let QuizzesController = class QuizzesController {
     constructor(quizzesService) {
         this.quizzesService = quizzesService;
     }
-    async create(dto) {
-        return this.quizzesService.create(dto);
+    async diagnose() {
+        return this.quizzesService.diagnose();
+    }
+    async forceSeed() {
+        return this.quizzesService.forceSeed();
+    }
+    async findAll() {
+        return this.quizzesService.findAll();
     }
     async findByLesson(lessonId) {
         return this.quizzesService.findByLesson(lessonId);
@@ -34,23 +40,44 @@ let QuizzesController = class QuizzesController {
     async getMyAttempts(req) {
         return this.quizzesService.getStudentAttempts(req.user.id);
     }
-    async findOne(id) {
-        return this.quizzesService.findOne(id);
+    async getRecap() {
+        return this.quizzesService.getRecap();
+    }
+    async create(req, dto) {
+        return this.quizzesService.create(dto, req.user?.id);
+    }
+    async update(id, dto) {
+        return this.quizzesService.update(id, dto);
+    }
+    async delete(id) {
+        return this.quizzesService.delete(id);
     }
     async submitAnswer(id, req, dto) {
         return this.quizzesService.submitAnswer(id, req.user.id, dto);
     }
+    async findOne(id) {
+        return this.quizzesService.findOne(id);
+    }
 };
 exports.QuizzesController = QuizzesController;
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    (0, common_1.Get)('health'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_quiz_dto_1.CreateQuizDto]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], QuizzesController.prototype, "create", null);
+], QuizzesController.prototype, "diagnose", null);
+__decorate([
+    (0, common_1.Post)('force-seed'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "forceSeed", null);
+__decorate([
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('lesson/:lessonId'),
     __param(0, (0, common_1.Param)('lessonId')),
@@ -67,12 +94,42 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QuizzesController.prototype, "getMyAttempts", null);
 __decorate([
-    (0, common_1.Get)(':id'),
+    (0, common_1.Get)('attempts/recap'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "getRecap", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, create_quiz_dto_1.CreateQuizDto]),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "create", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
+    (0, common_1.Put)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, create_quiz_dto_1.UpdateQuizDto]),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "update", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
+    (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
-], QuizzesController.prototype, "findOne", null);
+], QuizzesController.prototype, "delete", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)(':id/attempt'),
@@ -83,6 +140,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object, create_quiz_dto_1.SubmitAnswerDto]),
     __metadata("design:returntype", Promise)
 ], QuizzesController.prototype, "submitAnswer", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], QuizzesController.prototype, "findOne", null);
 exports.QuizzesController = QuizzesController = __decorate([
     (0, common_1.Controller)('api/quizzes'),
     __metadata("design:paramtypes", [quizzes_service_1.QuizzesService])

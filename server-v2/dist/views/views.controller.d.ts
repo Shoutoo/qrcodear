@@ -7,5 +7,8 @@ export declare class ViewsController {
     getArViewer(id: string, req: any, res: any): Promise<void>;
     getStudioViewer(id: string, res: any): Promise<void>;
     getPrintCard(id: string, req: any, res: any): Promise<void>;
+    getPrintPresetCard(id: string, req: any, res: any): Promise<void>;
     getEcosystemViewer(id: string, req: any, res: any): Promise<void>;
+    getLoginPage(res: any): Promise<void>;
+    getRegisterPage(res: any): Promise<void>;
 }

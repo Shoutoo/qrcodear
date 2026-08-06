@@ -15,10 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnalyticsController = void 0;
 const common_1 = require("@nestjs/common");
 const analytics_service_1 = require("./analytics.service");
-const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const roles_guard_1 = require("../auth/guards/roles.guard");
-const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const client_1 = require("@prisma/client");
 const log_activity_dto_1 = require("./dto/log-activity.dto");
 let AnalyticsController = class AnalyticsController {
     analyticsService;
@@ -35,11 +31,15 @@ let AnalyticsController = class AnalyticsController {
             userAgent: dto.userAgent || userAgent,
         });
     }
-    async getSummary() {
-        return this.analyticsService.getSummary();
+    async getSummary(req) {
+        const userId = req.user?.id || null;
+        const userRole = req.user?.role || null;
+        return this.analyticsService.getSummary(userId, userRole);
     }
-    async getLogs(page, limit, action) {
-        return this.analyticsService.getLogs(page || 1, limit || 20, action);
+    async getLogs(page, limit, action, req) {
+        const userId = req.user?.id || null;
+        const userRole = req.user?.role || null;
+        return this.analyticsService.getLogs(page || 1, limit || 20, action, userId, userRole);
     }
 };
 exports.AnalyticsController = AnalyticsController;
@@ -52,22 +52,20 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "logActivity", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
     (0, common_1.Get)('summary'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getSummary", null);
 __decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
     (0, common_1.Get)('logs'),
     __param(0, (0, common_1.Query)('page')),
     __param(1, (0, common_1.Query)('limit')),
     __param(2, (0, common_1.Query)('action')),
+    __param(3, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, String]),
+    __metadata("design:paramtypes", [Number, Number, String, Object]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getLogs", null);
 exports.AnalyticsController = AnalyticsController = __decorate([

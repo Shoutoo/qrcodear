@@ -57,8 +57,18 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
+        if (!dto.name || dto.name.trim().length === 0) {
+            throw new common_1.BadRequestException('Nama lengkap wajib diisi');
+        }
+        if (!dto.email || !dto.email.includes('@')) {
+            throw new common_1.BadRequestException('Format email tidak valid');
+        }
+        if (!dto.password || dto.password.length < 6) {
+            throw new common_1.BadRequestException('Kata sandi minimal 6 karakter');
+        }
+        const cleanEmail = dto.email.toLowerCase().trim();
         const existing = await this.prisma.user.findUnique({
-            where: { email: dto.email.toLowerCase().trim() },
+            where: { email: cleanEmail },
         });
         if (existing) {
             throw new common_1.BadRequestException('Email sudah terdaftar dalam sistem');
@@ -68,7 +78,7 @@ let AuthService = class AuthService {
         const user = await this.prisma.user.create({
             data: {
                 name: dto.name.trim(),
-                email: dto.email.toLowerCase().trim(),
+                email: cleanEmail,
                 password_hash: hashedPassword,
                 role,
             },
@@ -80,7 +90,26 @@ let AuthService = class AuthService {
                 createdAt: true,
             },
         });
-        return { success: true, user };
+        const payload = { sub: user.id, email: user.email, role: user.role };
+        const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+        const refreshTokenStr = crypto.randomBytes(40).toString('hex');
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+        await this.prisma.refreshToken.create({
+            data: {
+                token: refreshTokenStr,
+                userId: user.id,
+                device: 'web-register',
+                expiresAt,
+            },
+        });
+        return {
+            success: true,
+            message: `Pendaftaran berhasil! Selamat datang, ${user.name}.`,
+            accessToken,
+            refreshToken: refreshTokenStr,
+            user,
+        };
     }
     async login(dto) {
         const user = await this.prisma.user.findUnique({

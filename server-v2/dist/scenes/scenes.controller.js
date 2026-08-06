@@ -15,6 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScenesController = void 0;
 const common_1 = require("@nestjs/common");
 const scenes_service_1 = require("./scenes.service");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const client_1 = require("@prisma/client");
 let ScenesController = class ScenesController {
     scenesService;
     constructor(scenesService) {
@@ -49,6 +53,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ScenesController.prototype, "getSceneById", null);
 __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(client_1.Role.TEACHER, client_1.Role.ADMIN),
     (0, common_1.Post)('studio/publish/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('sceneData')),

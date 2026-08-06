@@ -10,8 +10,17 @@
     "start:legacy": "node server/index.js"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "pg": "^8.22.0",
     "three": "^0.160.0"
   },
-  "keywords": ["ar", "qrcode", "3d", "augmented-reality", "webxr", "glb", "model-viewer"]
+  "keywords": [
+    "ar",
+    "qrcode",
+    "3d",
+    "augmented-reality",
+    "webxr",
+    "glb",
+    "model-viewer"
+  ]
 }
-
