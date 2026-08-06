@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ResetPasswordDto = exports.ForgotPasswordDto = exports.RefreshTokenDto = exports.LoginDto = exports.RegisterDto = void 0;
+exports.ChangePasswordDto = exports.ResetPasswordDto = exports.ForgotPasswordDto = exports.RefreshTokenDto = exports.LoginDto = exports.RegisterDto = void 0;
 class RegisterDto {
     name;
     email;
@@ -27,4 +27,9 @@ class ResetPasswordDto {
     newPassword;
 }
 exports.ResetPasswordDto = ResetPasswordDto;
+class ChangePasswordDto {
+    oldPassword;
+    newPassword;
+}
+exports.ChangePasswordDto = ChangePasswordDto;
 //# sourceMappingURL=auth.dto.js.map

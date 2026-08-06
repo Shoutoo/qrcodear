@@ -227,6 +227,35 @@ let AuthService = class AuthService {
         });
         return { success: true, message: 'Kata sandi berhasil diperbarui' };
     }
+    async changePassword(userId, dto) {
+        if (!dto.oldPassword) {
+            throw new common_1.BadRequestException('Kata sandi lama wajib diisi');
+        }
+        if (!dto.newPassword || dto.newPassword.length < 6) {
+            throw new common_1.BadRequestException('Kata sandi baru minimal 6 karakter');
+        }
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Pengguna tidak ditemukan');
+        }
+        const isMatch = await bcrypt.compare(dto.oldPassword, user.password_hash);
+        if (!isMatch) {
+            throw new common_1.BadRequestException('Kata sandi lama tidak cocok');
+        }
+        const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                password_hash: hashedPassword,
+            },
+        });
+        return {
+            success: true,
+            message: 'Kata sandi akun Anda berhasil diperbarui!',
+        };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

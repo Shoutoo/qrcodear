@@ -19,3 +19,7 @@ export declare class ResetPasswordDto {
     token: string;
     newPassword: string;
 }
+export declare class ChangePasswordDto {
+    oldPassword: string;
+    newPassword: string;
+}

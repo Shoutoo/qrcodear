@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RefreshTokenDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -221,4 +221,42 @@ export class AuthService {
 
     return { success: true, message: 'Kata sandi berhasil diperbarui' };
   }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    if (!dto.oldPassword) {
+      throw new BadRequestException('Kata sandi lama wajib diisi');
+    }
+
+    if (!dto.newPassword || dto.newPassword.length < 6) {
+      throw new BadRequestException('Kata sandi baru minimal 6 karakter');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Pengguna tidak ditemukan');
+    }
+
+    const isMatch = await bcrypt.compare(dto.oldPassword, user.password_hash);
+    if (!isMatch) {
+      throw new BadRequestException('Kata sandi lama tidak cocok');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password_hash: hashedPassword,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Kata sandi akun Anda berhasil diperbarui!',
+    };
+  }
 }
+

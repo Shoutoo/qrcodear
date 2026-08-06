@@ -1448,6 +1448,9 @@
             <span class="text-[10px] text-on-surface/60 font-medium">${user.email}</span>
           </div>
           <span class="px-2.5 py-0.5 rounded ${roleBadgeColor} text-white text-xs font-black shadow-xs">${roleLabel}</span>
+          <button onclick="openChangePasswordModal()" class="ml-2 text-xs font-bold text-primary hover:text-purple-900 flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-sm">key</span> Ubah Kata Sandi
+          </button>
           <button onclick="handleLogout()" class="ml-2 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition-colors">
             <span class="material-symbols-outlined text-sm">logout</span> Keluar
           </button>
@@ -2582,6 +2585,92 @@
       }
     }
 
+    // ─── UBAH KATA SANDI HANDLERS ───────────────────────────────────────
+    function togglePasswordInput(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input || !icon) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerText = 'visibility_off';
+      } else {
+        input.type = 'password';
+        icon.innerText = 'visibility';
+      }
+    }
+
+    function openChangePasswordModal() {
+      const oldEl = document.getElementById('change-old-password');
+      const newEl = document.getElementById('change-new-password');
+      const confirmEl = document.getElementById('change-confirm-password');
+      if (oldEl) oldEl.value = '';
+      if (newEl) newEl.value = '';
+      if (confirmEl) confirmEl.value = '';
+
+      const modal = document.getElementById('modal-change-password');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeChangePasswordModal() {
+      const modal = document.getElementById('modal-change-password');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    async function handleChangePasswordSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const oldPassword = document.getElementById('change-old-password').value;
+      const newPassword = document.getElementById('change-new-password').value;
+      const confirmPassword = document.getElementById('change-confirm-password').value;
+
+      if (!oldPassword) {
+        showToast('Kata sandi lama wajib diisi', true);
+        return;
+      }
+
+      if (!newPassword || newPassword.length < 6) {
+        showToast('Kata sandi baru minimal 6 karakter', true);
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showToast('Konfirmasi kata sandi baru tidak cocok', true);
+        return;
+      }
+
+      const token = localStorage.getItem('eduar_token');
+      const btn = document.getElementById('btn-submit-change-pass');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/change-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Kata sandi berhasil diperbarui!');
+          closeChangePasswordModal();
+        } else {
+          showToast(data.message || data.error || 'Gagal mengubah kata sandi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
     // Initialize on DOM Ready
     window.addEventListener('DOMContentLoaded', loadDashboardData);
   </script>
@@ -2726,6 +2815,62 @@
           <button type="button" onclick="closeEditMateriModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-surface-container text-on-surface hover:bg-surface-variant transition-all">Batal</button>
           <button type="submit" class="chunky-button px-5 py-2 rounded-xl text-xs font-extrabold bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-sm">
             <span class="material-symbols-outlined text-sm">save</span> Simpan Modul Materi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: UBAH KATA SANDI AKUN -->
+  <div id="modal-change-password" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="magic-card bg-white max-w-md w-full rounded-3xl p-6 sm:p-8 space-y-6 relative shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-4 border-surface-variant">
+        <div>
+          <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">key</span> Ubah Kata Sandi Akun
+          </h3>
+          <p class="text-xs text-on-surface/70 font-medium">Perbarui kata sandi akun Anda untuk keamanan</p>
+        </div>
+        <button onclick="closeChangePasswordModal()" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form onsubmit="handleChangePasswordSubmit(event)" class="space-y-4">
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface/80">Kata Sandi Saat Ini (Lama)</label>
+          <div class="relative">
+            <input type="password" id="change-old-password" required placeholder="••••••••" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+            <button type="button" onclick="togglePasswordInput('change-old-password', 'eye-icon-old')" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary">
+              <span id="eye-icon-old" class="material-symbols-outlined text-base select-none">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface/80">Kata Sandi Baru (Minimal 6 karakter)</label>
+          <div class="relative">
+            <input type="password" id="change-new-password" required placeholder="••••••••" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+            <button type="button" onclick="togglePasswordInput('change-new-password', 'eye-icon-new')" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary">
+              <span id="eye-icon-new" class="material-symbols-outlined text-base select-none">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface/80">Konfirmasi Kata Sandi Baru</label>
+          <div class="relative">
+            <input type="password" id="change-confirm-password" required placeholder="••••••••" class="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+            <button type="button" onclick="togglePasswordInput('change-confirm-password', 'eye-icon-confirm')" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary">
+              <span id="eye-icon-confirm" class="material-symbols-outlined text-base select-none">visibility</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-surface-variant">
+          <button type="button" onclick="closeChangePasswordModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-surface-container text-on-surface hover:bg-surface-variant transition-all">Batal</button>
+          <button type="submit" id="btn-submit-change-pass" class="chunky-button px-5 py-2 rounded-xl text-xs font-extrabold bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-sm">save</span> Perbarui Kata Sandi
           </button>
         </div>
       </form>

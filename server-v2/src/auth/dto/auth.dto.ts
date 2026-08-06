@@ -23,3 +23,9 @@ export class ResetPasswordDto {
   token!: string;
   newPassword!: string;
 }
+
+export class ChangePasswordDto {
+  oldPassword!: string;
+  newPassword!: string;
+}
+
