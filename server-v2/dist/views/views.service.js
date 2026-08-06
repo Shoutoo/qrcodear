@@ -103,6 +103,16 @@ if (typeof global.FileReader === 'undefined') {
         }
     };
 }
+function flipImageDataY(data, width, height) {
+    const flipped = new Uint8Array(data.length);
+    const rowSize = width * 4;
+    for (let y = 0; y < height; y++) {
+        const srcRow = y * rowSize;
+        const dstRow = (height - 1 - y) * rowSize;
+        flipped.set(data.subarray(srcRow, srcRow + rowSize), dstRow);
+    }
+    return flipped;
+}
 function createSpecies3DLabelMesh(name, role, angle) {
     const canvas = (0, canvas_1.createCanvas)(512, 160);
     const ctx = canvas.getContext('2d');
@@ -163,19 +173,23 @@ function createSpecies3DLabelMesh(name, role, angle) {
     const textX = x + 28;
     const textY = y + h / 2 + 2;
     ctx.fillText(displayName, textX, textY);
-    const imgData = ctx.getImageData(0, 0, 512, 160);
-    const texture = new THREE.DataTexture(new Uint8Array(imgData.data.buffer), 512, 160, THREE.RGBAFormat);
+    const rawImgData = ctx.getImageData(0, 0, 512, 160);
+    const flippedBuffer = flipImageDataY(rawImgData.data, 512, 160);
+    const texture = new THREE.DataTexture(flippedBuffer, 512, 160, THREE.RGBAFormat);
     texture.needsUpdate = true;
     const planeGeom = new THREE.PlaneGeometry(1.4, 0.44);
     const planeMat = new THREE.MeshStandardMaterial({
         map: texture,
-        roughness: 0.5,
+        emissive: 0xffffff,
+        emissiveMap: texture,
+        emissiveIntensity: 0.7,
+        roughness: 0.1,
         metalness: 0.0,
         side: THREE.DoubleSide,
     });
     const mesh = new THREE.Mesh(planeGeom, planeMat);
     mesh.position.set(0, 1.15, 0);
-    mesh.rotation.y = angle + Math.PI / 2;
+    mesh.rotation.y = angle - Math.PI / 2;
     return mesh;
 }
 const ROOT_DIR = path.join(__dirname, '..', '..', '..');

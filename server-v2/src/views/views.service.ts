@@ -57,6 +57,17 @@ if (typeof global.FileReader === 'undefined') {
   } as any;
 }
 
+function flipImageDataY(data: Uint8ClampedArray, width: number, height: number): Uint8Array {
+  const flipped = new Uint8Array(data.length);
+  const rowSize = width * 4;
+  for (let y = 0; y < height; y++) {
+    const srcRow = y * rowSize;
+    const dstRow = (height - 1 - y) * rowSize;
+    flipped.set(data.subarray(srcRow, srcRow + rowSize), dstRow);
+  }
+  return flipped;
+}
+
 function createSpecies3DLabelMesh(name: string, role: string, angle: number): THREE.Mesh {
   const canvas = createCanvas(512, 160) as any;
   const ctx = canvas.getContext('2d');
@@ -65,7 +76,7 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
     return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
   };
 
-  // 1. Solid White Card Fill (Opaque - compatible with SceneViewer AR)
+  // 1. Solid Pure White Background Fill
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, 512, 160);
 
@@ -136,15 +147,21 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
   const textY = y + h / 2 + 2;
   ctx.fillText(displayName, textX, textY);
 
-  const imgData = ctx.getImageData(0, 0, 512, 160);
-  const texture = new THREE.DataTexture(new Uint8Array(imgData.data.buffer), 512, 160, THREE.RGBAFormat);
+  // Extract RGBA buffer and flip Y for correct right-side up GLTF UV orientation
+  const rawImgData = ctx.getImageData(0, 0, 512, 160);
+  const flippedBuffer = flipImageDataY(rawImgData.data, 512, 160);
+
+  const texture = new THREE.DataTexture(flippedBuffer, 512, 160, THREE.RGBAFormat);
   texture.needsUpdate = true;
 
-  // 6. Opaque Standard PBR Material (100% visible in SceneViewer & ARCore)
+  // 6. Bright Emissive PBR Material (pure bright white #ffffff in AR, no dark ambient shadow)
   const planeGeom = new THREE.PlaneGeometry(1.4, 0.44);
   const planeMat = new THREE.MeshStandardMaterial({
     map: texture,
-    roughness: 0.5,
+    emissive: 0xffffff,
+    emissiveMap: texture,
+    emissiveIntensity: 0.7,
+    roughness: 0.1,
     metalness: 0.0,
     side: THREE.DoubleSide,
   });
@@ -153,7 +170,7 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
   mesh.position.set(0, 1.15, 0);
 
   // Face outward from center ring
-  mesh.rotation.y = angle + Math.PI / 2;
+  mesh.rotation.y = angle - Math.PI / 2;
 
   return mesh;
 }
