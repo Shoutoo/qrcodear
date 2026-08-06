@@ -451,6 +451,37 @@ app.get('/print/:id', (req, res) => {
     }
   }
 
+  if (!asset) {
+    // Check Ecosystem Presets
+    const presets = loadEcosystemPresets();
+    const cleanPresetId = id.replace(/^preset-/, '');
+    const preset = presets.find(p => p.id === id || p.id === cleanPresetId || p.id === `preset-${cleanPresetId}`);
+    if (preset) {
+      const hostHeader = req.get('host') || 'localhost:3001';
+      const protocol = hostHeader.includes('localhost') ? 'http' : 'https';
+      const targetId = preset.id.startsWith('preset-') ? preset.id : `preset-${preset.id}`;
+      const viewerUrl = `${protocol}://${hostHeader}/ecosystem/view/${targetId}`;
+
+      qrcode.toDataURL(viewerUrl, { width: 400, margin: 2 }, (err, qrDataUrl) => {
+        const templatePath = path.join(VIEWS_DIR, 'print-card.html');
+        let html = fs.readFileSync(templatePath, 'utf8');
+
+        html = html
+          .replace(/{{MODEL_NAME}}/g, escapeHtml(preset.name || 'Ekosistem AR'))
+          .replace(/{{MODEL_DESC}}/g, escapeHtml('Scan untuk mulai AR Rantai Makanan!'))
+          .replace(/\/assets\/{{QR_FILENAME}}/g, qrDataUrl)
+          .replace(/{{QR_FILENAME}}/g, qrDataUrl)
+          .replace(/{{MARKER_IMAGE_URL}}/g, '/assets/markers/custom-marker.png')
+          .replace(/{{ASSET_ID}}/g, preset.id)
+          .replace(/{{VIEWER_URL}}/g, `/ecosystem/view/${targetId}`)
+          .replace(/{{UPLOAD_DATE}}/g, formatDateId(preset.createdAt || new Date().toISOString()));
+
+        res.send(html);
+      });
+      return;
+    }
+  }
+
   if (!asset) return res.status(404).send('Model / Scene 3D tidak ditemukan');
 
   const markerImageUrl = asset.markerImageUrl || '/assets/markers/custom-marker.png';
@@ -468,6 +499,7 @@ app.get('/print/:id', (req, res) => {
 
   res.send(html);
 });
+
 
 // ─── Route: Visual 3D Annotation Editor ───────────────────────────────────────
 app.get('/editor/:id', (req, res) => {
