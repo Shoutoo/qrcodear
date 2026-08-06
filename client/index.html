@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
   <title>Magic AR Edu - Ubah Model 3D Jadi Ajaib!</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -231,7 +234,7 @@
             </div>
 
             <!-- Submit Button (Full Width Solid Brand) -->
-            <button type="submit" id="split-auth-submit-btn" class="chunky-button w-full py-4 rounded-2xl font-black bg-primary text-white hover:bg-primary-container transition-all shadow-lg flex items-center justify-center gap-2.5 text-sm tracking-wide mt-6">
+            <button type="submit" onclick="handleSplitAuthSubmit(event)" id="split-auth-submit-btn" class="chunky-button w-full py-4 rounded-2xl font-black bg-primary text-white hover:bg-primary-container transition-all shadow-lg flex items-center justify-center gap-2.5 text-sm tracking-wide mt-6 cursor-pointer">
               <svg id="split-auth-spinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -244,9 +247,9 @@
 
         <!-- Bottom Link -->
         <div class="pt-6 text-center border-t border-surface-variant/60 mt-auto max-w-md w-full mx-auto">
-          <p class="text-xs sm:text-sm font-bold text-on-surface/70">
+          <p class="text-xs sm:text-sm font-bold text-on-surface/70 flex items-center justify-center gap-1 flex-wrap">
             <span id="split-switch-text">Belum memiliki akun?</span>
-            <a href="javascript:void(0)" onclick="toggleSplitAuthMode()" class="text-primary font-black hover:underline ml-1" id="split-switch-link">Daftar Akun Baru</a>
+            <button type="button" onclick="toggleSplitAuthMode()" class="text-primary font-black hover:underline cursor-pointer bg-transparent border-none p-0 inline-block" id="split-switch-link">Daftar Akun Baru</button>
           </p>
         </div>
 
@@ -857,10 +860,20 @@
 
       if (!emailEl || !passEl) return;
 
-      const email = emailEl.value;
+      const email = emailEl.value.trim();
       const password = passEl.value;
-      const name = nameEl ? nameEl.value : '';
+      const name = nameEl ? nameEl.value.trim() : '';
       const role = roleEl ? roleEl.value : 'STUDENT';
+
+      if (!email || !password) {
+        showToast('Email dan Kata Sandi wajib diisi', true);
+        return;
+      }
+
+      if (activeSplitAuthMode === 'register' && !name) {
+        showToast('Nama lengkap wajib diisi untuk pendaftaran', true);
+        return;
+      }
 
       const submitBtn = document.getElementById('split-auth-submit-btn');
       const spinner = document.getElementById('split-auth-spinner');
@@ -869,6 +882,7 @@
       if (submitBtn) submitBtn.disabled = true;
       if (spinner) spinner.classList.remove('hidden');
       if (btnText) btnText.innerText = activeSplitAuthMode === 'register' ? 'MENDAFTARKAN...' : 'MEMPROSES...';
+
 
       try {
         const endpoint = activeSplitAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
