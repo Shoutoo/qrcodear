@@ -429,9 +429,10 @@
             </h3>
             <p class="text-on-surface/70 text-sm font-medium mt-1">Uji pemahaman siswa mengenai rantai makanan dan ekosistem AR</p>
           </div>
-          <button id="btn-quiz-management" onclick="showToast('Fitur Kelola Soal & Rekap Nilai Aktif untuk Guru')" class="chunky-button px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-2">
+          <button id="btn-quiz-management" onclick="openQuizManagementModal()" class="chunky-button px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined">add_task</span> Kelola Soal & Rekap Nilai
           </button>
+
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1366,11 +1367,23 @@
           renderPresets(presetsData.presets || []);
         }
 
-        // Fetch Quizzes
-        const quizRes = await fetch('/api/lessons');
-        if (quizRes.ok) {
-          const lessonsData = await quizRes.json();
-          renderQuizzes(lessonsData.lessons || []);
+        // Fetch Quizzes from /api/quizzes or /api/lessons
+        try {
+          const quizRes = await fetch('/api/quizzes');
+          if (quizRes.ok) {
+            const quizData = await quizRes.json();
+            if (quizData.quizzes && quizData.quizzes.length > 0) {
+              renderQuizzes(quizData.quizzes);
+            } else {
+              const lessonRes = await fetch('/api/lessons');
+              if (lessonRes.ok) {
+                const lessonsData = await lessonRes.json();
+                renderQuizzesFromLessons(lessonsData.lessons || []);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Quiz fetch error:', e);
         }
 
         // Fetch Activity Logs
@@ -1415,25 +1428,43 @@
       }).join('');
     }
 
-    function renderQuizzes(lessons) {
+    function renderQuizzes(quizzes) {
       const listContainer = document.getElementById('quiz-questions-list');
-      if (!lessons || lessons.length === 0) return;
+      if (!listContainer) return;
 
-      let html = '';
+      if (!quizzes || quizzes.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-on-surface/60 font-medium">Belum ada kuis tersedia.</p>`;
+        return;
+      }
+
+      listContainer.innerHTML = quizzes.map((q, idx) => {
+        const lessonTitle = q.lesson ? q.lesson.title : 'Kuis Ekosistem SD';
+        const qEscaped = (q.question || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        const optionsJson = JSON.stringify(q.options || []).replace(/'/g, "\\'");
+        
+        return `
+          <div onclick="selectQuiz('${q.id}', '${qEscaped}', '${optionsJson}')" class="magic-card p-4 rounded-2xl border border-surface-variant hover:border-primary cursor-pointer transition-all space-y-2 group hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-extrabold text-emerald-800 px-2.5 py-0.5 rounded-full bg-emerald-100">${lessonTitle}</span>
+              <span class="text-[10px] font-bold text-outline">Soal #${idx + 1}</span>
+            </div>
+            <p class="text-xs font-bold text-on-surface line-clamp-2 group-hover:text-primary transition-colors">${q.question}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderQuizzesFromLessons(lessons) {
+      const listContainer = document.getElementById('quiz-questions-list');
+      if (!listContainer || !lessons) return;
+
+      let quizzes = [];
       lessons.forEach(l => {
         if (l.quizzes && l.quizzes.length > 0) {
-          l.quizzes.forEach(q => {
-            html += `
-              <div onclick="selectQuiz('${q.id}', '${q.question.replace(/'/g, "\\'")}', '${JSON.stringify(q.options).replace(/'/g, "\\'")}')" class="magic-card p-4 rounded-xl border border-surface-variant hover:border-primary cursor-pointer transition-all space-y-2">
-                <span class="text-xs font-bold text-primary">${l.title}</span>
-                <p class="text-sm font-bold text-on-surface line-clamp-2">${q.question}</p>
-              </div>
-            `;
-          });
+          l.quizzes.forEach(q => quizzes.push({ ...q, lesson: { id: l.id, title: l.title } }));
         }
       });
-
-      if (html) listContainer.innerHTML = html;
+      renderQuizzes(quizzes);
     }
 
     function selectQuiz(id, question, optionsJson) {
@@ -1501,8 +1532,271 @@
       `).join('');
     }
 
+    // ─── QUIZ MANAGEMENT MODAL & RECAP HANDLERS (GURU) ─────────────────
+    function openQuizManagementModal() {
+      const modal = document.getElementById('modal-quiz-management');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        loadQuizMgmtQuestions();
+      }
+    }
+
+    function closeQuizManagementModal() {
+      const modal = document.getElementById('modal-quiz-management');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function switchQuizMgmtTab(tab) {
+      const btnQ = document.getElementById('btn-quiz-mgmt-tab-questions');
+      const btnR = document.getElementById('btn-quiz-mgmt-tab-recap');
+      const secQ = document.getElementById('quiz-mgmt-section-questions');
+      const secR = document.getElementById('quiz-mgmt-section-recap');
+
+      if (tab === 'questions') {
+        btnQ.className = 'pb-2 font-bold text-sm text-primary border-b-2 border-primary';
+        btnR.className = 'pb-2 font-bold text-sm text-on-surface/60 border-b-2 border-transparent hover:text-on-surface';
+        secQ.classList.remove('hidden');
+        secR.classList.add('hidden');
+        loadQuizMgmtQuestions();
+      } else {
+        btnR.className = 'pb-2 font-bold text-sm text-primary border-b-2 border-primary';
+        btnQ.className = 'pb-2 font-bold text-sm text-on-surface/60 border-b-2 border-transparent hover:text-on-surface';
+        secR.classList.remove('hidden');
+        secQ.classList.add('hidden');
+        loadQuizRecap();
+      }
+    }
+
+    async function loadQuizMgmtQuestions() {
+      const tbody = document.getElementById('quiz-mgmt-questions-tbody');
+      if (!tbody) return;
+
+      try {
+        const res = await fetch('/api/quizzes');
+        if (res.ok) {
+          const data = await res.json();
+          const quizzes = data.quizzes || [];
+          tbody.innerHTML = quizzes.map((q, idx) => `
+            <tr>
+              <td class="px-3 py-2 font-bold text-outline">${idx + 1}</td>
+              <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${q.question}</td>
+              <td class="px-3 py-2 font-bold text-emerald-700">${q.correctAnswer}</td>
+              <td class="px-3 py-2 text-right">
+                <button onclick="deleteQuiz('${q.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold hover:bg-rose-200 transition-colors">
+                  Hapus
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function handleCreateQuizSubmit(e) {
+      e.preventDefault();
+      const question = document.getElementById('new-quiz-question').value;
+      const optA = document.getElementById('new-quiz-opt-a').value;
+      const optB = document.getElementById('new-quiz-opt-b').value;
+      const optC = document.getElementById('new-quiz-opt-c').value;
+      const optD = document.getElementById('new-quiz-opt-d').value;
+      const correctAnswer = document.getElementById('new-quiz-correct').value;
+
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch('/api/quizzes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            question,
+            options: [optA, optB, optC, optD],
+            correctAnswer
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showToast('Soal kuis berhasil ditambahkan!');
+          e.target.reset();
+          loadQuizMgmtQuestions();
+          loadDashboardData();
+        } else {
+          showToast(data.message || 'Gagal membuat soal', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      }
+    }
+
+    async function deleteQuiz(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus soal ini?')) return;
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch(`/api/quizzes/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          showToast('Soal kuis berhasil dihapus');
+          loadQuizMgmtQuestions();
+          loadDashboardData();
+        } else {
+          showToast('Gagal menghapus soal', true);
+        }
+      } catch (e) {
+        showToast('Error koneksi server', true);
+      }
+    }
+
+    async function loadQuizRecap() {
+      const tbody = document.getElementById('quiz-mgmt-recap-tbody');
+      if (!tbody) return;
+
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch('/api/quizzes/attempts/recap', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const attempts = data.attempts || [];
+          if (attempts.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-4 text-center text-on-surface/60 font-medium">Belum ada siswa yang mengerjakan kuis.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = attempts.map(a => {
+            const studentName = a.student ? a.student.name : 'Anonim';
+            const studentEmail = a.student ? a.student.email : '-';
+            const questionText = a.quiz ? a.quiz.question : 'Soal Dihapus';
+            const resultBadge = a.isCorrect 
+              ? '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">BENAR</span>'
+              : '<span class="px-2 py-0.5 rounded bg-red-100 text-red-800 font-bold">SALAH</span>';
+            const dateStr = new Date(a.attemptedAt).toLocaleString('id-ID');
+
+            return `
+              <tr>
+                <td class="px-3 py-2 font-bold text-primary">${studentName}</td>
+                <td class="px-3 py-2 font-medium text-on-surface/70">${studentEmail}</td>
+                <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${questionText}</td>
+                <td class="px-3 py-2 font-bold text-on-surface">${a.answer}</td>
+                <td class="px-3 py-2">${resultBadge}</td>
+                <td class="px-3 py-2 font-medium text-outline text-[11px]">${dateStr}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (e) {}
+    }
+
     // Initialize on DOM Ready
     window.addEventListener('DOMContentLoaded', loadDashboardData);
   </script>
+
+  <!-- MODAL: KELOLA SOAL & REKAP NILAI (GURU) -->
+  <div id="modal-quiz-management" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="magic-card bg-white max-w-4xl w-full max-h-[90vh] rounded-3xl p-6 sm:p-8 space-y-6 overflow-y-auto relative shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-4 border-surface-variant">
+        <div>
+          <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600">edit_note</span> Kelola Soal & Rekap Nilai Siswa
+          </h3>
+          <p class="text-xs text-on-surface/70 font-medium">Panel khusus Guru untuk membuat, mengedit, menghapus kuis, dan melihat rekapitulasi nilai</p>
+        </div>
+        <button onclick="closeQuizManagementModal()" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Tab Selection in Modal -->
+      <div class="flex border-b border-surface-variant gap-4">
+        <button id="btn-quiz-mgmt-tab-questions" onclick="switchQuizMgmtTab('questions')" class="pb-2 font-bold text-sm text-primary border-b-2 border-primary">
+          Daftar & Tambah Soal
+        </button>
+        <button id="btn-quiz-mgmt-tab-recap" onclick="switchQuizMgmtTab('recap')" class="pb-2 font-bold text-sm text-on-surface/60 border-b-2 border-transparent hover:text-on-surface">
+          Rekapitulasi Nilai Siswa
+        </button>
+      </div>
+
+      <!-- Tab Content 1: Questions Management -->
+      <div id="quiz-mgmt-section-questions" class="space-y-6">
+        <!-- Add New Quiz Form -->
+        <form onsubmit="handleCreateQuizSubmit(event)" class="bg-surface-container/30 p-5 rounded-2xl border border-surface-variant space-y-4">
+          <h4 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">add_circle</span> Tambah Soal Kuis Baru
+          </h4>
+          
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-on-surface/80">Pertanyaan Soal</label>
+            <input type="text" id="new-quiz-question" required placeholder="Contoh: Apa contoh komponen biotik dalam ekosistem?" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-sm font-semibold focus:outline-none focus:border-primary"/>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface/80">Pilihan A</label>
+              <input type="text" id="new-quiz-opt-a" required placeholder="Opsi A" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-xs font-semibold"/>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface/80">Pilihan B</label>
+              <input type="text" id="new-quiz-opt-b" required placeholder="Opsi B" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-xs font-semibold"/>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface/80">Pilihan C</label>
+              <input type="text" id="new-quiz-opt-c" required placeholder="Opsi C" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-xs font-semibold"/>
+            </div>
+            <div class="space-y-1">
+              <label class="text-xs font-bold text-on-surface/80">Pilihan D</label>
+              <input type="text" id="new-quiz-opt-d" required placeholder="Opsi D" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-xs font-semibold"/>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-on-surface/80">Jawaban Yang Benar (Harus persis sama dengan salah satu pilihan di atas)</label>
+            <input type="text" id="new-quiz-correct" required placeholder="Ketik persis teks jawaban yang benar" class="w-full px-3 py-2 rounded-xl border border-emerald-300 bg-emerald-50/30 text-xs font-bold focus:outline-none"/>
+          </div>
+
+          <button type="submit" class="chunky-button px-5 py-2.5 rounded-xl text-xs font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">save</span> Simpan Soal Baru
+          </button>
+        </form>
+
+        <!-- Existing Questions Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-on-surface">
+            <thead class="bg-surface-container font-bold uppercase">
+              <tr>
+                <th class="px-3 py-2.5 rounded-l-lg">No</th>
+                <th class="px-3 py-2.5">Pertanyaan</th>
+                <th class="px-3 py-2.5">Jawaban Benar</th>
+                <th class="px-3 py-2.5 rounded-r-lg text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="quiz-mgmt-questions-tbody" class="divide-y border-t border-surface-variant">
+              <!-- Loaded Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Student Score Recap -->
+      <div id="quiz-mgmt-section-recap" class="hidden space-y-4">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-on-surface">
+            <tbody id="quiz-mgmt-recap-tbody" class="divide-y border-t border-surface-variant">
+              <!-- Loaded Dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </body>
 </html>
