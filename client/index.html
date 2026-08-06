@@ -441,18 +441,115 @@
     let selectedAnswer = '';
     let currentUser = null;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedUser = localStorage.getItem('eduar_user');
-      if (savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          updateUserHeader(currentUser);
-        } catch (e) {}
-      }
+    window.addEventListener('DOMContentLoaded', async () => {
+      await checkPersistedSession();
       loadDashboardData();
     });
 
+    function parseJwt(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function checkPersistedSession() {
+      const token = localStorage.getItem('eduar_token');
+      const refreshToken = localStorage.getItem('eduar_refresh_token');
+
+      if (!token) {
+        updateUserHeader(null);
+        return;
+      }
+
+      // 1. Try decoding local token for instant UI feedback
+      const jwtPayload = parseJwt(token);
+      const savedUserStr = localStorage.getItem('eduar_user');
+      if (savedUserStr) {
+        try {
+          currentUser = JSON.parse(savedUserStr);
+          updateUserHeader(currentUser);
+        } catch (e) {}
+      } else if (jwtPayload) {
+        currentUser = { email: jwtPayload.email, role: jwtPayload.role, name: jwtPayload.email.split('@')[0] };
+        updateUserHeader(currentUser);
+      }
+
+      // 2. Verify session with backend API
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('eduar_user', JSON.stringify(data.user));
+            updateUserHeader(data.user);
+            return;
+          }
+        }
+
+        // Token expired (401) -> Try auto-refresh token
+        if (res.status === 401 && refreshToken) {
+          const refreshed = await attemptTokenRefresh(refreshToken);
+          if (refreshed) {
+            const newToken = localStorage.getItem('eduar_token');
+            const retryRes = await fetch('/api/auth/me', {
+              headers: { 'Authorization': `Bearer ${newToken}` }
+            });
+            if (retryRes.ok) {
+              const retryData = await retryRes.json();
+              if (retryData.user) {
+                currentUser = retryData.user;
+                localStorage.setItem('eduar_user', JSON.stringify(retryData.user));
+                updateUserHeader(retryData.user);
+                return;
+              }
+            }
+          }
+        }
+
+        // If session verification & refresh failed -> forced logout with message
+        performForcedLogout('Sesi Anda telah berakhir. Silakan masuk kembali.');
+      } catch (e) {
+        console.warn('Session check warning:', e);
+      }
+    }
+
+    async function attemptTokenRefresh(refreshToken) {
+      try {
+        const res = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+        const data = await res.json();
+        if (res.ok && data.accessToken) {
+          localStorage.setItem('eduar_token', data.accessToken);
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
     function switchTab(tabName) {
+      const userRole = currentUser ? currentUser.role : null;
+      const isStudent = (userRole === 'STUDENT');
+
+      // Protected route guard: Students cannot switch to studio or unity editor
+      if (isStudent && (tabName === 'studio' || tabName === 'unity')) {
+        showToast('Akses ditolak: Menu ini khusus untuk Guru', true);
+        tabName = 'dashboard';
+      }
+
       const tabs = ['dashboard', 'studio', 'quiz', 'unity', 'logs'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -483,6 +580,10 @@
     }
 
     function openAuthModal(mode) {
+      if (currentUser && mode === 'login') {
+        showToast(`Anda sedang masuk sebagai ${currentUser.name} (${currentUser.role})`);
+        return;
+      }
       activeAuthMode = mode;
       const modal = document.getElementById('auth-modal');
       const title = document.getElementById('modal-title');
@@ -533,6 +634,7 @@
         if (res.ok && data.success) {
           showToast(data.message || (activeAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!'));
           if (data.accessToken) localStorage.setItem('eduar_token', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('eduar_refresh_token', data.refreshToken);
           if (data.user) {
             currentUser = data.user;
             localStorage.setItem('eduar_user', JSON.stringify(data.user));
@@ -549,18 +651,33 @@
 
     function updateUserHeader(user) {
       const container = document.getElementById('auth-header-container');
-      const roleBadgeColor = user.role === 'TEACHER' ? 'bg-amber-600' : 'bg-primary';
-      const roleLabel = user.role === 'TEACHER' ? 'GURU' : user.role === 'ADMIN' ? 'ADMIN' : 'SISWA';
+      if (!user) {
+        container.innerHTML = `
+          <button onclick="openAuthModal('login')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
+            Masuk
+          </button>
+          <button onclick="openAuthModal('register')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
+            Daftar Siswa/Guru
+          </button>
+        `;
+        applyRolePermissions(null);
+        return;
+      }
+
+      const isTeacher = (user.role === 'TEACHER');
+      const isAdmin = (user.role === 'ADMIN');
+      const roleBadgeColor = isTeacher ? 'bg-amber-600' : isAdmin ? 'bg-indigo-600' : 'bg-primary';
+      const roleLabel = isTeacher ? 'GURU' : isAdmin ? 'ADMIN' : 'SISWA';
 
       container.innerHTML = `
-        <div class="flex items-center space-x-3 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
+        <div class="flex items-center space-x-3 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 shadow-sm">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <div class="flex flex-col text-left">
             <span class="text-xs font-bold text-primary">${user.name}</span>
             <span class="text-[10px] text-on-surface/60 font-medium">${user.email}</span>
           </div>
-          <span class="px-2 py-0.5 rounded ${roleBadgeColor} text-white text-xs font-bold">${roleLabel}</span>
-          <button onclick="handleLogout()" class="ml-2 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
+          <span class="px-2.5 py-0.5 rounded ${roleBadgeColor} text-white text-xs font-black shadow-xs">${roleLabel}</span>
+          <button onclick="handleLogout()" class="ml-2 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition-colors">
             <span class="material-symbols-outlined text-sm">logout</span> Keluar
           </button>
         </div>
@@ -569,11 +686,39 @@
       applyRolePermissions(user.role);
     }
 
-    function handleLogout() {
+    async function handleLogout() {
+      const token = localStorage.getItem('eduar_token');
+      const refreshToken = localStorage.getItem('eduar_refresh_token');
+
+      if (token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ refreshToken })
+          });
+        } catch (e) {}
+      }
+
       localStorage.removeItem('eduar_token');
+      localStorage.removeItem('eduar_refresh_token');
       localStorage.removeItem('eduar_user');
       currentUser = null;
-      window.location.reload();
+
+      showToast('Berhasil keluar dari akun');
+      updateUserHeader(null);
+    }
+
+    function performForcedLogout(message) {
+      localStorage.removeItem('eduar_token');
+      localStorage.removeItem('eduar_refresh_token');
+      localStorage.removeItem('eduar_user');
+      currentUser = null;
+      updateUserHeader(null);
+      showToast(message, true);
     }
 
     function applyRolePermissions(role) {
@@ -585,6 +730,21 @@
       const quizMgmtBtn = document.getElementById('btn-quiz-management');
       const dashTitle = document.getElementById('dash-title');
       const logHeaderTitle = document.getElementById('log-header-title');
+
+      if (!role) {
+        // Unauthenticated visitor: show all tabs but prompt login when clicking creator tools
+        if (studioTabBtn) studioTabBtn.style.display = 'flex';
+        if (unityTabBtn) unityTabBtn.style.display = 'flex';
+        if (heroStudioBtn) heroStudioBtn.style.display = 'inline-flex';
+        if (quizMgmtBtn) quizMgmtBtn.style.display = 'inline-flex';
+        if (dashTitle) {
+          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem Rantai Makanan AR`;
+        }
+        if (logHeaderTitle) {
+          logHeaderTitle.innerText = 'Activity Log Audit Table';
+        }
+        return;
+      }
 
       if (isStudent) {
         // Hide Studio & Unity Editor tabs for Student

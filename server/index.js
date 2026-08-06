@@ -14,8 +14,38 @@ const PORT = process.env.PORT || 3001;
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.set('trust proxy', true); // Penting agar HTTPS dari tunnel terbaca dengan benar
 app.use(cors());
+
+// ─── Proxy API requests to NestJS server (port 3002) ───────────────────────────
+const http = require('http');
+app.use(['/api/auth', '/api/quizzes', '/api/analytics', '/api/unity'], (req, res, next) => {
+  const options = {
+    hostname: 'localhost',
+    port: 3002,
+    path: req.originalUrl,
+    method: req.method,
+    headers: { ...req.headers, host: 'localhost:3002' }
+  };
+
+  const proxyReq = http.request(options, proxyRes => {
+    res.status(proxyRes.statusCode);
+    Object.keys(proxyRes.headers).forEach(key => {
+      res.setHeader(key, proxyRes.headers[key]);
+    });
+    proxyRes.pipe(res);
+  });
+
+  proxyReq.on('error', err => {
+    next();
+  });
+
+  req.pipe(proxyReq);
+});
+
 app.use(express.json());
 app.use(compression());
+
+
+
 
 // ─── Directories ───────────────────────────────────────────────────────────────
 const ASSETS_DIR  = path.join(__dirname, 'uploads');
