@@ -115,6 +115,15 @@
       background-color: #632ce5 !important;
       color: #ffffff !important;
     }
+    /* Clean single-box input autofill reset */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+      -webkit-box-shadow: 0 0 0px 1000px #f4f7fc inset !important;
+      -webkit-text-fill-color: #0d1e25 !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
     #toast { position: fixed; bottom: 28px; right: 28px; background: #23333a; border: 1px solid #7a7487; border-radius: 50px; padding: 12px 24px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.4); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1); z-index: 1000; color: white; display: flex; align-items: center; gap: 8px; opacity: 0; pointer-events: none; transform: translateY(20px); }
     #toast.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
   </style>
@@ -176,45 +185,45 @@
             <p id="split-form-subtitle" class="text-xs sm:text-sm text-on-surface/70 font-medium">Masukkan email & kata sandi akun Anda untuk melanjutkan</p>
           </div>
 
-          <!-- Auth Form (Rounded Full Border Box Style) -->
+          <!-- Auth Form (Single Clean Box Style) -->
           <form id="split-auth-form" onsubmit="handleSplitAuthSubmit(event)" class="space-y-5">
             
             <!-- Field: Full Name (Register Mode) -->
-            <div id="split-field-name-group" class="hidden space-y-2">
-              <label class="text-xs font-extrabold text-on-surface/80 uppercase tracking-wider">Nama Lengkap</label>
-              <div class="border-2 border-surface-variant focus-within:border-primary transition-all rounded-2xl px-4 py-3 flex items-center gap-3 bg-surface-container/20">
-                <span class="material-symbols-outlined text-outline text-xl">person</span>
-                <input type="text" id="split-auth-name" class="w-full bg-transparent text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="Masukkan nama lengkap Anda"/>
+            <div id="split-field-name-group" class="hidden space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Nama Lengkap</label>
+              <div class="border border-[#d4e5ef] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all rounded-2xl px-4 py-3.5 flex items-center gap-3 bg-[#f4f7fc]">
+                <span class="material-symbols-outlined text-outline text-xl select-none">person</span>
+                <input type="text" id="split-auth-name" class="w-full bg-transparent text-on-surface font-semibold text-sm border-none outline-none focus:outline-none focus:ring-0 placeholder:text-outline/50 p-0" placeholder="Masukkan nama lengkap Anda"/>
               </div>
             </div>
 
             <!-- Field: Email -->
-            <div class="space-y-2">
-              <label class="text-xs font-extrabold text-on-surface/80 uppercase tracking-wider">Email Akun</label>
-              <div class="border-2 border-surface-variant focus-within:border-primary transition-all rounded-2xl px-4 py-3 flex items-center gap-3 bg-surface-container/20">
-                <span class="material-symbols-outlined text-outline text-xl">mail</span>
-                <input type="email" id="split-auth-email" required class="w-full bg-transparent text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="nama@eduar.com"/>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Email Akun</label>
+              <div class="border border-[#d4e5ef] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all rounded-2xl px-4 py-3.5 flex items-center gap-3 bg-[#f4f7fc]">
+                <span class="material-symbols-outlined text-outline text-xl select-none">mail</span>
+                <input type="email" id="split-auth-email" required class="w-full bg-transparent text-on-surface font-semibold text-sm border-none outline-none focus:outline-none focus:ring-0 placeholder:text-outline/50 p-0" placeholder="nama@eduar.com"/>
               </div>
             </div>
 
             <!-- Field: Password with Eye Toggle -->
-            <div class="space-y-2">
-              <label class="text-xs font-extrabold text-on-surface/80 uppercase tracking-wider">Kata Sandi</label>
-              <div class="border-2 border-surface-variant focus-within:border-primary transition-all rounded-2xl px-4 py-3 flex items-center gap-3 bg-surface-container/20">
-                <span class="material-symbols-outlined text-outline text-xl">lock</span>
-                <input type="password" id="split-auth-password" required class="w-full bg-transparent text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="••••••••"/>
-                <button type="button" onclick="toggleSplitPasswordVisibility()" class="text-outline hover:text-primary transition-colors p-1 flex items-center">
-                  <span id="split-pass-eye-icon" class="material-symbols-outlined text-xl">visibility</span>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Kata Sandi</label>
+              <div class="border border-[#d4e5ef] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all rounded-2xl px-4 py-3.5 flex items-center gap-3 bg-[#f4f7fc]">
+                <span class="material-symbols-outlined text-outline text-xl select-none">lock</span>
+                <input type="password" id="split-auth-password" required class="w-full bg-transparent text-on-surface font-semibold text-sm border-none outline-none focus:outline-none focus:ring-0 placeholder:text-outline/50 p-0" placeholder="••••••••"/>
+                <button type="button" onclick="toggleSplitPasswordVisibility()" class="text-outline hover:text-primary transition-colors p-1 flex items-center focus:outline-none">
+                  <span id="split-pass-eye-icon" class="material-symbols-outlined text-xl select-none">visibility</span>
                 </button>
               </div>
             </div>
 
             <!-- Field: Role Select (Register Mode) -->
-            <div id="split-field-role-group" class="hidden space-y-2">
-              <label class="text-xs font-extrabold text-on-surface/80 uppercase tracking-wider">Peran Pengguna (Role)</label>
-              <div class="border-2 border-surface-variant focus-within:border-primary transition-all rounded-2xl px-4 py-3 flex items-center gap-3 bg-surface-container/20">
-                <span class="material-symbols-outlined text-outline text-xl">badge</span>
-                <select id="split-auth-role" class="w-full bg-transparent text-on-surface font-extrabold text-sm focus:outline-none cursor-pointer">
+            <div id="split-field-role-group" class="hidden space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Peran Pengguna (Role)</label>
+              <div class="border border-[#d4e5ef] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 focus-within:bg-white transition-all rounded-2xl px-4 py-3.5 flex items-center gap-3 bg-[#f4f7fc]">
+                <span class="material-symbols-outlined text-outline text-xl select-none">badge</span>
+                <select id="split-auth-role" class="w-full bg-transparent text-on-surface font-extrabold text-sm border-none outline-none focus:outline-none focus:ring-0 cursor-pointer p-0">
                   <option value="STUDENT">👨‍🎓 Siswa (Student)</option>
                   <option value="TEACHER">👨‍🏫 Guru (Teacher)</option>
                 </select>
