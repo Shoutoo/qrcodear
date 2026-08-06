@@ -1787,39 +1787,177 @@
       }
     }
 
-    async function loadQuizMgmtQuestions() {
-      const tbody = document.getElementById('quiz-mgmt-questions-tbody');
-      if (!tbody) return;
+    function toggleNewLessonBox() {
+      const box = document.getElementById('new-lesson-box');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    async function handleCreateLessonSubmit() {
+      const input = document.getElementById('new-lesson-title-input');
+      const title = (input ? input.value : '').trim();
+
+      if (!title) {
+        showToast('Ketik judul materi terlebih dahulu', true);
+        return;
+      }
+
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch('/api/lessons', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ title })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`Materi "${title}" berhasil dibuat!`);
+          if (input) input.value = '';
+          toggleNewLessonBox();
+          // Reload dropdown & questions list, select new lesson
+          await loadQuizMgmtQuestions(data.lesson ? data.lesson.id : null);
+          loadDashboardData();
+        } else {
+          showToast(data.message || 'Gagal membuat materi baru', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      }
+    }
+
+    async function loadQuizMgmtQuestions(selectLessonId = null) {
+      const select = document.getElementById('new-quiz-lesson-select');
+      const container = document.getElementById('quiz-mgmt-lessons-container');
+      if (!container) return;
 
       try {
-        const res = await fetch('/api/quizzes');
-        if (res.ok) {
-          const data = await res.json();
-          const quizzes = data.quizzes || [];
-          tbody.innerHTML = quizzes.map((q, idx) => `
-            <tr>
-              <td class="px-3 py-2 font-bold text-outline">${idx + 1}</td>
-              <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${q.question}</td>
-              <td class="px-3 py-2 font-bold text-emerald-700">${q.correctAnswer}</td>
-              <td class="px-3 py-2 text-right">
-                <button onclick="deleteQuiz('${q.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold hover:bg-rose-200 transition-colors">
-                  Hapus
-                </button>
-              </td>
-            </tr>
-          `).join('');
+        // Fetch Lessons
+        const lessonsRes = await fetch('/api/lessons');
+        const lessonsData = lessonsRes.ok ? await lessonsRes.json() : { lessons: [] };
+        const lessons = lessonsData.lessons || [];
+
+        // Fetch Quizzes
+        const quizRes = await fetch('/api/quizzes');
+        const quizData = quizRes.ok ? await quizRes.json() : { quizzes: [] };
+        const quizzes = quizData.quizzes || [];
+
+        // Populate Lesson Select Dropdown
+        if (select) {
+          if (lessons.length === 0) {
+            select.innerHTML = `<option value="">-- Belum Ada Materi (Buat Materi Baru Dulu) --</option>`;
+          } else {
+            select.innerHTML = lessons.map(l => `
+              <option value="${l.id}" ${selectLessonId === l.id ? 'selected' : ''}>📚 ${l.title}</option>
+            `).join('');
+          }
         }
-      } catch (e) {}
+
+        // Group Quizzes by Lesson
+        const lessonQuizGroup = {};
+        lessons.forEach(l => {
+          lessonQuizGroup[l.id] = {
+            lesson: l,
+            quizzes: []
+          };
+        });
+
+        // Add fallback group for unassigned or default quizzes
+        lessonQuizGroup['default'] = {
+          lesson: { id: 'default', title: 'Kuis Ekosistem Umum (Default)' },
+          quizzes: []
+        };
+
+        quizzes.forEach(q => {
+          const lessonId = q.lessonId && lessonQuizGroup[q.lessonId] ? q.lessonId : 'default';
+          lessonQuizGroup[lessonId].quizzes.push(q);
+        });
+
+        // Render Grouped Lessons
+        const groupKeys = Object.keys(lessonQuizGroup).filter(k => k !== 'default' || lessonQuizGroup['default'].quizzes.length > 0);
+
+        if (groupKeys.length === 0) {
+          container.innerHTML = `<p class="text-xs text-on-surface/60 font-medium text-center py-4">Belum ada materi atau soal kuis.</p>`;
+          return;
+        }
+
+        container.innerHTML = groupKeys.map(key => {
+          const group = lessonQuizGroup[key];
+          const l = group.lesson;
+          const qList = group.quizzes;
+          const isDefault = key === 'default';
+
+          return `
+            <div class="border border-surface-variant rounded-2xl p-4 bg-white space-y-3 shadow-sm">
+              <div class="flex items-center justify-between border-b pb-3 border-surface-variant">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">📚</span>
+                  <div>
+                    <h5 class="text-sm font-extrabold text-on-surface">${l.title}</h5>
+                    <p class="text-[11px] text-outline font-semibold">${qList.length} Soal Kuis Tersedia</p>
+                  </div>
+                </div>
+                ${!isDefault ? `
+                  <button onclick="deleteLesson('${l.id}', '${l.title.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs transition-colors flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">delete</span> Hapus Materi
+                  </button>
+                ` : ''}
+              </div>
+
+              ${qList.length === 0 ? `
+                <p class="text-xs text-outline font-medium italic py-1">Belum ada soal pada materi ini.</p>
+              ` : `
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs text-on-surface">
+                    <thead class="bg-surface-container/50 text-outline font-bold uppercase text-[10px]">
+                      <tr>
+                        <th class="px-3 py-2 rounded-l-lg">No</th>
+                        <th class="px-3 py-2">Pertanyaan</th>
+                        <th class="px-3 py-2">Jawaban Benar</th>
+                        <th class="px-3 py-2 rounded-r-lg text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y border-t border-surface-variant">
+                      ${qList.map((q, idx) => `
+                        <tr>
+                          <td class="px-3 py-2 font-bold text-outline">${idx + 1}</td>
+                          <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${q.question}</td>
+                          <td class="px-3 py-2 font-bold text-emerald-700">${q.correctAnswer}</td>
+                          <td class="px-3 py-2 text-right">
+                            <button onclick="deleteQuiz('${q.id}')" class="px-2 py-1 rounded-lg bg-rose-100 text-rose-700 font-bold hover:bg-rose-200 transition-colors">
+                              Hapus
+                            </button>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('');
+
+      } catch (e) {
+        console.error('Error loading quiz management questions:', e);
+      }
     }
 
     async function handleCreateQuizSubmit(e) {
       e.preventDefault();
+      const lessonId = document.getElementById('new-quiz-lesson-select').value;
       const question = document.getElementById('new-quiz-question').value;
       const optA = document.getElementById('new-quiz-opt-a').value;
       const optB = document.getElementById('new-quiz-opt-b').value;
       const optC = document.getElementById('new-quiz-opt-c').value;
       const optD = document.getElementById('new-quiz-opt-d').value;
       const correctAnswer = document.getElementById('new-quiz-correct').value;
+
+      if (!lessonId) {
+        showToast('Pilih atau buat materi terlebih dahulu', true);
+        return;
+      }
 
       const token = localStorage.getItem('eduar_token');
       try {
@@ -1830,6 +1968,7 @@
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
+            lessonId,
             question,
             options: [optA, optB, optC, optD],
             correctAnswer
@@ -1840,7 +1979,7 @@
         if (res.ok) {
           showToast('Soal kuis berhasil ditambahkan!');
           e.target.reset();
-          loadQuizMgmtQuestions();
+          loadQuizMgmtQuestions(lessonId);
           loadDashboardData();
         } else {
           showToast(data.message || 'Gagal membuat soal', true);
@@ -1870,50 +2009,141 @@
       }
     }
 
+    async function deleteLesson(id, title) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus materi "${title}" beserta seluruh soal di dalamnya?`)) return;
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch(`/api/lessons/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          showToast(`Materi "${title}" berhasil dihapus`);
+          loadQuizMgmtQuestions();
+          loadDashboardData();
+        } else {
+          showToast('Gagal menghapus materi', true);
+        }
+      } catch (e) {
+        showToast('Error koneksi server', true);
+      }
+    }
+
     async function loadQuizRecap() {
-      const tbody = document.getElementById('quiz-mgmt-recap-tbody');
-      if (!tbody) return;
+      const container = document.getElementById('quiz-mgmt-recap-container');
+      if (!container) return;
 
       const token = localStorage.getItem('eduar_token');
       try {
         const res = await fetch('/api/quizzes/attempts/recap', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
+
         if (res.ok) {
           const data = await res.json();
           const attempts = data.attempts || [];
+
           if (attempts.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-4 text-center text-on-surface/60 font-medium">Belum ada siswa yang mengerjakan kuis.</td></tr>`;
+            container.innerHTML = `<p class="text-xs text-on-surface/60 font-medium text-center py-6">Belum ada siswa yang mengerjakan kuis.</p>`;
             return;
           }
 
-          tbody.innerHTML = attempts.map(a => {
-            const studentName = a.student ? a.student.name : 'Anonim';
-            const studentEmail = a.student ? a.student.email : '-';
-            const questionText = a.quiz ? a.quiz.question : 'Soal Dihapus';
-            const resultBadge = a.isCorrect 
-              ? '<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">BENAR</span>'
-              : '<span class="px-2 py-0.5 rounded bg-red-100 text-red-800 font-bold">SALAH</span>';
-            const dateStr = new Date(a.attemptedAt).toLocaleString('id-ID');
+          // Group Attempts By Student / User
+          const studentGroups = {};
+          attempts.forEach(a => {
+            const studentId = a.student ? a.student.id : 'anon';
+            if (!studentGroups[studentId]) {
+              studentGroups[studentId] = {
+                student: a.student || { name: 'Anonim / Tamu', email: '-' },
+                attempts: []
+              };
+            }
+            studentGroups[studentId].attempts.push(a);
+          });
+
+          // Render Student Cards with Stats & Expandable Detail Table
+          container.innerHTML = Object.values(studentGroups).map((sg, idx) => {
+            const s = sg.student;
+            const atts = sg.attempts;
+            const total = atts.length;
+            const correctCount = atts.filter(a => a.isCorrect).length;
+            const accuracy = Math.round((correctCount / total) * 100);
+            const scoreColor = accuracy >= 80 ? 'emerald' : (accuracy >= 50 ? 'amber' : 'rose');
 
             return `
-              <tr>
-                <td class="px-3 py-2 font-bold text-primary">${studentName}</td>
-                <td class="px-3 py-2 font-medium text-on-surface/70">${studentEmail}</td>
-                <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${questionText}</td>
-                <td class="px-3 py-2 font-bold text-on-surface">${a.answer}</td>
-                <td class="px-3 py-2">${resultBadge}</td>
-                <td class="px-3 py-2 font-medium text-outline text-[11px]">${dateStr}</td>
-              </tr>
+              <div class="border border-surface-variant rounded-2xl bg-white p-5 space-y-4 shadow-sm">
+                <!-- Student Header Stats -->
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3 border-surface-variant">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-primary/10 text-primary font-black flex items-center justify-center text-sm">
+                      ${(s.name || 'S')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-extrabold text-on-surface">${s.name}</h4>
+                      <p class="text-xs font-semibold text-outline">${s.email}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-full bg-${scoreColor}-50 border border-${scoreColor}-200 text-${scoreColor}-700 font-extrabold text-xs">
+                      Nilai: ${accuracy}/100
+                    </span>
+                    <span class="px-3 py-1 rounded-full bg-surface-container font-extrabold text-xs text-on-surface">
+                      ${correctCount}/${total} Benar (${accuracy}%)
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Detailed Attempts Table for this Student -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs text-on-surface">
+                    <thead class="bg-surface-container/50 text-outline font-bold uppercase text-[10px]">
+                      <tr>
+                        <th class="px-3 py-2 rounded-l-lg">Materi / Topik</th>
+                        <th class="px-3 py-2">Pertanyaan Soal</th>
+                        <th class="px-3 py-2">Jawaban Siswa</th>
+                        <th class="px-3 py-2">Jawaban Benar</th>
+                        <th class="px-3 py-2">Status</th>
+                        <th class="px-3 py-2 rounded-r-lg">Waktu Pengerjaan</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y border-t border-surface-variant">
+                      ${atts.map(a => {
+                        const questionText = a.quiz ? a.quiz.question : 'Soal Dihapus';
+                        const lessonTitle = (a.quiz && a.quiz.lesson) ? a.quiz.lesson.title : 'Kuis Ekosistem SD';
+                        const correctAnswer = a.quiz ? a.quiz.correctAnswer : '-';
+                        const resultBadge = a.isCorrect
+                          ? '<span class="px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-[10px]">BENAR</span>'
+                          : '<span class="px-2.5 py-0.5 rounded bg-rose-100 text-rose-800 font-extrabold text-[10px]">SALAH</span>';
+                        const dateStr = new Date(a.attemptedAt).toLocaleString('id-ID');
+
+                        return `
+                          <tr>
+                            <td class="px-3 py-2 font-bold text-primary max-w-[140px] truncate">${lessonTitle}</td>
+                            <td class="px-3 py-2 font-semibold text-on-surface max-w-xs truncate">${questionText}</td>
+                            <td class="px-3 py-2 font-bold ${a.isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${a.answer}</td>
+                            <td class="px-3 py-2 font-semibold text-outline">${correctAnswer}</td>
+                            <td class="px-3 py-2">${resultBadge}</td>
+                            <td class="px-3 py-2 font-medium text-outline text-[11px]">${dateStr}</td>
+                          </tr>
+                        `;
+                      }).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             `;
           }).join('');
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error('Error loading quiz recap:', e);
+      }
     }
 
     // Initialize on DOM Ready
     window.addEventListener('DOMContentLoaded', loadDashboardData);
   </script>
+
 
   <!-- MODAL: KELOLA SOAL & REKAP NILAI (GURU) -->
   <div id="modal-quiz-management" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
@@ -1923,7 +2153,7 @@
           <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
             <span class="material-symbols-outlined text-emerald-600">edit_note</span> Kelola Soal & Rekap Nilai Siswa
           </h3>
-          <p class="text-xs text-on-surface/70 font-medium">Panel khusus Guru untuk membuat, mengedit, menghapus kuis, dan melihat rekapitulasi nilai</p>
+          <p class="text-xs text-on-surface/70 font-medium">Panel khusus Guru untuk menambah materi/topik, membuat soal kuis, dan melihat rekapitulasi nilai terkelompok per siswa</p>
         </div>
         <button onclick="closeQuizManagementModal()" class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
           <span class="material-symbols-outlined">close</span>
@@ -1933,21 +2163,50 @@
       <!-- Tab Selection in Modal -->
       <div class="flex border-b border-surface-variant gap-4">
         <button id="btn-quiz-mgmt-tab-questions" onclick="switchQuizMgmtTab('questions')" class="pb-2 font-bold text-sm text-primary border-b-2 border-primary">
-          Daftar & Tambah Soal
+          Daftar & Tambah Soal Per Materi
         </button>
         <button id="btn-quiz-mgmt-tab-recap" onclick="switchQuizMgmtTab('recap')" class="pb-2 font-bold text-sm text-on-surface/60 border-b-2 border-transparent hover:text-on-surface">
-          Rekapitulasi Nilai Siswa
+          Rekapitulasi Nilai Per Siswa
         </button>
       </div>
 
-      <!-- Tab Content 1: Questions Management -->
+      <!-- Tab Content 1: Questions & Lessons Management -->
       <div id="quiz-mgmt-section-questions" class="space-y-6">
         <!-- Add New Quiz Form -->
         <form onsubmit="handleCreateQuizSubmit(event)" class="bg-surface-container/30 p-5 rounded-2xl border border-surface-variant space-y-4">
-          <h4 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary">add_circle</span> Tambah Soal Kuis Baru
-          </h4>
-          
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-extrabold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">add_circle</span> Tambah Soal Kuis Baru
+            </h4>
+            <button type="button" onclick="toggleNewLessonBox()" class="text-xs font-extrabold text-primary hover:underline flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">library_add</span> + Tambah Materi Baru
+            </button>
+          </div>
+
+          <!-- Quick Form: Tambah Materi Baru (Hidden by default) -->
+          <div id="new-lesson-box" class="hidden p-4 rounded-xl bg-purple-50 border border-purple-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-purple-900 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">auto_stories</span> Buat Materi/Topik Baru
+              </span>
+              <button type="button" onclick="toggleNewLessonBox()" class="text-xs text-purple-700 hover:text-purple-900 font-bold">Batal ✕</button>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="new-lesson-title-input" placeholder="Contoh: Kuis Ekosistem Sungai & Danau" class="flex-1 px-3 py-2 rounded-xl border border-purple-300 bg-white text-xs font-semibold focus:outline-none focus:border-primary"/>
+              <button type="button" onclick="handleCreateLessonSubmit()" class="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">save</span> Simpan Materi
+              </button>
+            </div>
+          </div>
+
+          <!-- Dropdown Pilih Materi -->
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-on-surface/80">Pilih Materi / Topik Pembelajaran</label>
+            <select id="new-quiz-lesson-select" required class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-xs font-bold text-on-surface focus:outline-none focus:border-primary">
+              <!-- Loaded Dynamically -->
+            </select>
+          </div>
+
           <div class="space-y-1">
             <label class="text-xs font-bold text-on-surface/80">Pertanyaan Soal</label>
             <input type="text" id="new-quiz-question" required placeholder="Contoh: Apa contoh komponen biotik dalam ekosistem?" class="w-full px-3 py-2 rounded-xl border border-surface-variant bg-white text-sm font-semibold focus:outline-none focus:border-primary"/>
@@ -1982,37 +2241,22 @@
           </button>
         </form>
 
-        <!-- Existing Questions Table -->
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-on-surface">
-            <thead class="bg-surface-container font-bold uppercase">
-              <tr>
-                <th class="px-3 py-2.5 rounded-l-lg">No</th>
-                <th class="px-3 py-2.5">Pertanyaan</th>
-                <th class="px-3 py-2.5">Jawaban Benar</th>
-                <th class="px-3 py-2.5 rounded-r-lg text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="quiz-mgmt-questions-tbody" class="divide-y border-t border-surface-variant">
-              <!-- Loaded Dynamically -->
-            </tbody>
-          </table>
+        <!-- Existing Questions Grouped By Lesson -->
+        <div id="quiz-mgmt-lessons-container" class="space-y-4">
+          <!-- Loaded Dynamically Grouped By Lesson -->
         </div>
       </div>
 
-      <!-- Tab Content 2: Student Score Recap -->
+      <!-- Tab Content 2: Student Score Recap Grouped By Student -->
       <div id="quiz-mgmt-section-recap" class="hidden space-y-4">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-on-surface">
-            <tbody id="quiz-mgmt-recap-tbody" class="divide-y border-t border-surface-variant">
-              <!-- Loaded Dynamically -->
-            </tbody>
-          </table>
+        <div id="quiz-mgmt-recap-container" class="space-y-4">
+          <!-- Loaded Dynamically Grouped By Student -->
         </div>
       </div>
 
     </div>
   </div>
+
 
 </body>
 </html>

@@ -303,7 +303,14 @@ export class QuizzesService implements OnModuleInit {
           select: { id: true, name: true, email: true }
         },
         quiz: {
-          select: { id: true, question: true, correctAnswer: true }
+          select: {
+            id: true,
+            question: true,
+            correctAnswer: true,
+            lesson: {
+              select: { id: true, title: true }
+            }
+          }
         }
       },
       orderBy: { attemptedAt: 'desc' }
