@@ -18,9 +18,10 @@ export class QuizzesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.TEACHER, Role.ADMIN)
   @Post()
-  async create(@Body() dto: CreateQuizDto) {
-    return this.quizzesService.create(dto);
+  async create(@Req() req: any, @Body() dto: CreateQuizDto) {
+    return this.quizzesService.create(dto, req.user?.id);
   }
+
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.TEACHER, Role.ADMIN)

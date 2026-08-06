@@ -1,34 +1,81 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizDto, UpdateQuizDto, SubmitAnswerDto } from './dto/create-quiz.dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
-export class QuizzesService {
+export class QuizzesService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
-  private async getOrCreateDefaultLesson(): Promise<string> {
-    let lesson = await this.prisma.lesson.findFirst({
-      where: { title: 'Kuis Ekosistem Umum' },
-    });
+  async onModuleInit() {
+    await this.seedQuizzesIfEmpty();
+  }
+
+  private async seedQuizzesIfEmpty() {
+    try {
+      const count = await this.prisma.quiz.count();
+      if (count === 0) {
+        console.log('🌱 Database has 0 quizzes. Starting auto-seed from bank-soal-kuis-ekosistem-SD.json...');
+        const defaultLessonId = await this.getOrCreateDefaultLesson();
+
+        const jsonPath = path.resolve(process.cwd(), 'bank-soal-kuis-ekosistem-SD.json');
+        if (fs.existsSync(jsonPath)) {
+          const raw = fs.readFileSync(jsonPath, 'utf8');
+          const quizItems = JSON.parse(raw);
+
+          let seeded = 0;
+          for (const item of quizItems) {
+            await this.prisma.quiz.create({
+              data: {
+                lessonId: defaultLessonId,
+                question: item.question.trim(),
+                options: item.options,
+                correctAnswer: item.correctAnswer.trim(),
+              },
+            });
+            seeded++;
+          }
+          console.log(`✅ Auto-seeded ${seeded} quiz questions into Render PostgreSQL database successfully!`);
+        }
+      }
+    } catch (err) {
+      console.warn('⚠️ Auto-seed quizzes warning:', err);
+    }
+  }
+
+  private async getOrCreateDefaultLesson(teacherId?: string): Promise<string> {
+    let lesson = await this.prisma.lesson.findFirst();
 
     if (!lesson) {
       let project = await this.prisma.project.findFirst();
       if (!project) {
-        let teacher = await this.prisma.user.findFirst({ where: { role: 'TEACHER' } });
-        if (!teacher) {
-          teacher = await this.prisma.user.create({
+        let creatorId = teacherId;
+        if (!creatorId) {
+          let teacher = await this.prisma.user.findFirst({ where: { role: 'TEACHER' } });
+          if (!teacher) {
+            teacher = await this.prisma.user.findFirst();
+          }
+          creatorId = teacher?.id;
+        }
+
+        if (!creatorId) {
+          const fallbackUser = await this.prisma.user.create({
             data: {
               name: 'Guru EduAR',
-              email: 'guru@eduar.com',
+              email: `guru_system@eduar.com`,
               password_hash: '$2b$10$abcdefghijklmnopqrstuv',
               role: 'TEACHER',
             },
           });
+          creatorId = fallbackUser.id;
         }
+
         project = await this.prisma.project.create({
           data: {
-            title: 'Proyek Rantai Makanan SD',
-            creatorId: teacher.id,
+            title: 'Proyek Rantai Makanan & Ekosistem SD',
+            description: 'Materi & Kuis Ekosistem',
+            creatorId,
           },
         });
       }
@@ -36,7 +83,7 @@ export class QuizzesService {
       lesson = await this.prisma.lesson.create({
         data: {
           title: 'Kuis Ekosistem Umum',
-          content: 'Default skeleton lesson for unassigned quizzes',
+          content: 'Default skeleton lesson for quizzes',
           projectId: project.id,
         },
       });
@@ -45,18 +92,19 @@ export class QuizzesService {
     return lesson.id;
   }
 
-  async create(dto: CreateQuizDto) {
+  async create(dto: CreateQuizDto, teacherId?: string) {
     let targetLessonId = dto.lessonId;
     if (!targetLessonId) {
-      targetLessonId = await this.getOrCreateDefaultLesson();
+      targetLessonId = await this.getOrCreateDefaultLesson(teacherId);
     } else {
       const lesson = await this.prisma.lesson.findUnique({
         where: { id: targetLessonId },
       });
       if (!lesson) {
-        throw new NotFoundException('Lesson tidak ditemukan');
+        targetLessonId = await this.getOrCreateDefaultLesson(teacherId);
       }
     }
+
 
     if (!Array.isArray(dto.options) || dto.options.length < 2) {
       throw new BadRequestException('Pilihan kuis harus berupa array dengan minimal 2 opsi');
