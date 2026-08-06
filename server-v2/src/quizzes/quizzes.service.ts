@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizDto, UpdateQuizDto, SubmitAnswerDto } from './dto/create-quiz.dto';
-import * as fs from 'fs';
-import * as path from 'path';
+import { QUIZ_BANK, LESSON_TITLE_MAP } from './quiz-bank.data';
 
 @Injectable()
 export class QuizzesService implements OnModuleInit {
@@ -15,72 +14,77 @@ export class QuizzesService implements OnModuleInit {
   private async seedQuizzesIfEmpty() {
     try {
       const count = await this.prisma.quiz.count();
-      console.log(`[QuizzesService] Current Quiz Count in DB: ${count}`);
+      console.log(`[QuizzesService] onModuleInit: Current Quiz count in Neon DB = ${count}`);
+
       if (count === 0) {
-        console.log('🌱 Database has 0 quizzes. Starting auto-seed from bank-soal-kuis-ekosistem-SD.json...');
+        console.log(`🌱 [QuizzesService] DB kosong! Memulai auto-seed ${QUIZ_BANK.length} soal dari embedded QUIZ_BANK...`);
 
-        const candidatePaths = [
-          path.resolve(process.cwd(), 'bank-soal-kuis-ekosistem-SD.json'),
-          path.resolve(process.cwd(), '../bank-soal-kuis-ekosistem-SD.json'),
-          path.resolve(__dirname, '../../bank-soal-kuis-ekosistem-SD.json'),
-          path.resolve(__dirname, '../../../bank-soal-kuis-ekosistem-SD.json'),
-        ];
-        let jsonPath = candidatePaths.find(p => fs.existsSync(p));
-
-        if (jsonPath) {
-          const raw = fs.readFileSync(jsonPath, 'utf8');
-          const quizItems = JSON.parse(raw);
-
-          const defaultLessonId = await this.getOrCreateDefaultLesson();
-          const lessonTitles: Record<string, string> = {
-            umum: 'Kuis Ekosistem Umum',
-            hutan: 'Kuis Ekosistem Hutan',
-            darat: 'Kuis Ekosistem Darat',
-            laut: 'Kuis Ekosistem Laut',
-            sawah: 'Kuis Ekosistem Sawah',
-          };
-          const lessonMap: Record<string, string> = {};
-
-          const defaultLesson = await this.prisma.lesson.findUnique({ where: { id: defaultLessonId } });
-          const projectId = defaultLesson?.projectId;
-
-          if (projectId) {
-            for (const ecoKey of Object.keys(lessonTitles)) {
-              const title = lessonTitles[ecoKey];
-              let lesson = await this.prisma.lesson.findFirst({ where: { title, projectId } });
-              if (!lesson) {
-                lesson = await this.prisma.lesson.create({
-                  data: {
-                    title,
-                    content: `Kuis Interaktif Ekosistem ${ecoKey}`,
-                    projectId,
-                  },
-                });
-              }
-              lessonMap[ecoKey] = lesson.id;
-            }
+        // Step 1: Pastikan ada project
+        let project = await this.prisma.project.findFirst();
+        if (!project) {
+          let teacher = await this.prisma.user.findFirst({ where: { role: 'TEACHER' } });
+          if (!teacher) {
+            teacher = await this.prisma.user.findFirst();
           }
-
-          let seeded = 0;
-          for (const item of quizItems) {
-            const lessonId = lessonMap[item.ecosystem] || defaultLessonId;
-            await this.prisma.quiz.create({
+          if (!teacher) {
+            teacher = await this.prisma.user.create({
               data: {
-                lessonId,
-                question: item.question.trim(),
-                options: item.options,
-                correctAnswer: item.correctAnswer.trim(),
+                name: 'Guru EduAR System',
+                email: 'system@eduar.internal',
+                password_hash: '$2b$10$abcdefghijklmnopqrstuuvwxyz',
+                role: 'TEACHER',
               },
             });
-            seeded++;
           }
-          console.log(`✅ Auto-seeded ${seeded} quiz questions into PostgreSQL database successfully!`);
-        } else {
-          console.warn('⚠️ bank-soal-kuis-ekosistem-SD.json not found in paths:', candidatePaths);
+          project = await this.prisma.project.create({
+            data: {
+              title: 'Proyek Ekosistem & Kuis SD',
+              description: 'Proyek default untuk kuis interaktif ekosistem SD',
+              creatorId: teacher.id,
+            },
+          });
+          console.log(`✅ [Seed] Created default project: ${project.id}`);
         }
+
+        // Step 2: Buat/cari semua lesson berdasarkan kategori ekosistem
+        const lessonMap: Record<string, string> = {};
+        for (const [ecoKey, lessonTitle] of Object.entries(LESSON_TITLE_MAP)) {
+          let lesson = await this.prisma.lesson.findFirst({
+            where: { title: lessonTitle, projectId: project.id },
+          });
+          if (!lesson) {
+            lesson = await this.prisma.lesson.create({
+              data: {
+                title: lessonTitle,
+                content: `Kuis Interaktif Ekosistem ${ecoKey} untuk Siswa SD`,
+                projectId: project.id,
+              },
+            });
+            console.log(`✅ [Seed] Created lesson: ${lessonTitle}`);
+          }
+          lessonMap[ecoKey] = lesson.id;
+        }
+
+        // Step 3: Insert semua soal kuis dari embedded QUIZ_BANK
+        let seeded = 0;
+        for (const item of QUIZ_BANK) {
+          const lessonId = lessonMap[item.ecosystem] || lessonMap['umum'];
+          await this.prisma.quiz.create({
+            data: {
+              lessonId,
+              question: item.question.trim(),
+              options: item.options,
+              correctAnswer: item.correctAnswer.trim(),
+            },
+          });
+          seeded++;
+        }
+        console.log(`✅ [QuizzesService] Auto-seeded ${seeded}/${QUIZ_BANK.length} soal ke Neon PostgreSQL berhasil!`);
+      } else {
+        console.log(`[QuizzesService] DB sudah ada ${count} soal, skip auto-seed.`);
       }
     } catch (err) {
-      console.error('⚠️ Auto-seed quizzes error:', err);
+      console.error('[QuizzesService] ❌ Auto-seed error:', err);
     }
   }
 
@@ -135,17 +139,23 @@ export class QuizzesService implements OnModuleInit {
 
   async create(dto: CreateQuizDto, teacherId?: string) {
     let targetLessonId = dto.lessonId;
+
     if (!targetLessonId) {
-      targetLessonId = await this.getOrCreateDefaultLesson(teacherId);
-    } else {
-      const lesson = await this.prisma.lesson.findUnique({
-        where: { id: targetLessonId },
-      });
-      if (!lesson) {
+      // Find any existing lesson (seeding should have created lessons already)
+      const anyLesson = await this.prisma.lesson.findFirst();
+      if (anyLesson) {
+        targetLessonId = anyLesson.id;
+      } else {
+        // Fallback: create lesson + project if none exist at all
         targetLessonId = await this.getOrCreateDefaultLesson(teacherId);
       }
+    } else {
+      const lesson = await this.prisma.lesson.findUnique({ where: { id: targetLessonId } });
+      if (!lesson) {
+        const anyLesson = await this.prisma.lesson.findFirst();
+        targetLessonId = anyLesson?.id || await this.getOrCreateDefaultLesson(teacherId);
+      }
     }
-
 
     if (!Array.isArray(dto.options) || dto.options.length < 2) {
       throw new BadRequestException('Pilihan kuis harus berupa array dengan minimal 2 opsi');
