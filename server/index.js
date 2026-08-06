@@ -339,6 +339,11 @@ app.use('/uploads', express.static(ASSETS_DIR, {
 const CLIENT_DIR = path.join(__dirname, '..', 'client');
 app.use(express.static(CLIENT_DIR));
 
+app.get(['/login', '/register'], (req, res) => {
+  res.sendFile(path.join(CLIENT_DIR, 'index.html'));
+});
+
+
 // ─── Helper: format date in Indonesian ─────────────────────────────────────────
 function formatDateId(isoStr) {
   return new Date(isoStr).toLocaleDateString('id-ID', {

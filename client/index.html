@@ -121,52 +121,84 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-secondary-container selection:text-on-surface">
 
-  <!-- TOP NAVIGATION BAR (LEGACY LIGHT THEME) -->
-  <header class="bg-surface-lowest border-b-2 border-surface-variant px-6 py-4 sticky top-0 z-50 shadow-sm">
+  <!-- TOP NAVIGATION BAR (RESPONSIVE) -->
+  <header class="bg-surface-lowest/90 backdrop-blur-md border-b-2 border-surface-variant px-4 sm:px-8 py-3.5 sticky top-0 z-50 shadow-sm transition-all">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
-        <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-md">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer select-none group" onclick="switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-all">
           <span class="material-symbols-outlined text-2xl">view_in_ar</span>
         </div>
         <div>
-          <h1 class="text-xl font-bold text-primary tracking-tight">Magic AR <span class="bg-secondary-container text-on-surface px-2 py-0.5 rounded-lg text-sm font-bold">Edu</span></h1>
-          <p class="text-xs text-outline font-semibold">Ubah Model 3D & Ekosistem Jadi Ajaib!</p>
+          <h1 class="text-xl font-extrabold text-primary tracking-tight flex items-center gap-1.5">
+            Magic AR <span class="bg-secondary-container text-on-surface px-2 py-0.5 rounded-lg text-xs font-black">Edu</span>
+          </h1>
+          <p class="text-[11px] text-outline font-bold hidden sm:block">Platform Pembelajaran AR & Kuis Interaktif</p>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center space-x-2 bg-surface-container p-1.5 rounded-2xl">
-        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="active-tab px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">dashboard</span> Beranda & Analytics
+      <!-- Desktop Navigation Tabs (Visible on Large Screens) -->
+      <nav class="hidden lg:flex items-center space-x-1.5 bg-surface-container/70 border border-surface-variant p-1.5 rounded-2xl">
+        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="active-tab px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">dashboard</span> Beranda & Analytics
         </button>
-        <button id="tab-btn-studio" onclick="switchTab('studio')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">view_in_ar</span> AR Studio
+        <button id="tab-btn-studio" onclick="switchTab('studio')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">view_in_ar</span> AR Studio
         </button>
-        <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">quiz</span> Kuis Interaktif
+        <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">quiz</span> Kuis Interaktif
         </button>
-        <button id="tab-btn-unity" onclick="switchTab('unity')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">sports_esports</span> Unity Assemblr
+        <button id="tab-btn-unity" onclick="switchTab('unity')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">sports_esports</span> Unity Assemblr
         </button>
-        <button id="tab-btn-logs" onclick="switchTab('logs')" class="px-4 py-2 rounded-xl text-sm font-bold text-on-surface hover:bg-white transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-lg">analytics</span> Activity Log
+        <button id="tab-btn-logs" onclick="switchTab('logs')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">analytics</span> Activity Log
         </button>
       </nav>
 
-      <!-- Auth Controls -->
-      <div class="flex items-center space-x-3" id="auth-header-container">
-        <button onclick="openAuthModal('login')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
-          Masuk
-        </button>
-        <button onclick="openAuthModal('register')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
-          Daftar Siswa/Guru
+      <!-- Right Auth Controls & Mobile Hamburger Toggle -->
+      <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2" id="auth-header-container">
+          <button onclick="openAuthModal('login')" class="chunky-button px-4 py-2 rounded-xl text-xs font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
+            Masuk
+          </button>
+          <button onclick="openAuthModal('register')" class="chunky-button px-4 py-2 rounded-xl text-xs font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
+            Daftar Siswa/Guru
+          </button>
+        </div>
+
+        <!-- Mobile Menu Toggle Button (Visible on Small/Medium Screens) -->
+        <button id="mobile-menu-toggle-btn" onclick="toggleMobileMenu()" class="lg:hidden p-2 rounded-xl text-on-surface hover:bg-surface-container border border-surface-variant transition-all flex items-center justify-center">
+          <span id="hamburger-icon-symbol" class="material-symbols-outlined text-2xl">menu</span>
         </button>
       </div>
+
+    </div>
+
+    <!-- Mobile Drawer Collapsible Navigation -->
+    <div id="mobile-nav-drawer" class="hidden lg:hidden border-t-2 border-surface-variant bg-white px-4 py-4 space-y-2 shadow-lg mt-3 rounded-2xl animate-fadeIn">
+      <button id="tab-btn-dashboard-mobile" onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">dashboard</span> Beranda & Analytics
+      </button>
+      <button id="tab-btn-studio-mobile" onclick="switchTab('studio'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">view_in_ar</span> AR Studio Creator
+      </button>
+      <button id="tab-btn-quiz-mobile" onclick="switchTab('quiz'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-emerald-600">quiz</span> Kuis Interaktif
+      </button>
+      <button id="tab-btn-unity-mobile" onclick="switchTab('unity'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-amber-600">sports_esports</span> Unity Assemblr
+      </button>
+      <button id="tab-btn-logs-mobile" onclick="switchTab('logs'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">analytics</span> Activity Log Audit
+      </button>
     </div>
   </header>
 
   <!-- MAIN CONTAINER -->
   <main class="max-w-7xl mx-auto px-6 py-8 flex-grow w-full space-y-8">
+
 
     <!-- HERO SECTION (LIGHT THEME) -->
     <section class="magic-card rounded-3xl p-8 bg-gradient-to-r from-surface-container-low via-surface to-surface-container relative overflow-hidden">
@@ -385,46 +417,82 @@
     </div>
   </footer>
 
-  <!-- AUTH MODAL POPUP (LIGHT THEME) -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
-    <div class="magic-card max-w-md w-full p-8 rounded-3xl space-y-6 relative border-2 border-primary/20">
-      <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-on-surface">
-        <span class="material-symbols-outlined">close</span>
+  <!-- AUTH MODAL POPUP (REDESIGNED GLASSMORPHISM LIGHT THEME) -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+    <div class="magic-card max-w-md w-full p-8 rounded-3xl space-y-6 relative border-2 border-primary/20 bg-white shadow-2xl animate-fadeIn">
+      
+      <!-- Close Button -->
+      <button onclick="closeAuthModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-surface-container/60 hover:bg-surface-variant flex items-center justify-center text-outline hover:text-on-surface transition-all">
+        <span class="material-symbols-outlined text-xl">close</span>
       </button>
       
-      <div class="text-center space-y-1">
-        <h3 id="modal-title" class="text-2xl font-extrabold text-on-surface">Masuk ke Magic AR Edu</h3>
-        <p class="text-xs text-on-surface/70 font-medium">Gunakan akun Guru atau Siswa untuk melanjutkan</p>
+      <!-- Header Branding -->
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary to-primary-container text-white flex items-center justify-center mx-auto shadow-md">
+          <span class="material-symbols-outlined text-3xl">view_in_ar</span>
+        </div>
+        <h3 id="modal-title" class="text-2xl font-extrabold text-on-surface tracking-tight">Masuk ke Magic AR Edu</h3>
+        <p id="modal-subtitle" class="text-xs text-on-surface/70 font-medium max-w-xs mx-auto">Masukkan email & kata sandi untuk mengakses platform</p>
       </div>
 
+      <!-- Auth Form -->
       <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        
+        <!-- Field: Full Name (Register Mode) -->
         <div id="field-name-group" class="hidden space-y-1">
-          <label class="text-xs font-bold text-on-surface">Nama Lengkap</label>
-          <input type="text" id="auth-name" class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="Nama Anda"/>
+          <label class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-base">person</span> Nama Lengkap
+          </label>
+          <input type="text" id="auth-name" class="w-full px-4 py-3 rounded-2xl bg-surface-container/50 border border-surface-variant text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-semibold transition-all" placeholder="Contoh: Budi Santoso"/>
         </div>
 
+        <!-- Field: Email -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-on-surface">Email</label>
-          <input type="email" id="auth-email" required class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="nama@eduar.com"/>
+          <label class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-base">mail</span> Email
+          </label>
+          <input type="email" id="auth-email" required class="w-full px-4 py-3 rounded-2xl bg-surface-container/50 border border-surface-variant text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-semibold transition-all" placeholder="nama@eduar.com"/>
         </div>
 
+        <!-- Field: Password with Eye Toggle -->
         <div class="space-y-1">
-          <label class="text-xs font-bold text-on-surface">Kata Sandi</label>
-          <input type="password" id="auth-password" required class="w-full px-4 py-2.5 rounded-xl bg-surface-container border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-semibold" placeholder="••••••••"/>
+          <label class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-base">lock</span> Kata Sandi
+          </label>
+          <div class="relative">
+            <input type="password" id="auth-password" required class="w-full pl-4 pr-12 py-3 rounded-2xl bg-surface-container/50 border border-surface-variant text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-semibold transition-all" placeholder="••••••••"/>
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors">
+              <span id="pass-eye-icon" class="material-symbols-outlined text-xl">visibility</span>
+            </button>
+          </div>
         </div>
 
+        <!-- Field: Role Select (Register Mode) -->
         <div id="field-role-group" class="hidden space-y-1">
-          <label class="text-xs font-bold text-on-surface">Peran Pengguna (Role)</label>
-          <select id="auth-role" class="w-full px-4 py-2.5 rounded-xl bg-white border border-surface-variant text-on-surface focus:outline-none focus:border-primary text-sm font-bold">
-            <option value="STUDENT">Siswa (Student)</option>
-            <option value="TEACHER">Guru (Teacher)</option>
+          <label class="text-xs font-bold text-on-surface flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-primary text-base">badge</span> Peran Pengguna (Role)
+          </label>
+          <select id="auth-role" class="w-full px-4 py-3 rounded-2xl bg-white border border-surface-variant text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-bold shadow-xs">
+            <option value="STUDENT">👨‍🎓 Siswa (Student)</option>
+            <option value="TEACHER">👨‍🏫 Guru (Teacher)</option>
           </select>
         </div>
 
-        <button type="submit" id="auth-submit-btn" class="chunky-button w-full py-3 rounded-xl font-bold bg-primary text-white hover:bg-primary-container transition-all">
-          Masuk Sekarang
+        <!-- Submit Button with Spinner -->
+        <button type="submit" id="auth-submit-btn" class="chunky-button w-full py-3.5 rounded-2xl font-bold bg-primary text-white hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2">
+          <span id="auth-btn-spinner" class="hidden animate-spin material-symbols-outlined text-lg">progress_activity</span>
+          <span id="auth-btn-text">Masuk Sekarang</span>
         </button>
       </form>
+
+      <!-- Toggle Switch Login / Register Link -->
+      <div class="text-center pt-2 border-t border-surface-variant/60">
+        <p class="text-xs font-semibold text-on-surface/70">
+          <span id="auth-switch-text">Belum punya akun?</span>
+          <a href="javascript:void(0)" onclick="toggleAuthMode()" class="text-primary font-bold hover:underline ml-1" id="auth-switch-link">Daftar di sini</a>
+        </p>
+      </div>
+
     </div>
   </div>
 
@@ -444,7 +512,54 @@
     window.addEventListener('DOMContentLoaded', async () => {
       await checkPersistedSession();
       loadDashboardData();
+
+      // Auto-open modal or auto-redirect for /login & /register URLs
+      const path = window.location.pathname;
+      if (path === '/login') {
+        if (currentUser) {
+          showToast(`Anda sudah masuk sebagai ${currentUser.name} (${currentUser.role})`);
+          window.history.replaceState({}, '', '/');
+        } else {
+          openAuthModal('login');
+        }
+      } else if (path === '/register') {
+        if (currentUser) {
+          showToast(`Anda sudah masuk sebagai ${currentUser.name} (${currentUser.role})`);
+          window.history.replaceState({}, '', '/');
+        } else {
+          openAuthModal('register');
+        }
+      }
     });
+
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobile-nav-drawer');
+      const icon = document.getElementById('hamburger-icon-symbol');
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        icon.innerText = 'close';
+      } else {
+        drawer.classList.add('hidden');
+        icon.innerText = 'menu';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const passInput = document.getElementById('auth-password');
+      const eyeIcon = document.getElementById('pass-eye-icon');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.innerText = 'visibility_off';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.innerText = 'visibility';
+      }
+    }
+
+    function toggleAuthMode() {
+      const newMode = activeAuthMode === 'login' ? 'register' : 'login';
+      openAuthModal(newMode);
+    }
 
     function parseJwt(token) {
       try {
@@ -587,20 +702,29 @@
       activeAuthMode = mode;
       const modal = document.getElementById('auth-modal');
       const title = document.getElementById('modal-title');
-      const submitBtn = document.getElementById('auth-submit-btn');
+      const subtitle = document.getElementById('modal-subtitle');
+      const submitText = document.getElementById('auth-btn-text');
       const fieldName = document.getElementById('field-name-group');
       const fieldRole = document.getElementById('field-role-group');
+      const switchText = document.getElementById('auth-switch-text');
+      const switchLink = document.getElementById('auth-switch-link');
 
       if (mode === 'register') {
-        title.innerText = 'Daftar Akun Baru (Siswa / Guru)';
-        submitBtn.innerText = 'Daftar Sekarang';
+        title.innerText = 'Daftar Akun Baru';
+        subtitle.innerText = 'Pilih peran sebagai Siswa atau Guru untuk mulai belajar';
+        submitText.innerText = 'Daftar Sekarang';
         fieldName.classList.remove('hidden');
         fieldRole.classList.remove('hidden');
+        switchText.innerText = 'Sudah punya akun?';
+        switchLink.innerText = 'Masuk di sini';
       } else {
         title.innerText = 'Masuk ke Magic AR Edu';
-        submitBtn.innerText = 'Masuk Sekarang';
+        subtitle.innerText = 'Masukkan email & kata sandi untuk mengakses platform';
+        submitText.innerText = 'Masuk Sekarang';
         fieldName.classList.add('hidden');
         fieldRole.classList.add('hidden');
+        switchText.innerText = 'Belum punya akun?';
+        switchLink.innerText = 'Daftar di sini';
       }
 
       modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -617,6 +741,13 @@
       const password = document.getElementById('auth-password').value;
       const name = document.getElementById('auth-name').value;
       const role = document.getElementById('auth-role').value;
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const spinner = document.getElementById('auth-btn-spinner');
+      const submitText = document.getElementById('auth-btn-text');
+
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      submitText.innerText = activeAuthMode === 'register' ? 'Mendaftarkan...' : 'Memproses...';
 
       try {
         const endpoint = activeAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
@@ -646,6 +777,10 @@
         }
       } catch (err) {
         showToast('Error koneksi server', true);
+      } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('hidden');
+        submitText.innerText = activeAuthMode === 'register' ? 'Daftar Sekarang' : 'Masuk Sekarang';
       }
     }
 

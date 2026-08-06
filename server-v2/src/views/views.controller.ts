@@ -53,4 +53,19 @@ export class ViewsController {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
   }
+
+  @Get('login')
+  async getLoginPage(@Res() res: any) {
+    const html = await this.viewsService.renderHomepage();
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
+  @Get('register')
+  async getRegisterPage(@Res() res: any) {
+    const html = await this.viewsService.renderHomepage();
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
 }
+
