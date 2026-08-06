@@ -776,9 +776,12 @@
       }
     }
 
+    let activeSplitAuthMode = 'login';
+
     function togglePasswordVisibility() {
       const passInput = document.getElementById('auth-password');
       const eyeIcon = document.getElementById('pass-eye-icon');
+      if (!passInput || !eyeIcon) return;
       if (passInput.type === 'password') {
         passInput.type = 'text';
         eyeIcon.innerText = 'visibility_off';
@@ -788,10 +791,115 @@
       }
     }
 
-    function toggleAuthMode() {
-      const newMode = activeAuthMode === 'login' ? 'register' : 'login';
-      openAuthModal(newMode);
+    function toggleSplitPasswordVisibility() {
+      const passInput = document.getElementById('split-auth-password');
+      const eyeIcon = document.getElementById('split-pass-eye-icon');
+      if (!passInput || !eyeIcon) return;
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.innerText = 'visibility_off';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.innerText = 'visibility';
+      }
     }
+
+
+    function toggleSplitAuthMode() {
+      activeSplitAuthMode = activeSplitAuthMode === 'login' ? 'register' : 'login';
+      updateSplitAuthFormUI();
+    }
+
+    function updateSplitAuthFormUI() {
+      const title = document.getElementById('split-form-title');
+      const subtitle = document.getElementById('split-form-subtitle');
+      const nameGroup = document.getElementById('split-field-name-group');
+      const roleGroup = document.getElementById('split-field-role-group');
+      const btnText = document.getElementById('split-auth-btn-text');
+      const switchText = document.getElementById('split-switch-text');
+      const switchLink = document.getElementById('split-switch-link');
+
+      if (!title) return;
+
+      if (activeSplitAuthMode === 'register') {
+        title.innerText = 'DAFTAR AKUN BARU';
+        subtitle.innerText = 'Lengkapi data Anda untuk mendaftar sebagai Siswa atau Guru';
+        nameGroup?.classList.remove('hidden');
+        roleGroup?.classList.remove('hidden');
+        btnText.innerText = 'DAFTAR SEKARANG';
+        switchText.innerText = 'Sudah memiliki akun?';
+        switchLink.innerText = 'Masuk di sini';
+      } else {
+        title.innerText = 'MASUK';
+        subtitle.innerText = 'Masukkan email & kata sandi akun Anda untuk melanjutkan';
+        nameGroup?.classList.add('hidden');
+        roleGroup?.classList.add('hidden');
+        btnText.innerText = 'MASUK SEKARANG';
+        switchText.innerText = 'Belum memiliki akun?';
+        switchLink.innerText = 'Daftar Akun Baru';
+      }
+    }
+
+    async function handleSplitAuthSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const emailEl = document.getElementById('split-auth-email');
+      const passEl = document.getElementById('split-auth-password');
+      const nameEl = document.getElementById('split-auth-name');
+      const roleEl = document.getElementById('split-auth-role');
+
+      if (!emailEl || !passEl) return;
+
+      const email = emailEl.value;
+      const password = passEl.value;
+      const name = nameEl ? nameEl.value : '';
+      const role = roleEl ? roleEl.value : 'STUDENT';
+
+      const submitBtn = document.getElementById('split-auth-submit-btn');
+      const spinner = document.getElementById('split-auth-spinner');
+      const btnText = document.getElementById('split-auth-btn-text');
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (spinner) spinner.classList.remove('hidden');
+      if (btnText) btnText.innerText = activeSplitAuthMode === 'register' ? 'MENDAFTARKAN...' : 'MEMPROSES...';
+
+      try {
+        const endpoint = activeSplitAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const body = activeSplitAuthMode === 'register'
+          ? { email, password, name, role }
+          : { email, password, device: 'web-dashboard' };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || (activeSplitAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!'));
+          if (data.accessToken) localStorage.setItem('eduar_token', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('eduar_refresh_token', data.refreshToken);
+          if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('eduar_user', JSON.stringify(data.user));
+            updateUserHeader(data.user);
+            loadDashboardData();
+          }
+          if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            window.history.replaceState({}, '', '/');
+          }
+        } else {
+          showToast(data.message || data.error || 'Gagal memproses autentikasi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (btnText) btnText.innerText = activeSplitAuthMode === 'register' ? 'DAFTAR SEKARANG' : 'MASUK SEKARANG';
+      }
+    }
+
 
 
     function parseJwt(token) {
