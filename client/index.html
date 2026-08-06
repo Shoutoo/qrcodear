@@ -642,6 +642,174 @@
           </table>
         </div>
       </div>
+    <!-- TAB: PROFIL SAYA & EDIT DATA DIRI -->
+    <div id="section-profile" class="hidden space-y-6">
+      <!-- Top Action Bar -->
+      <div class="magic-card p-6 rounded-3xl flex flex-wrap items-center justify-between gap-4 border border-surface-variant">
+        <div class="flex items-center gap-3">
+          <button onclick="switchTab('dashboard')" class="chunky-button px-4 py-2.5 rounded-xl text-xs font-black bg-surface-container text-on-surface hover:bg-surface-variant transition-all flex items-center gap-2 border border-surface-variant shadow-xs">
+            <span class="material-symbols-outlined text-base">arrow_back</span> Kembali ke Dashboard
+          </button>
+          <div>
+            <h3 class="text-xl font-black text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-2xl">account_circle</span> Profil & Pengaturan Data Diri
+            </h3>
+            <p id="profile-page-subtitle" class="text-xs text-on-surface/70 font-medium">Kelola informasi data diri akun Anda di Magic AR Edu</p>
+          </div>
+        </div>
+        <span id="profile-role-badge" class="px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black border border-primary/20 flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span> Mode Profil Aktif
+        </span>
+      </div>
+
+      <!-- Main Profile Form Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Side: Profile Summary Card -->
+        <div class="lg:col-span-1 space-y-6">
+          <div class="magic-card p-6 rounded-3xl text-center space-y-4 border border-surface-variant relative overflow-hidden">
+            <div class="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-tr from-primary/20 via-purple-100 to-amber-100 border-2 border-primary/30 flex items-center justify-center text-4xl shadow-inner relative group">
+              <span id="profile-avatar-display" class="select-none">🦁</span>
+            </div>
+            <div>
+              <h4 id="profile-card-name" class="text-lg font-black text-on-surface">Nama Pengguna</h4>
+              <p id="profile-card-email" class="text-xs font-medium text-on-surface/60">email@domain.com</p>
+            </div>
+            <div class="pt-2 border-t border-surface-variant flex justify-center gap-2">
+              <span id="profile-card-role-tag" class="px-3 py-1 rounded-xl bg-purple-100 text-purple-800 text-[11px] font-black uppercase">STUDENT</span>
+            </div>
+          </div>
+
+          <div class="magic-card p-6 rounded-3xl space-y-3 bg-purple-50/50 border border-purple-100">
+            <h5 class="text-xs font-extrabold text-purple-950 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-purple-600 text-base">verified_user</span> Keamanan & Hak Akses
+            </h5>
+            <p class="text-xs text-purple-900/80 font-medium leading-relaxed">
+              Data diri Anda tersimpan secara aman pada PostgreSQL DB EduAR Platform. Anda dapat memperbarui nama, instansi sekolah, dan avatar pilihan kapan saja.
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Side: Tailored Form Inputs -->
+        <div class="lg:col-span-2">
+          <form onsubmit="handleSaveProfileSubmit(event)" class="magic-card p-6 sm:p-8 rounded-3xl space-y-6 border border-surface-variant">
+            
+            <!-- Dynamic Role Section: SISWA (Anak SD) -->
+            <div id="profile-form-siswa-fields" class="space-y-6">
+              <div class="border-b border-surface-variant pb-3">
+                <h4 class="text-base font-extrabold text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600">face</span> Informasi Siswa SD
+                </h4>
+                <p class="text-xs text-outline font-medium">Lengkapi data sekolah, kelas, dan avatar maskot kesukaanmu!</p>
+              </div>
+
+              <!-- Avatar Selection Grid -->
+              <div class="space-y-2">
+                <label class="text-xs font-bold text-on-surface/80">Pilih Avatar Maskot AR Favoritmu:</label>
+                <div class="grid grid-cols-5 gap-2" id="avatar-selector-grid">
+                  <button type="button" onclick="selectProfileAvatar('🦁')" class="avatar-option p-3 rounded-2xl border-2 border-primary bg-primary/10 text-2xl flex items-center justify-center hover:scale-105 transition-all">🦁</button>
+                  <button type="button" onclick="selectProfileAvatar('🐬')" class="avatar-option p-3 rounded-2xl border-2 border-surface-variant bg-white text-2xl flex items-center justify-center hover:scale-105 transition-all">🐬</button>
+                  <button type="button" onclick="selectProfileAvatar('🦅')" class="avatar-option p-3 rounded-2xl border-2 border-surface-variant bg-white text-2xl flex items-center justify-center hover:scale-105 transition-all">🦅</button>
+                  <button type="button" onclick="selectProfileAvatar('🌿')" class="avatar-option p-3 rounded-2xl border-2 border-surface-variant bg-white text-2xl flex items-center justify-center hover:scale-105 transition-all">🌿</button>
+                  <button type="button" onclick="selectProfileAvatar('🦊')" class="avatar-option p-3 rounded-2xl border-2 border-surface-variant bg-white text-2xl flex items-center justify-center hover:scale-105 transition-all">🦊</button>
+                </div>
+                <input type="hidden" id="profile-siswa-avatar" value="🦁"/>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Nama Lengkap Siswa</label>
+                  <input type="text" id="profile-siswa-name" required placeholder="Nama lengkap siswa" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Email Akun (Non-Ubah)</label>
+                  <input type="email" id="profile-siswa-email" readonly disabled class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-surface-container/60 text-xs font-bold text-on-surface/60 cursor-not-allowed"/>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Kelas / Tingkat SD</label>
+                  <select id="profile-siswa-grade" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary">
+                    <option value="Kelas 4 SD">🏫 Kelas 4 SD</option>
+                    <option value="Kelas 5 SD">🏫 Kelas 5 SD</option>
+                    <option value="Kelas 6 SD">🏫 Kelas 6 SD</option>
+                    <option value="Kelas 1 SD">🏫 Kelas 1 SD</option>
+                    <option value="Kelas 2 SD">🏫 Kelas 2 SD</option>
+                    <option value="Kelas 3 SD">🏫 Kelas 3 SD</option>
+                  </select>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Nama Sekolah SD</label>
+                  <input type="text" id="profile-siswa-school" placeholder="Contoh: SD Negeri 1 Merdeka" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-xs font-bold text-on-surface/80">Cita-cita atau Hobi Siswa</label>
+                <input type="text" id="profile-siswa-hobby" placeholder="Contoh: Ingin jadi ilmuwan alam & suka eksplorasi hewan AR" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-medium focus:outline-none focus:border-primary"/>
+              </div>
+            </div>
+
+            <!-- Dynamic Role Section: GURU -->
+            <div id="profile-form-guru-fields" class="hidden space-y-6">
+              <div class="border-b border-surface-variant pb-3">
+                <h4 class="text-base font-extrabold text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-purple-600">school</span> Informasi Tenaga Pendidik (Guru)
+                </h4>
+                <p class="text-xs text-outline font-medium">Lengkapi identitas guru, NIP, instansi sekolah, dan spesialisasi materi.</p>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Nama Lengkap & Gelar Guru</label>
+                  <input type="text" id="profile-guru-name" required placeholder="Contoh: Bapak Guru Test, S.Pd." class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Email Akun Guru (Non-Ubah)</label>
+                  <input type="email" id="profile-guru-email" readonly disabled class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-surface-container/60 text-xs font-bold text-on-surface/60 cursor-not-allowed"/>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">NIP / Nomor Induk Pendidik (Opsional)</label>
+                  <input type="text" id="profile-guru-nip" placeholder="Contoh: 198501012010011005" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Nama Sekolah / Instansi Mengajar</label>
+                  <input type="text" id="profile-guru-school" placeholder="Contoh: SD Negeri 1 Merdeka" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Mata Pelajaran / Spesialisasi</label>
+                  <input type="text" id="profile-guru-subject" placeholder="Contoh: IPA, Ekosistem & AR Pembelajaran SD" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+
+                <div class="space-y-1">
+                  <label class="text-xs font-bold text-on-surface/80">Nomor Kontak WhatsApp / Telp</label>
+                  <input type="text" id="profile-guru-whatsapp" placeholder="Contoh: 081234567890" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-bold focus:outline-none focus:border-primary"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button Footer -->
+            <div class="pt-4 border-t border-surface-variant flex items-center justify-between gap-4">
+              <button type="button" onclick="switchTab('dashboard')" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-surface-container text-on-surface hover:bg-surface-variant transition-all">
+                ← Batal & Kembali
+              </button>
+              <button type="submit" id="btn-submit-save-profile" class="chunky-button px-6 py-2.5 rounded-xl text-xs font-extrabold bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-2 shadow-md">
+                <span class="material-symbols-outlined text-sm">save</span> Simpan Perubahan Profil
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -770,7 +938,7 @@
       loadDashboardData();
 
       const rawPath = path.replace(/^\//, '');
-      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs'];
+      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs', 'profile'];
       const initialTab = validTabs.includes(rawPath) ? rawPath : 'dashboard';
       if (initialTab !== 'dashboard') {
         switchTab(initialTab, false);
@@ -786,7 +954,7 @@
 
     window.addEventListener('popstate', () => {
       const path = window.location.pathname.replace(/^\//, '');
-      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs'];
+      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs', 'profile'];
       const targetTab = validTabs.includes(path) ? path : 'dashboard';
       switchTab(targetTab, false);
     });
@@ -1272,7 +1440,7 @@
       }
 
       currentTabName = tabName;
-      const tabs = ['dashboard', 'materi', 'quiz', 'studio', 'unity', 'logs'];
+      const tabs = ['dashboard', 'materi', 'quiz', 'studio', 'unity', 'logs', 'profile'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const sec = document.getElementById(`section-${t}`);
@@ -1291,6 +1459,8 @@
         renderMateriDashboard();
       } else if (tabName === 'quiz') {
         filterSiswaQuizzesByLesson(currentSiswaLessonFilter);
+      } else if (tabName === 'profile') {
+        loadProfileFormData();
       }
 
       if (updateUrl) {
@@ -2545,6 +2715,134 @@
 
       const quizSec = document.getElementById('section-quiz');
       if (quizSec) quizSec.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ─── PAGE PROFIL SAYA & EDIT DATA DIRI HANDLERS ─────────────────────
+    function selectProfileAvatar(emoji) {
+      document.getElementById('profile-siswa-avatar').value = emoji;
+      document.getElementById('profile-avatar-display').innerText = emoji;
+
+      const buttons = document.querySelectorAll('#avatar-selector-grid .avatar-option');
+      buttons.forEach(btn => {
+        if (btn.innerText.trim() === emoji) {
+          btn.classList.add('border-primary', 'bg-primary/10');
+          btn.classList.remove('border-surface-variant', 'bg-white');
+        } else {
+          btn.classList.remove('border-primary', 'bg-primary/10');
+          btn.classList.add('border-surface-variant', 'bg-white');
+        }
+      });
+    }
+
+    function loadProfileFormData() {
+      if (!currentUser) return;
+      const isStudent = (currentUser.role === 'STUDENT');
+      const isTeacher = (currentUser.role === 'TEACHER' || currentUser.role === 'ADMIN');
+
+      const siswaFields = document.getElementById('profile-form-siswa-fields');
+      const guruFields = document.getElementById('profile-form-guru-fields');
+      const roleTag = document.getElementById('profile-card-role-tag');
+      const avatarDisplay = document.getElementById('profile-avatar-display');
+
+      document.getElementById('profile-card-name').innerText = currentUser.name;
+      document.getElementById('profile-card-email').innerText = currentUser.email;
+
+      if (roleTag) {
+        roleTag.innerText = currentUser.role;
+        roleTag.className = `px-3 py-1 rounded-xl text-[11px] font-black uppercase ${isTeacher ? 'bg-amber-100 text-amber-900' : 'bg-purple-100 text-purple-900'}`;
+      }
+
+      if (isStudent) {
+        if (siswaFields) siswaFields.classList.remove('hidden');
+        if (guruFields) guruFields.classList.add('hidden');
+
+        document.getElementById('profile-siswa-name').value = currentUser.name || '';
+        document.getElementById('profile-siswa-email').value = currentUser.email || '';
+        document.getElementById('profile-siswa-grade').value = currentUser.gradeClass || 'Kelas 4 SD';
+        document.getElementById('profile-siswa-school').value = currentUser.school || '';
+        document.getElementById('profile-siswa-hobby').value = currentUser.bioHobby || '';
+        
+        const avatar = currentUser.avatar || '🦁';
+        selectProfileAvatar(avatar);
+      } else {
+        if (guruFields) guruFields.classList.remove('hidden');
+        if (siswaFields) siswaFields.classList.add('hidden');
+
+        document.getElementById('profile-guru-name').value = currentUser.name || '';
+        document.getElementById('profile-guru-email').value = currentUser.email || '';
+        document.getElementById('profile-guru-nip').value = currentUser.nip || '';
+        document.getElementById('profile-guru-school').value = currentUser.school || '';
+        document.getElementById('profile-guru-subject').value = currentUser.subject || 'IPA & Ekosistem SD';
+        document.getElementById('profile-guru-whatsapp').value = currentUser.whatsapp || '';
+
+        if (avatarDisplay) avatarDisplay.innerText = '👨‍🏫';
+      }
+    }
+
+    async function handleSaveProfileSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (!currentUser) return;
+
+      const isStudent = (currentUser.role === 'STUDENT');
+      const token = localStorage.getItem('eduar_token');
+      const btn = document.getElementById('btn-submit-save-profile');
+
+      let payload = {};
+      if (isStudent) {
+        const name = document.getElementById('profile-siswa-name').value.trim();
+        const gradeClass = document.getElementById('profile-siswa-grade').value;
+        const school = document.getElementById('profile-siswa-school').value.trim();
+        const bioHobby = document.getElementById('profile-siswa-hobby').value.trim();
+        const avatar = document.getElementById('profile-siswa-avatar').value;
+
+        if (!name) {
+          showToast('Nama siswa wajib diisi', true);
+          return;
+        }
+
+        payload = { name, gradeClass, school, bioHobby, avatar };
+      } else {
+        const name = document.getElementById('profile-guru-name').value.trim();
+        const nip = document.getElementById('profile-guru-nip').value.trim();
+        const school = document.getElementById('profile-guru-school').value.trim();
+        const subject = document.getElementById('profile-guru-subject').value.trim();
+        const whatsapp = document.getElementById('profile-guru-whatsapp').value.trim();
+
+        if (!name) {
+          showToast('Nama guru wajib diisi', true);
+          return;
+        }
+
+        payload = { name, nip, school, subject, whatsapp };
+      }
+
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/auth/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || 'Profil berhasil diperbarui!');
+          currentUser = { ...currentUser, ...data.user };
+          localStorage.setItem('eduar_user', JSON.stringify(currentUser));
+          updateUserHeader(currentUser);
+          loadProfileFormData();
+        } else {
+          showToast(data.message || 'Gagal memperbarui profil', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function openCreateMateriModal() {

@@ -54,4 +54,22 @@ export declare class AuthController {
         success: boolean;
         message: string;
     }>;
+    updateProfile(req: any, dto: any): Promise<{
+        success: boolean;
+        message: string;
+        user: {
+            school: any;
+            gradeClass: any;
+            bioHobby: any;
+            avatar: any;
+            nip: any;
+            subject: any;
+            whatsapp: any;
+            name: string;
+            id: string;
+            email: string;
+            role: import(".prisma/client").$Enums.Role;
+            createdAt: Date;
+        };
+    }>;
 }

@@ -256,6 +256,42 @@ let AuthService = class AuthService {
             message: 'Kata sandi akun Anda berhasil diperbarui!',
         };
     }
+    async updateProfile(userId, dto) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Pengguna tidak ditemukan');
+        }
+        const newName = dto.name ? dto.name.trim() : user.name;
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: newName,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true,
+            },
+        });
+        return {
+            success: true,
+            message: 'Data profil berhasil diperbarui!',
+            user: {
+                ...updatedUser,
+                school: dto.school || '',
+                gradeClass: dto.gradeClass || '',
+                bioHobby: dto.bioHobby || '',
+                avatar: dto.avatar || '🦁',
+                nip: dto.nip || '',
+                subject: dto.subject || '',
+                whatsapp: dto.whatsapp || '',
+            },
+        };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
