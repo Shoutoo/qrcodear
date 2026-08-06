@@ -1273,6 +1273,8 @@
 
       if (tabName === 'materi') {
         renderMateriDashboard();
+      } else if (tabName === 'quiz') {
+        filterSiswaQuizzesByLesson(currentSiswaLessonFilter);
       }
 
       updateTabHeaderAndMetrics(tabName);
@@ -1564,9 +1566,10 @@
             allRawQuizzes = quizData.quizzes || [];
           }
 
-          // Populate Siswa Quiz Lesson Filter Dropdown & Filter Quizzes
+          // Populate Siswa Quiz Lesson Filter Dropdown, Filter Quizzes, & Render Materi Cards
           populateSiswaLessonFilter();
           filterSiswaQuizzesByLesson(currentSiswaLessonFilter);
+          renderMateriDashboard();
 
         } catch (e) {
           console.warn('Quiz fetch error:', e);
