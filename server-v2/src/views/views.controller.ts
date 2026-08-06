@@ -45,6 +45,16 @@ export class ViewsController {
     res.send(html);
   }
 
+  @Get('print-preset/:id')
+  async getPrintPresetCard(@Param('id') id: string, @Req() req: any, @Res() res: any) {
+    const hostHeader = req.get('host') || 'localhost:3002';
+    const protocol = req.headers['x-forwarded-proto']?.toString() || req.protocol || 'http';
+    const html = await this.viewsService.renderPrintCard(id, hostHeader, protocol);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+
+
   @Get('ecosystem/view/:id')
   async getEcosystemViewer(@Param('id') id: string, @Req() req: any, @Res() res: any) {
     const hostHeader = req.get('host') || 'localhost:3001';

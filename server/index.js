@@ -17,7 +17,8 @@ app.use(cors());
 
 // ─── Proxy API requests to NestJS server (port 3002) ───────────────────────────
 const http = require('http');
-app.use(['/api/auth', '/api/quizzes', '/api/analytics', '/api/unity'], (req, res, next) => {
+app.use(['/api/auth', '/api/quizzes', '/api/analytics', '/api/unity', '/print-preset'], (req, res, next) => {
+
   const options = {
     hostname: 'localhost',
     port: 3002,

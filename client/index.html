@@ -970,9 +970,14 @@
             <h4 class="text-lg font-bold text-on-surface">${p.name}</h4>
             <p class="text-xs text-on-surface/70 font-medium mt-1">Combined GLB auto-bake untuk rantai makanan ekosistem</p>
           </div>
-          <a href="/ecosystem/view/${p.id}" target="_blank" class="chunky-button w-full py-2.5 rounded-xl font-bold bg-primary text-white hover:bg-primary-container text-center text-sm shadow-sm transition-all flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined text-base">ar_on_you</span> Tampilkan AR Viewer
-          </a>
+          <div class="space-y-2.5 w-full pt-2">
+            <a href="/ecosystem/view/${p.id}" target="_blank" class="chunky-button w-full py-2.5 rounded-xl font-bold bg-primary text-white hover:bg-primary-container text-center text-sm shadow-sm transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-base">ar_on_you</span> Tampilkan AR Viewer
+            </a>
+            <a href="/print-preset/${p.id}" target="_blank" class="chunky-button w-full py-2 rounded-xl font-bold bg-white text-primary border-2 border-primary/30 hover:bg-surface-container text-center text-sm transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-base">qr_code_2</span> Cetak Barcode QR
+            </a>
+          </div>
         </div>
       `).join('');
     }
