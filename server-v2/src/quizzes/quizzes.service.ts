@@ -88,7 +88,6 @@ export class QuizzesService implements OnModuleInit {
     }
   }
 
-
   private async getOrCreateDefaultLesson(teacherId?: string): Promise<string> {
     let lesson = await this.prisma.lesson.findFirst();
 
@@ -141,12 +140,10 @@ export class QuizzesService implements OnModuleInit {
     let targetLessonId = dto.lessonId;
 
     if (!targetLessonId) {
-      // Find any existing lesson (seeding should have created lessons already)
       const anyLesson = await this.prisma.lesson.findFirst();
       if (anyLesson) {
         targetLessonId = anyLesson.id;
       } else {
-        // Fallback: create lesson + project if none exist at all
         targetLessonId = await this.getOrCreateDefaultLesson(teacherId);
       }
     } else {
@@ -234,7 +231,6 @@ export class QuizzesService implements OnModuleInit {
       throw new NotFoundException('Kuis tidak ditemukan');
     }
 
-    // Delete attempts first to satisfy foreign key constraint
     await this.prisma.quizAttempt.deleteMany({ where: { quizId: id } });
     await this.prisma.quiz.delete({ where: { id } });
 
@@ -242,9 +238,7 @@ export class QuizzesService implements OnModuleInit {
   }
 
   async submitAnswer(quizId: string, studentId: string, dto: SubmitAnswerDto) {
-    const quiz = await this.prisma.quiz.findUnique({
-      where: { id: quizId },
-    });
+    const quiz = await this.prisma.quiz.findUnique({ where: { id: quizId } });
 
     if (!quiz) {
       throw new NotFoundException('Kuis tidak ditemukan');
@@ -261,7 +255,6 @@ export class QuizzesService implements OnModuleInit {
       },
     });
 
-    // Also record activity log for SUBMIT_QUIZ
     await this.prisma.activityLog.create({
       data: {
         userId: studentId,
@@ -322,5 +315,69 @@ export class QuizzesService implements OnModuleInit {
       attempts,
     };
   }
-}
 
+  // ─── DIAGNOSTIC & MANUAL SEED ────────────────────────────────────────────
+
+  async diagnose() {
+    try {
+      const quizCount = await this.prisma.quiz.count();
+      const lessonCount = await this.prisma.lesson.count();
+      const projectCount = await this.prisma.project.count();
+      const userCount = await this.prisma.user.count();
+      const dbUrl = process.env.DATABASE_URL || 'NOT SET';
+      const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':***@');
+      const isPooled = dbUrl.includes('-pooler.');
+
+      return {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || 'unknown',
+        database: {
+          url_preview: maskedUrl,
+          is_pooled_connection: isPooled,
+          quizzes: quizCount,
+          lessons: lessonCount,
+          projects: projectCount,
+          users: userCount,
+        },
+        quiz_bank_embedded: QUIZ_BANK.length,
+        message: quizCount === 0
+          ? '⚠️ DB kosong — POST /api/quizzes/force-seed untuk isi soal'
+          : `✅ ${quizCount} soal tersedia di database`,
+      };
+    } catch (err: any) {
+      return {
+        status: 'error',
+        error: err.message,
+        hint: 'Periksa DATABASE_URL di Render Environment Variables',
+      };
+    }
+  }
+
+  async forceSeed() {
+    try {
+      const before = await this.prisma.quiz.count();
+      if (before > 0) {
+        return {
+          success: true,
+          skipped: true,
+          message: `DB sudah memiliki ${before} soal, seed dilewati. Untuk re-seed, hapus semua soal dulu.`,
+          count: before,
+        };
+      }
+      await this.seedQuizzesIfEmpty();
+      const after = await this.prisma.quiz.count();
+      return {
+        success: true,
+        seeded: after,
+        total: after,
+        message: `✅ Berhasil seed ${after} soal ke Neon PostgreSQL`,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
+  }
+}

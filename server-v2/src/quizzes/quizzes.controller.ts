@@ -10,18 +10,50 @@ import { CreateQuizDto, UpdateQuizDto, SubmitAnswerDto } from './dto/create-quiz
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 
+  // ─── PUBLIC: Diagnostic & Manual Seed ─────────────────────────────────
+  @Get('health')
+  async diagnose() {
+    return this.quizzesService.diagnose();
+  }
+
+  @Post('force-seed')
+  async forceSeed() {
+    return this.quizzesService.forceSeed();
+  }
+
+  // ─── PUBLIC: Read Quizzes ──────────────────────────────────────────────
   @Get()
   async findAll() {
     return this.quizzesService.findAll();
   }
 
+  @Get('lesson/:lessonId')
+  async findByLesson(@Param('lessonId') lessonId: string) {
+    return this.quizzesService.findByLesson(lessonId);
+  }
+
+  // ─── STUDENT: My Attempts ─────────────────────────────────────────────
+  @Get('attempts/my')
+  @UseGuards(JwtAuthGuard)
+  async getMyAttempts(@Req() req: any) {
+    return this.quizzesService.getStudentAttempts(req.user.id);
+  }
+
+  // ─── TEACHER: Recap ───────────────────────────────────────────────────
+  @Get('attempts/recap')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.TEACHER, Role.ADMIN)
+  async getRecap() {
+    return this.quizzesService.getRecap();
+  }
+
+  // ─── TEACHER: Create / Update / Delete ────────────────────────────────
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.TEACHER, Role.ADMIN)
   @Post()
   async create(@Req() req: any, @Body() dto: CreateQuizDto) {
     return this.quizzesService.create(dto, req.user?.id);
   }
-
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.TEACHER, Role.ADMIN)
@@ -37,30 +69,7 @@ export class QuizzesController {
     return this.quizzesService.delete(id);
   }
 
-  @Get('lesson/:lessonId')
-  async findByLesson(@Param('lessonId') lessonId: string) {
-    return this.quizzesService.findByLesson(lessonId);
-  }
-
-  @Get('attempts/my')
-  @UseGuards(JwtAuthGuard)
-  async getMyAttempts(@Req() req: any) {
-    return this.quizzesService.getStudentAttempts(req.user.id);
-  }
-
-  @Get('attempts/recap')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.TEACHER, Role.ADMIN)
-  async getRecap() {
-    return this.quizzesService.getRecap();
-  }
-
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.quizzesService.findOne(id);
-  }
-
+  // ─── STUDENT: Submit Answer ────────────────────────────────────────────
   @UseGuards(JwtAuthGuard)
   @Post(':id/attempt')
   async submitAnswer(
@@ -70,5 +79,10 @@ export class QuizzesController {
   ) {
     return this.quizzesService.submitAnswer(id, req.user.id, dto);
   }
-}
 
+  // ─── Get Single Quiz (must be LAST to avoid route conflict) ───────────
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.quizzesService.findOne(id);
+  }
+}
