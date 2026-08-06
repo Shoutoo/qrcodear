@@ -787,8 +787,6 @@
       }
     }
 
-    let activeSplitAuthMode = 'login';
-
     function togglePasswordVisibility() {
       const passInput = document.getElementById('auth-password');
       const eyeIcon = document.getElementById('pass-eye-icon');
@@ -2342,6 +2340,8 @@
       } catch (e) {
         console.error('Error loading quiz recap:', e);
       }
+    }
+
     // ─── MATERI PEMBELAJARAN AR HANDLERS ────────────────────────────────
     let currentReadingLessonId = null;
 
