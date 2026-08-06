@@ -349,7 +349,7 @@
 
 
     <!-- HERO SECTION (LIGHT THEME) -->
-    <section class="magic-card rounded-3xl p-8 bg-gradient-to-r from-surface-container-low via-surface to-surface-container relative overflow-hidden">
+    <section id="top-hero-section" class="magic-card rounded-3xl p-8 bg-gradient-to-r from-surface-container-low via-surface to-surface-container relative overflow-hidden">
       <div class="max-w-3xl space-y-4">
         <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
           <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
@@ -1206,12 +1206,22 @@
     function updateTabHeaderAndMetrics(tabName) {
       const isStudent = currentUser && currentUser.role === 'STUDENT';
 
+      const topHeroSection = document.getElementById('top-hero-section');
       const heroBadge = document.getElementById('hero-badge');
       const heroTitle = document.getElementById('hero-title');
       const heroDesc = document.getElementById('hero-desc');
       const metricsContainer = document.getElementById('main-metrics-section');
 
       if (!heroBadge || !heroTitle || !heroDesc || !metricsContainer) return;
+
+      if (tabName === 'profile') {
+        topHeroSection?.classList.add('hidden');
+        metricsContainer?.classList.add('hidden');
+        return;
+      } else {
+        topHeroSection?.classList.remove('hidden');
+        metricsContainer?.classList.remove('hidden');
+      }
 
       const summary = cachedSummaryData || {};
       const scans = summary.totalScans || 0;
@@ -1471,6 +1481,7 @@
       }
 
       updateTabHeaderAndMetrics(tabName);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
 
