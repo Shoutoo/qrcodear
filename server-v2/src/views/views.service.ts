@@ -14,9 +14,15 @@ if (typeof global.document === 'undefined') {
   global.document = {
     createElement: (type: string) => {
       if (type === 'canvas') {
-        const c = createCanvas(1, 1) as any;
+        const c = createCanvas(512, 256) as any;
         c.toDataURL = function (t: string) {
           return 'data:image/png;base64,' + c.toBuffer('image/png').toString('base64');
+        };
+        c.toBlob = function (cb: any, type: string) {
+          const buf = c.toBuffer(type === 'image/jpeg' ? 'image/jpeg' : 'image/png');
+          const b = new (global as any).Blob([buf], { type: type || 'image/png' });
+          if (cb) cb(b);
+          return Promise.resolve(b);
         };
         return c;
       }
@@ -130,7 +136,8 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
   const textY = y + h / 2 + 2;
   ctx.fillText(displayName, textX, textY);
 
-  const texture = new THREE.CanvasTexture(canvas);
+  const imgData = ctx.getImageData(0, 0, 512, 160);
+  const texture = new THREE.DataTexture(new Uint8Array(imgData.data.buffer), 512, 160, THREE.RGBAFormat);
   texture.needsUpdate = true;
 
   // 6. Opaque Standard PBR Material (100% visible in SceneViewer & ARCore)

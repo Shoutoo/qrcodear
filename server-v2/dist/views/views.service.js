@@ -58,9 +58,16 @@ if (typeof global.document === 'undefined') {
     global.document = {
         createElement: (type) => {
             if (type === 'canvas') {
-                const c = (0, canvas_1.createCanvas)(1, 1);
+                const c = (0, canvas_1.createCanvas)(512, 256);
                 c.toDataURL = function (t) {
                     return 'data:image/png;base64,' + c.toBuffer('image/png').toString('base64');
+                };
+                c.toBlob = function (cb, type) {
+                    const buf = c.toBuffer(type === 'image/jpeg' ? 'image/jpeg' : 'image/png');
+                    const b = new global.Blob([buf], { type: type || 'image/png' });
+                    if (cb)
+                        cb(b);
+                    return Promise.resolve(b);
                 };
                 return c;
             }
@@ -156,7 +163,8 @@ function createSpecies3DLabelMesh(name, role, angle) {
     const textX = x + 28;
     const textY = y + h / 2 + 2;
     ctx.fillText(displayName, textX, textY);
-    const texture = new THREE.CanvasTexture(canvas);
+    const imgData = ctx.getImageData(0, 0, 512, 160);
+    const texture = new THREE.DataTexture(new Uint8Array(imgData.data.buffer), 512, 160, THREE.RGBAFormat);
     texture.needsUpdate = true;
     const planeGeom = new THREE.PlaneGeometry(1.4, 0.44);
     const planeMat = new THREE.MeshStandardMaterial({
