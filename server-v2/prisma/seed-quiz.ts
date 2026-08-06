@@ -32,11 +32,20 @@ async function main() {
   }
 
   // 2. Load bank soal json
-  const jsonPath = path.resolve(__dirname, '../../bank-soal-kuis-ekosistem-SD.json');
-  if (!fs.existsSync(jsonPath)) {
-    console.error('❌ Bank soal JSON not found at:', jsonPath);
+  const candidatePaths = [
+    path.resolve(__dirname, '../../bank-soal-kuis-ekosistem-SD.json'),
+    path.resolve(__dirname, '../bank-soal-kuis-ekosistem-SD.json'),
+    path.resolve(process.cwd(), 'bank-soal-kuis-ekosistem-SD.json'),
+    path.resolve(process.cwd(), '../bank-soal-kuis-ekosistem-SD.json'),
+  ];
+
+  let jsonPath = candidatePaths.find(p => fs.existsSync(p));
+  if (!jsonPath) {
+    console.error('❌ Bank soal JSON not found in candidates:', candidatePaths);
     return;
   }
+  console.log('📍 Loading bank soal JSON from:', jsonPath);
+
 
   const quizData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   console.log(`📋 Found ${quizData.length} questions in bank-soal-kuis-ekosistem-SD.json`);
