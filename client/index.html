@@ -342,7 +342,8 @@
     </section>
 
     <!-- LIVE METRICS CARDS (LEGACY LIGHT THEME) -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5" id="main-metrics-section">
+
       <div class="magic-card p-6 rounded-2xl space-y-2">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Scan QR</span>
@@ -878,6 +879,197 @@
       return false;
     }
 
+    let currentTabName = 'dashboard';
+    let cachedSummaryData = null;
+
+    function updateTabHeaderAndMetrics(tabName) {
+      const isStudent = currentUser && currentUser.role === 'STUDENT';
+
+      const heroBadge = document.getElementById('hero-badge');
+      const heroTitle = document.getElementById('hero-title');
+      const heroDesc = document.getElementById('hero-desc');
+      const metricsContainer = document.getElementById('main-metrics-section');
+
+      if (!heroBadge || !heroTitle || !heroDesc || !metricsContainer) return;
+
+      const summary = cachedSummaryData || {};
+      const scans = summary.totalScans || 0;
+      const views = summary.totalArViews || 0;
+      const bakes = summary.totalBakes || 4;
+      const quizSubmissions = summary.totalQuizSubmissions || 0;
+      const scenes = summary.totalScenes || 0;
+      const assets = summary.totalAssets || 0;
+      const quizzes = summary.totalQuizzes || 0;
+      const attempts = summary.totalQuizAttempts || 0;
+      const totalLogs = summary.totalLogs || 0;
+
+      if (tabName === 'dashboard') {
+        if (isStudent) {
+          heroBadge.innerText = '🎉 Ruang Belajar AR Kamu';
+          heroTitle.innerHTML = 'Eksplorasi Rantai Makanan & <span class="text-primary">Hewan 3D</span>';
+          heroDesc.innerText = 'Yuk pilih ekosistem di bawah! Kamu bisa klik Tampilkan AR Viewer atau cetak kartu QR untuk melihat hewan 3D bergerak lewat kamera HP.';
+        } else {
+          heroBadge.innerText = '📊 Analitik & Presets Ekosistem Kelas';
+          heroTitle.innerHTML = 'Manajemen Presets & <span class="text-primary">Performa Belajar Siswa</span>';
+          heroDesc.innerText = 'Kelola preset ekosistem 3D, cetak kartu QR A6 untuk pembelajaran di kelas, serta pantau statistik interaksi siswa secara real-time.';
+        }
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Scan QR</span>
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">qr_code_scanner</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-primary">${scans}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Pemindaian QR code fisik & kartu cetak</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Tampilan AR</span>
+              <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">visibility</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-tertiary">${views}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Interaksi halaman WebXR / Viewer 3D</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Baked GLB Ekosistem</span>
+              <div class="w-9 h-9 rounded-xl bg-secondary-container/40 text-secondary flex items-center justify-center"><span class="material-symbols-outlined">3d_rotation</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-secondary">${bakes}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Model gabungan rantai makanan AR</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Kuis Diselesaikan</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">fact_check</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-emerald-700">${quizSubmissions}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Percobaan kuis siswa ter-scoring</p>
+          </div>
+        `;
+      } else if (tabName === 'studio') {
+        heroBadge.innerText = '🎨 Creative 3D Studio';
+        heroTitle.innerHTML = 'AR Studio <span class="text-primary">Multi-Object Creator</span>';
+        heroDesc.innerText = 'Rakit scene 3D kustom dengan berbagai model, atur posisi, rotasi, & tekstur, serta publikasikan markerless AR untuk bahan ajar siswa.';
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Scene 3D</span>
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">view_in_ar</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-primary">${scenes}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Scene multi-objek studio aktif</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Aset 3D Tersedia</span>
+              <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">category</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-tertiary">${assets}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Katalog model 3D & spesimen</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Proses Bake GLB</span>
+              <div class="w-9 h-9 rounded-xl bg-secondary-container/40 text-secondary flex items-center justify-center"><span class="material-symbols-outlined">3d_rotation</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-secondary">${bakes}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Baking otomatis GLB WebXR</p>
+          </div>
+        `;
+      } else if (tabName === 'quiz') {
+        if (isStudent) {
+          heroBadge.innerText = '📝 Uji Pemahaman Kamu';
+          heroTitle.innerHTML = 'Kuis Interaktif <span class="text-emerald-700">Ekosistem & Sains</span>';
+          heroDesc.innerText = 'Jawab pertanyaan kuis di bawah ini berdasarkan apa yang sudah kamu pelajari dari tampilan AR 3D!';
+        } else {
+          heroBadge.innerText = '✏️ Evaluasi & Bank Soal';
+          heroTitle.innerHTML = 'Manajemen Kuis & <span class="text-emerald-700">Rekap Evaluasi</span>';
+          heroDesc.innerText = 'Kelola bank soal interaktif per materi pelajaran, dan pantau rekapitulasi nilai serta percobaan jawaban siswa.';
+        }
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Soal Kuis Tersedia</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">quiz</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-emerald-700">${quizzes}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Jumlah pertanyaan kuis aktif</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Jawaban Disubmit</span>
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">fact_check</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-primary">${quizSubmissions}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Total percobaan jawaban kuis</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Siswa Mengerjakan</span>
+              <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">groups</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-tertiary">${attempts}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Siswa ter-record di database</p>
+          </div>
+        `;
+      } else if (tabName === 'unity') {
+        heroBadge.innerText = '⚡ High-Performance 3D Engine';
+        heroTitle.innerHTML = 'Unity Assemblr EDU Engine <span class="text-amber-600">(FASE R9)</span>';
+        heroDesc.innerText = 'Integrasi scenegraph 3D tingkat lanjut, interaktivitas node-based event, serta baking GLB real-time setara Assemblr EDU.';
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2 col-span-full bg-amber-500/10 border border-amber-500/30">
+            <div class="flex items-center gap-3 text-amber-900 font-bold">
+              <span class="material-symbols-outlined text-2xl">construction</span>
+              <span>Status Fitur: Modul Unity Assemblr EDU Editor (Segera Hadir di FASE R9)</span>
+            </div>
+            <p class="text-xs text-amber-800 font-medium">Fitur ini berada di luar urutan fase saat ini. Pengembangan mesin Unity WebGL akan dimulai pada FASE R9.</p>
+          </div>
+        `;
+      } else if (tabName === 'logs') {
+        if (isStudent) {
+          heroBadge.innerText = '📜 Histori Belajar';
+          heroTitle.innerHTML = 'Aktivitas Belajar <span class="text-primary">Saya</span>';
+          heroDesc.innerText = 'Daftar rekam jejak aktivitas scan QR, sesi AR Viewer, dan kuis yang telah kamu kerjakan.';
+        } else {
+          heroBadge.innerText = '🛡️ Security & Audit Log';
+          heroTitle.innerHTML = 'Activity Log Audit <span class="text-primary">Semua Siswa & Kelas</span>';
+          heroDesc.innerText = 'Pantau log aktivitas real-time seluruh siswa, event autentikasi, penggunaan AR viewer, dan submission kuis.';
+        }
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Total Log Ter-audit</span>
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">receipt_long</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-primary">${totalLogs}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Rekam aktivitas ter-record di DB</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Event Scan QR</span>
+              <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">qr_code</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-tertiary">${scans}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Audit pemindaian QR fisik</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Event View AR</span>
+              <div class="w-9 h-9 rounded-xl bg-secondary-container/40 text-secondary flex items-center justify-center"><span class="material-symbols-outlined">visibility</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-secondary">${views}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Audit interaksi AR Viewer</p>
+          </div>
+        `;
+      }
+    }
+
     function switchTab(tabName) {
       const userRole = currentUser ? currentUser.role : null;
       const isStudent = (userRole === 'STUDENT');
@@ -887,6 +1079,7 @@
         tabName = 'dashboard';
       }
 
+      currentTabName = tabName;
       const tabs = ['dashboard', 'studio', 'quiz', 'unity', 'logs'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
@@ -901,7 +1094,10 @@
           sec?.classList.add('hidden');
         }
       });
+
+      updateTabHeaderAndMetrics(tabName);
     }
+
 
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
@@ -1158,20 +1354,8 @@
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {
-            const scans = data.summary.totalScans || 0;
-            const views = data.summary.totalArViews || 0;
-            const bakes = data.summary.totalBakes || 4;
-            const quizSubmissions = data.summary.totalQuizSubmissions || 0;
-
-            const elScans = document.getElementById('metric-scans');
-            const elViews = document.getElementById('metric-views');
-            const elBakes = document.getElementById('metric-bakes');
-            const elQuizzes = document.getElementById('metric-quizzes');
-
-            if (elScans) elScans.innerText = scans;
-            if (elViews) elViews.innerText = views;
-            if (elBakes) elBakes.innerText = bakes;
-            if (elQuizzes) elQuizzes.innerText = quizSubmissions;
+            cachedSummaryData = data.summary;
+            updateTabHeaderAndMetrics(currentTabName);
           }
         }
 
