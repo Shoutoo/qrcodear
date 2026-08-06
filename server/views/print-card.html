@@ -58,30 +58,57 @@
       -webkit-print-color-adjust: exact !important;
     }
 
-    /* ── PRINT STYLES ────────────────────────────────────── */
+    /* ── FIXED A6 PRINT STYLES (10.5cm x 14.8cm) ───────────────────────── */
+    @page {
+      size: 105mm 148mm;
+      margin: 0;
+    }
+
     @media print {
-      body {
-        background: #fff !important;
+      @page {
+        size: 105mm 148mm;
+        margin: 0;
+      }
+
+      html, body {
+        background: #ffffff !important;
         padding: 0 !important;
         margin: 0 !important;
-        color: #000 !important;
+        width: 105mm !important;
+        height: 148mm !important;
+        overflow: hidden !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
-      .no-print { display: none !important; }
+      
+      .no-print {
+        display: none !important;
+      }
+      
       .print-card-wrap {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        height: 100vh !important;
-        width: 100vw !important;
-        margin: 0 !important;
+        width: 105mm !important;
+        height: 148mm !important;
+        max-width: 105mm !important;
+        max-height: 148mm !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
       }
+      
       .print-card {
-        width: 130mm !important;
-        height: 195mm !important;
-        border-radius: 6mm !important;
+        width: 105mm !important;
+        height: 148mm !important;
+        max-width: 105mm !important;
+        max-height: 148mm !important;
+        border-radius: 4mm !important;
         box-shadow: none !important;
         border: 2px solid #2d5a27 !important;
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
+        margin: 0 !important;
       }
     }
   </style>
