@@ -34,11 +34,15 @@ export class AnalyticsService {
 
     const totalQuizSubmissions = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
 
+    const studentGroups = await this.prisma.quizAttempt.groupBy({
+      by: ['studentId'],
+    });
+    const totalStudentsAttempted = studentGroups.length;
+
     const totalAssets = await this.prisma.asset.count();
     const totalScenes = await this.prisma.scene.count();
     const totalQuizzes = await this.prisma.quiz.count();
-    const totalQuizAttempts = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
-
+    const totalQuizAttempts = totalQuizSubmissions;
 
     return {
       success: true,
@@ -48,6 +52,7 @@ export class AnalyticsService {
         totalArViews,
         totalBakes,
         totalQuizSubmissions,
+        totalStudentsAttempted,
         totalAssets,
         totalScenes,
         totalQuizzes,
@@ -55,6 +60,7 @@ export class AnalyticsService {
       },
     };
   }
+
 
   async getLogs(page = 1, limit = 20, action?: string, userId?: string | null, userRole?: string | null) {
     const skip = (page - 1) * limit;

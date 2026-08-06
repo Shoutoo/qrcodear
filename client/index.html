@@ -443,8 +443,25 @@
           </button>
         </div>
 
+        <!-- Filter Pilih Materi Kuis untuk Siswa -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-surface-container/40 p-4 rounded-2xl border border-surface-variant">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">📚</span>
+            <div>
+              <h4 class="text-xs font-extrabold text-on-surface">Pilih Materi Kuis yang Ingin Dikerjakan:</h4>
+              <p class="text-[11px] text-outline font-medium">Filter kuis berdasarkan materi/topik pembelajaran</p>
+            </div>
+          </div>
+          <div class="w-full sm:w-auto">
+            <select id="siswa-quiz-lesson-filter" onchange="filterSiswaQuizzesByLesson(this.value)" class="w-full sm:w-auto px-4 py-2 rounded-xl border border-surface-variant bg-white text-xs font-bold text-on-surface focus:outline-none focus:border-primary shadow-sm cursor-pointer">
+              <option value="ALL">🌟 Semua Materi (Memuat...)</option>
+            </select>
+          </div>
+        </div>
+
         <!-- Quiz Grid: list kiri scroll, solver kanan sticky -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
 
           <!-- Kolom kiri: daftar soal scrollable -->
           <div class="lg:col-span-1 lg:sticky lg:top-4">
@@ -926,6 +943,7 @@
       const views = summary.totalArViews || 0;
       const bakes = summary.totalBakes || 4;
       const quizSubmissions = summary.totalQuizSubmissions || 0;
+      const studentsAttempted = summary.totalStudentsAttempted || (quizSubmissions > 0 ? 1 : 0);
       const scenes = summary.totalScenes || 0;
       const assets = summary.totalAssets || 0;
       const quizzes = summary.totalQuizzes || 0;
@@ -970,13 +988,14 @@
           </div>
           <div class="magic-card p-6 rounded-2xl space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-outline uppercase tracking-wider">Kuis Diselesaikan</span>
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">${isStudent ? 'Kuis Dikirim' : 'Siswa Mengerjakan'}</span>
               <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">fact_check</span></div>
             </div>
-            <div class="text-3xl font-extrabold text-emerald-700">${quizSubmissions}</div>
-            <p class="text-xs text-on-surface/70 font-semibold">Percobaan kuis siswa ter-scoring</p>
+            <div class="text-3xl font-extrabold text-emerald-700">${isStudent ? quizSubmissions : studentsAttempted}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">${isStudent ? 'Jawaban kuis telah kamu kirim' : `${quizSubmissions} jawaban dikirim dari ${studentsAttempted} siswa`}</p>
           </div>
         `;
+
       } else if (tabName === 'studio') {
         heroBadge.innerText = '🎨 Creative 3D Studio';
         heroTitle.innerHTML = 'AR Studio <span class="text-primary">Multi-Object Creator</span>';
@@ -1395,21 +1414,27 @@
           renderPresets(presetsData.presets || []);
         }
 
-        // Fetch Quizzes from /api/quizzes or /api/lessons
+        // Fetch Quizzes & Lessons for Siswa and Teacher
         try {
-          const quizRes = await fetch('/api/quizzes');
+          const [lessonsRes, quizRes] = await Promise.all([
+            fetch('/api/lessons'),
+            fetch('/api/quizzes')
+          ]);
+
+          if (lessonsRes.ok) {
+            const lessonsData = await lessonsRes.json();
+            allRawLessons = lessonsData.lessons || [];
+          }
+
           if (quizRes.ok) {
             const quizData = await quizRes.json();
-            if (quizData.quizzes && quizData.quizzes.length > 0) {
-              renderQuizzes(quizData.quizzes);
-            } else {
-              const lessonRes = await fetch('/api/lessons');
-              if (lessonRes.ok) {
-                const lessonsData = await lessonRes.json();
-                renderQuizzesFromLessons(lessonsData.lessons || []);
-              }
-            }
+            allRawQuizzes = quizData.quizzes || [];
           }
+
+          // Populate Siswa Quiz Lesson Filter Dropdown & Filter Quizzes
+          populateSiswaLessonFilter();
+          filterSiswaQuizzesByLesson(currentSiswaLessonFilter);
+
         } catch (e) {
           console.warn('Quiz fetch error:', e);
         }
@@ -1457,11 +1482,55 @@
     }
 
     // ─── QUIZ STATE ───────────────────────────────────────────────────────
-    let allLoadedQuizzes = [];      // semua soal dari API
+    let allRawQuizzes = [];         // Master array kuis dari API
+    let allRawLessons = [];         // Master array materi dari API
+    let currentSiswaLessonFilter = 'ALL';
+    let allLoadedQuizzes = [];      // Soal yang sedang aktif difilter untuk dikerjakan
     let quizAnswers = {};           // { quizId: selectedAnswer }
     let quizResults = {};           // { quizId: { isCorrect, correctAnswer } }
 
+    function populateSiswaLessonFilter() {
+      const select = document.getElementById('siswa-quiz-lesson-filter');
+      if (!select) return;
+
+      const totalCount = allRawQuizzes.length;
+      let html = `<option value="ALL" ${currentSiswaLessonFilter === 'ALL' ? 'selected' : ''}>🌟 Semua Materi Kuis (${totalCount} Soal)</option>`;
+
+      allRawLessons.forEach(l => {
+        const qCount = allRawQuizzes.filter(q => q.lessonId === l.id || (q.lesson && q.lesson.id === l.id)).length;
+        if (qCount > 0) {
+          html += `<option value="${l.id}" ${currentSiswaLessonFilter === l.id ? 'selected' : ''}>📚 ${l.title} (${qCount} Soal)</option>`;
+        }
+      });
+
+      select.innerHTML = html;
+    }
+
+    function filterSiswaQuizzesByLesson(lessonId) {
+      currentSiswaLessonFilter = lessonId;
+      let filtered = [];
+
+      if (lessonId === 'ALL') {
+        filtered = allRawQuizzes;
+      } else {
+        filtered = allRawQuizzes.filter(q => q.lessonId === lessonId || (q.lesson && q.lesson.id === lessonId));
+      }
+
+      renderQuizzes(filtered);
+
+      const scoreBadge = document.getElementById('quiz-score-badge');
+      if (scoreBadge) scoreBadge.innerText = 'Skor Anda: --';
+
+      if (filtered.length === 0) {
+        const titleEl = document.getElementById('quiz-question-title');
+        const optContainer = document.getElementById('quiz-options-container');
+        if (titleEl) titleEl.innerText = 'Belum ada kuis pada materi ini';
+        if (optContainer) optContainer.innerHTML = '<p class="text-on-surface/60 text-sm font-medium">Pilih materi lain di atas.</p>';
+      }
+    }
+
     function renderQuizzes(quizzes) {
+
       allLoadedQuizzes = quizzes;
       quizAnswers = {};
       quizResults = {};
