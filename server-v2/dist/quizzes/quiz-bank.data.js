@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LESSON_TITLE_MAP = exports.QUIZ_BANK = void 0;
+exports.LESSON_CONTENT_MAP = exports.LESSON_TITLE_MAP = exports.QUIZ_BANK = void 0;
 exports.QUIZ_BANK = [
     {
         "ecosystem": "umum",
@@ -139,10 +139,49 @@ exports.QUIZ_BANK = [
     }
 ];
 exports.LESSON_TITLE_MAP = {
-    umum: 'Kuis Ekosistem Umum',
-    hutan: 'Kuis Ekosistem Hutan',
-    darat: 'Kuis Ekosistem Darat',
-    laut: 'Kuis Ekosistem Laut',
-    sawah: 'Kuis Ekosistem Sawah',
+    umum: 'Kuis & Materi Ekosistem Umum',
+    hutan: 'Kuis & Materi Ekosistem Hutan',
+    darat: 'Kuis & Materi Ekosistem Darat',
+    laut: 'Kuis & Materi Ekosistem Laut',
+    sawah: 'Kuis & Materi Ekosistem Sawah',
+};
+exports.LESSON_CONTENT_MAP = {
+    umum: `Ekosistem adalah kumpulan makhluk hidup dan lingkungan tempat tinggalnya yang saling berhubungan dan berinteraksi secara seimbang.
+
+Di dalam ekosistem terdapat dua komponen utama:
+1. Komponen Biotik (Makhluk Hidup): Tumbuhan, hewan, manusia, jamur, dan bakteri.
+2. Komponen Abiotik (Benda Mati): Cahaya matahari, air, udara, tanah, dan batu.
+
+Peran Makhluk Hidup dalam Rantai Makanan:
+- Produsen: Makhluk hidup yang membuat makanannya sendiri melalui fotosintesis, seperti tumbuhan hijau.
+- Konsumen: Makhluk hidup pemakan makhluk lain.
+  * Herbivora: Pemakan tumbuhan (sapi, kelinci).
+  * Karnivora: Pemakan daging/hewan lain (singa, elang).
+  * Omnivora: Pemakan segala tumbuhan dan hewan (ayam, monyet).
+- Pengurai (Dekomposer): Bertugas menguraikan sisa makhluk hidup mati menjadi zat hara tanah (jamur & bakteri).
+
+Urutan makan dan dimakan disebut Rantai Makanan. Posisi pertama selalu ditempati oleh Produsen. Jika populasi produsen berkurang drastis, konsumen akan kekurangan makanan!`,
+    hutan: `Ekosistem Hutan adalah kawasan daratan alami yang ditumbuhi banyak pohon tinggi dan lebat. Hutan merupakan paru-paru dunia yang menyimpan keanekaragaman hayati sangat tinggi.
+
+Ciri Khas Ekosistem Hutan:
+- Didominasi pepohonan tinggi, kanopi daun yang rindang, dan tanah yang subur.
+- Tempat tinggal berbagai hewan seperti monyet, harimau, rusa, burung hantu, dan berbagai serangga.
+- Menjaga cadangan air tanah dan mencegah banjir serta tanah longsor.`,
+    darat: `Ekosistem Darat adalah ekosistem yang lingkungan fisiknya didominasi oleh daratan, seperti padang rumput, hutan, gurun, dan savana.
+
+Sistem Pernapasan Hewan Darat:
+- Hewan yang hidup di daratan (mamalia, burung, reptil) bernapas menggunakan paru-paru untuk mengambil oksigen langsung dari udara.
+- Padang rumput merupakan salah satu contoh ekosistem darat tempat hidup hewan herbivora pemakan rumput.`,
+    laut: `Ekosistem Laut adalah ekosistem perairan asin terluas di bumi.
+
+Produsen & Pernapasan Laut:
+- Produsen Utama: Rumput laut dan Fitoplankton (mikroorganisme tumbuhan) yang melakukan fotosintesis di permukaan laut.
+- Sistem Pernapasan: Hewan laut seperti ikan bernapas menggunakan insang untuk menyaring oksigen yang terlarut di dalam air.`,
+    sawah: `Ekosistem Sawah adalah ekosistem buatan manusia yang difungsikan untuk pertanian dan budidaya tanaman pangan.
+
+Komponen & Rantai Makanan Sawah:
+- Tanaman Utama: Padi sebagai produsen utama bahan pangan beras.
+- Hama Sawah: Tikus dan belalang merupakan hewan konsumen pertama yang sering menjadi hama penyerang tanaman padi.
+- Menjaga populasi pemangsa alami seperti ular sawah dan burung hantu sangat penting untuk mengendalikan populasi hama tikus.`
 };
 //# sourceMappingURL=quiz-bank.data.js.map

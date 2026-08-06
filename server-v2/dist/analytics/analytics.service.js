@@ -40,10 +40,14 @@ let AnalyticsService = class AnalyticsService {
         const rawBakes = await this.prisma.activityLog.count({ where: { action: 'BAKE_GLB' } });
         const totalBakes = Math.max(rawBakes, 4);
         const totalQuizSubmissions = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
+        const studentGroups = await this.prisma.quizAttempt.groupBy({
+            by: ['studentId'],
+        });
+        const totalStudentsAttempted = studentGroups.length;
         const totalAssets = await this.prisma.asset.count();
         const totalScenes = await this.prisma.scene.count();
         const totalQuizzes = await this.prisma.quiz.count();
-        const totalQuizAttempts = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
+        const totalQuizAttempts = totalQuizSubmissions;
         return {
             success: true,
             summary: {
@@ -52,6 +56,7 @@ let AnalyticsService = class AnalyticsService {
                 totalArViews,
                 totalBakes,
                 totalQuizSubmissions,
+                totalStudentsAttempted,
                 totalAssets,
                 totalScenes,
                 totalQuizzes,

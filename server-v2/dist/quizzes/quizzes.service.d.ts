@@ -107,6 +107,10 @@ export declare class QuizzesService implements OnModuleInit {
         totalAttempts: number;
         attempts: ({
             quiz: {
+                lesson: {
+                    id: string;
+                    title: string;
+                };
                 id: string;
                 question: string;
                 correctAnswer: string;

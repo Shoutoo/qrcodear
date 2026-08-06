@@ -106,6 +106,10 @@ export declare class QuizzesController {
         totalAttempts: number;
         attempts: ({
             quiz: {
+                lesson: {
+                    id: string;
+                    title: string;
+                };
                 id: string;
                 question: string;
                 correctAnswer: string;

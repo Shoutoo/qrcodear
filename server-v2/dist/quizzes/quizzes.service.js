@@ -25,6 +25,26 @@ let QuizzesService = class QuizzesService {
         try {
             const count = await this.prisma.quiz.count();
             console.log(`[QuizzesService] onModuleInit: Current Quiz count in Neon DB = ${count}`);
+            for (const [ecoKey, lessonTitle] of Object.entries(quiz_bank_data_1.LESSON_TITLE_MAP)) {
+                const richContent = quiz_bank_data_1.LESSON_CONTENT_MAP[ecoKey];
+                if (richContent) {
+                    const existing = await this.prisma.lesson.findFirst({
+                        where: {
+                            OR: [
+                                { title: lessonTitle },
+                                { title: `Kuis Ekosistem ${ecoKey.charAt(0).toUpperCase() + ecoKey.slice(1)}` }
+                            ]
+                        }
+                    });
+                    if (existing && (!existing.content || existing.content.length < 100)) {
+                        await this.prisma.lesson.update({
+                            where: { id: existing.id },
+                            data: { title: lessonTitle, content: richContent }
+                        });
+                        console.log(`✅ [Seed] Updated lesson "${lessonTitle}" with rich material reading text.`);
+                    }
+                }
+            }
             if (count === 0) {
                 console.log(`🌱 [QuizzesService] DB kosong! Memulai auto-seed ${quiz_bank_data_1.QUIZ_BANK.length} soal dari embedded QUIZ_BANK...`);
                 let project = await this.prisma.project.findFirst();
@@ -61,7 +81,7 @@ let QuizzesService = class QuizzesService {
                         lesson = await this.prisma.lesson.create({
                             data: {
                                 title: lessonTitle,
-                                content: `Kuis Interaktif Ekosistem ${ecoKey} untuk Siswa SD`,
+                                content: quiz_bank_data_1.LESSON_CONTENT_MAP[ecoKey] || `Materi Pembelajaran Ekosistem ${ecoKey}`,
                                 projectId: project.id,
                             },
                         });
@@ -277,7 +297,14 @@ let QuizzesService = class QuizzesService {
                     select: { id: true, name: true, email: true }
                 },
                 quiz: {
-                    select: { id: true, question: true, correctAnswer: true }
+                    select: {
+                        id: true,
+                        question: true,
+                        correctAnswer: true,
+                        lesson: {
+                            select: { id: true, title: true }
+                        }
+                    }
                 }
             },
             orderBy: { attemptedAt: 'desc' }

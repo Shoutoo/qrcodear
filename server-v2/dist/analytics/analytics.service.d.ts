@@ -15,6 +15,7 @@ export declare class AnalyticsService {
             totalArViews: number;
             totalBakes: number;
             totalQuizSubmissions: number;
+            totalStudentsAttempted: number;
             totalAssets: number;
             totalScenes: number;
             totalQuizzes: number;
