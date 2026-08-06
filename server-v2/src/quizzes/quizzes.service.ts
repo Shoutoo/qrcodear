@@ -15,20 +15,58 @@ export class QuizzesService implements OnModuleInit {
   private async seedQuizzesIfEmpty() {
     try {
       const count = await this.prisma.quiz.count();
+      console.log(`[QuizzesService] Current Quiz Count in DB: ${count}`);
       if (count === 0) {
         console.log('🌱 Database has 0 quizzes. Starting auto-seed from bank-soal-kuis-ekosistem-SD.json...');
-        const defaultLessonId = await this.getOrCreateDefaultLesson();
 
-        const jsonPath = path.resolve(process.cwd(), 'bank-soal-kuis-ekosistem-SD.json');
-        if (fs.existsSync(jsonPath)) {
+        const candidatePaths = [
+          path.resolve(process.cwd(), 'bank-soal-kuis-ekosistem-SD.json'),
+          path.resolve(process.cwd(), '../bank-soal-kuis-ekosistem-SD.json'),
+          path.resolve(__dirname, '../../bank-soal-kuis-ekosistem-SD.json'),
+          path.resolve(__dirname, '../../../bank-soal-kuis-ekosistem-SD.json'),
+        ];
+        let jsonPath = candidatePaths.find(p => fs.existsSync(p));
+
+        if (jsonPath) {
           const raw = fs.readFileSync(jsonPath, 'utf8');
           const quizItems = JSON.parse(raw);
 
+          const defaultLessonId = await this.getOrCreateDefaultLesson();
+          const lessonTitles: Record<string, string> = {
+            umum: 'Kuis Ekosistem Umum',
+            hutan: 'Kuis Ekosistem Hutan',
+            darat: 'Kuis Ekosistem Darat',
+            laut: 'Kuis Ekosistem Laut',
+            sawah: 'Kuis Ekosistem Sawah',
+          };
+          const lessonMap: Record<string, string> = {};
+
+          const defaultLesson = await this.prisma.lesson.findUnique({ where: { id: defaultLessonId } });
+          const projectId = defaultLesson?.projectId;
+
+          if (projectId) {
+            for (const ecoKey of Object.keys(lessonTitles)) {
+              const title = lessonTitles[ecoKey];
+              let lesson = await this.prisma.lesson.findFirst({ where: { title, projectId } });
+              if (!lesson) {
+                lesson = await this.prisma.lesson.create({
+                  data: {
+                    title,
+                    content: `Kuis Interaktif Ekosistem ${ecoKey}`,
+                    projectId,
+                  },
+                });
+              }
+              lessonMap[ecoKey] = lesson.id;
+            }
+          }
+
           let seeded = 0;
           for (const item of quizItems) {
+            const lessonId = lessonMap[item.ecosystem] || defaultLessonId;
             await this.prisma.quiz.create({
               data: {
-                lessonId: defaultLessonId,
+                lessonId,
                 question: item.question.trim(),
                 options: item.options,
                 correctAnswer: item.correctAnswer.trim(),
@@ -36,13 +74,16 @@ export class QuizzesService implements OnModuleInit {
             });
             seeded++;
           }
-          console.log(`✅ Auto-seeded ${seeded} quiz questions into Render PostgreSQL database successfully!`);
+          console.log(`✅ Auto-seeded ${seeded} quiz questions into PostgreSQL database successfully!`);
+        } else {
+          console.warn('⚠️ bank-soal-kuis-ekosistem-SD.json not found in paths:', candidatePaths);
         }
       }
     } catch (err) {
-      console.warn('⚠️ Auto-seed quizzes warning:', err);
+      console.error('⚠️ Auto-seed quizzes error:', err);
     }
   }
+
 
   private async getOrCreateDefaultLesson(teacherId?: string): Promise<string> {
     let lesson = await this.prisma.lesson.findFirst();
