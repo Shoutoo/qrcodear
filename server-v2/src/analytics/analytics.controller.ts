@@ -23,21 +23,23 @@ export class AnalyticsController {
     });
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.TEACHER, Role.ADMIN)
   @Get('summary')
-  async getSummary() {
-    return this.analyticsService.getSummary();
+  async getSummary(@Req() req: any) {
+    const userId = req.user?.id || null;
+    const userRole = req.user?.role || null;
+    return this.analyticsService.getSummary(userId, userRole);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.TEACHER, Role.ADMIN)
   @Get('logs')
   async getLogs(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('action') action?: string,
+    @Req() req?: any,
   ) {
-    return this.analyticsService.getLogs(page || 1, limit || 20, action);
+    const userId = req.user?.id || null;
+    const userRole = req.user?.role || null;
+    return this.analyticsService.getLogs(page || 1, limit || 20, action, userId, userRole);
   }
 }
+

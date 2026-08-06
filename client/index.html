@@ -330,12 +330,12 @@
       <div class="max-w-3xl space-y-4">
         <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
           <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-          <span>EduAR Platform Enterprise • NestJS & PostgreSQL Active</span>
+          <span id="hero-badge">EduAR Platform Enterprise • NestJS & PostgreSQL Active</span>
         </div>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-tight">
+        <h2 id="hero-title" class="text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight leading-tight">
           Platform Pembelajaran <span class="text-primary">Augmented Reality</span> & Kuis Interaktif
         </h2>
-        <p class="text-on-surface/80 text-sm md:text-base font-medium">
+        <p id="hero-desc" class="text-on-surface/80 text-sm md:text-base font-medium">
           Upload model 3D, buat rantai makanan ekosistem ajaib, kerjakan kuis interaktif siswa, dan buat scene AR multi-objek setara Assemblr EDU!
         </p>
       </div>
@@ -1098,23 +1098,12 @@
       const unityTabBtn = document.getElementById('tab-btn-unity');
       const heroStudioBtn = document.getElementById('hero-studio-btn');
       const quizMgmtBtn = document.getElementById('btn-quiz-management');
+
+      const heroBadge = document.getElementById('hero-badge');
+      const heroTitle = document.getElementById('hero-title');
+      const heroDesc = document.getElementById('hero-desc');
       const dashTitle = document.getElementById('dash-title');
       const logHeaderTitle = document.getElementById('log-header-title');
-
-      if (!role) {
-        // Unauthenticated visitor: show all tabs but prompt login when clicking creator tools
-        if (studioTabBtn) studioTabBtn.style.display = 'flex';
-        if (unityTabBtn) unityTabBtn.style.display = 'flex';
-        if (heroStudioBtn) heroStudioBtn.style.display = 'inline-flex';
-        if (quizMgmtBtn) quizMgmtBtn.style.display = 'inline-flex';
-        if (dashTitle) {
-          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem Rantai Makanan AR`;
-        }
-        if (logHeaderTitle) {
-          logHeaderTitle.innerText = 'Activity Log Audit Table';
-        }
-        return;
-      }
 
       if (isStudent) {
         // Hide Studio & Unity Editor tabs for Student
@@ -1123,11 +1112,15 @@
         if (heroStudioBtn) heroStudioBtn.style.display = 'none';
         if (quizMgmtBtn) quizMgmtBtn.style.display = 'none';
 
+        if (heroBadge) heroBadge.innerText = '🎉 Ruang Belajar AR Kamu';
+        if (heroTitle) heroTitle.innerHTML = 'Eksplorasi Rantai Makanan & <span class="text-primary">Hewan 3D</span>';
+        if (heroDesc) heroDesc.innerText = 'Yuk pilih ekosistem di bawah! Kamu bisa klik Tampilkan AR Viewer atau cetak kartu QR untuk melihat hewan 3D bergerak lewat kamera HP.';
+
         if (dashTitle) {
-          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Progres Belajar & Presets Ekosistem AR Saya`;
+          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem AR Saya`;
         }
         if (logHeaderTitle) {
-          logHeaderTitle.innerText = 'Activity Log — Aktivitas Belajar Saya';
+          logHeaderTitle.innerHTML = `<span class="material-symbols-outlined text-primary">analytics</span> Aktivitas Belajar Saya`;
         }
 
         // If active tab was studio or unity, switch to dashboard
@@ -1136,32 +1129,49 @@
           switchTab('dashboard');
         }
       } else {
-        // Teacher / Admin: Show all menus & features
+        // Teacher / Admin / Public Visitor: Show all menus & features
         if (studioTabBtn) studioTabBtn.style.display = 'flex';
         if (unityTabBtn) unityTabBtn.style.display = 'flex';
         if (heroStudioBtn) heroStudioBtn.style.display = 'inline-flex';
         if (quizMgmtBtn) quizMgmtBtn.style.display = 'inline-flex';
 
+        if (heroBadge) heroBadge.innerText = '📊 Analitik & Presets Ekosistem Kelas';
+        if (heroTitle) heroTitle.innerHTML = 'Manajemen Presets & <span class="text-primary">Performa Belajar Siswa</span>';
+        if (heroDesc) heroDesc.innerText = 'Kelola preset ekosistem 3D, cetak kartu QR A6 untuk pembelajaran di kelas, serta pantau statistik interaksi siswa secara real-time.';
+
         if (dashTitle) {
           dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem & Analitik Semua Kelas`;
         }
         if (logHeaderTitle) {
-          logHeaderTitle.innerText = 'Activity Log — Audit Semua Siswa & Kelas';
+          logHeaderTitle.innerHTML = `<span class="material-symbols-outlined text-primary">analytics</span> Activity Log — Audit Semua Siswa & Kelas`;
         }
       }
     }
 
     async function loadDashboardData() {
       try {
+        const token = localStorage.getItem('eduar_token') || '';
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
         // Fetch Metrics & Summary
-        const res = await fetch('/api/analytics/summary');
+        const res = await fetch('/api/analytics/summary', { headers });
         if (res.ok) {
           const data = await res.json();
           if (data.summary) {
-            document.getElementById('metric-scans').innerText = data.summary.totalScans || 0;
-            document.getElementById('metric-views').innerText = data.summary.totalArViews || 0;
-            document.getElementById('metric-bakes').innerText = data.summary.totalBakes || 0;
-            document.getElementById('metric-quizzes').innerText = data.summary.totalQuizSubmissions || 0;
+            const scans = data.summary.totalScans || 0;
+            const views = data.summary.totalArViews || 0;
+            const bakes = data.summary.totalBakes || 4;
+            const quizSubmissions = data.summary.totalQuizSubmissions || 0;
+
+            const elScans = document.getElementById('metric-scans');
+            const elViews = document.getElementById('metric-views');
+            const elBakes = document.getElementById('metric-bakes');
+            const elQuizzes = document.getElementById('metric-quizzes');
+
+            if (elScans) elScans.innerText = scans;
+            if (elViews) elViews.innerText = views;
+            if (elBakes) elBakes.innerText = bakes;
+            if (elQuizzes) elQuizzes.innerText = quizSubmissions;
           }
         }
 
@@ -1180,7 +1190,7 @@
         }
 
         // Fetch Activity Logs
-        const logsRes = await fetch('/api/analytics/logs');
+        const logsRes = await fetch('/api/analytics/logs', { headers });
         if (logsRes.ok) {
           const logsData = await logsRes.json();
           renderActivityLogs(logsData.logs || []);
@@ -1190,6 +1200,7 @@
         console.warn('Dashboard fetch error:', e);
       }
     }
+
 
     function renderPresets(presets) {
       const container = document.getElementById('presets-container');

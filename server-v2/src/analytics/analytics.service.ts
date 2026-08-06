@@ -22,17 +22,23 @@ export class AnalyticsService {
     return { success: true, logId: logRecord.id };
   }
 
-  async getSummary() {
-    const totalLogs = await this.prisma.activityLog.count();
-    const totalScans = await this.prisma.activityLog.count({ where: { action: 'SCAN_QR' } });
-    const totalArViews = await this.prisma.activityLog.count({ where: { action: 'VIEW_AR' } });
-    const totalBakes = await this.prisma.activityLog.count({ where: { action: 'BAKE_GLB' } });
-    const totalQuizSubmissions = await this.prisma.activityLog.count({ where: { action: 'SUBMIT_QUIZ' } });
+  async getSummary(userId?: string | null, userRole?: string | null) {
+    const isStudent = userRole === 'STUDENT' && userId;
+    const userFilter: any = isStudent ? { userId } : {};
+
+    const totalLogs = await this.prisma.activityLog.count({ where: userFilter });
+    const totalScans = await this.prisma.activityLog.count({ where: { ...userFilter, action: 'SCAN_QR' } });
+    const totalArViews = await this.prisma.activityLog.count({ where: { ...userFilter, action: 'VIEW_AR' } });
+    const rawBakes = await this.prisma.activityLog.count({ where: { action: 'BAKE_GLB' } });
+    const totalBakes = Math.max(rawBakes, 4); // minimum 4 preset GLB
+
+    const totalQuizSubmissions = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
 
     const totalAssets = await this.prisma.asset.count();
     const totalScenes = await this.prisma.scene.count();
     const totalQuizzes = await this.prisma.quiz.count();
-    const totalQuizAttempts = await this.prisma.quizAttempt.count();
+    const totalQuizAttempts = await this.prisma.quizAttempt.count({ where: isStudent ? { studentId: userId } : {} });
+
 
     return {
       success: true,
@@ -50,10 +56,13 @@ export class AnalyticsService {
     };
   }
 
-  async getLogs(page = 1, limit = 20, action?: string) {
+  async getLogs(page = 1, limit = 20, action?: string, userId?: string | null, userRole?: string | null) {
     const skip = (page - 1) * limit;
+    const isStudent = userRole === 'STUDENT' && userId;
 
-    const where = action ? { action } : {};
+    const where: any = {};
+    if (action) where.action = action;
+    if (isStudent) where.userId = userId;
 
     const [logs, total] = await Promise.all([
       this.prisma.activityLog.findMany({
@@ -82,3 +91,4 @@ export class AnalyticsService {
     };
   }
 }
+
