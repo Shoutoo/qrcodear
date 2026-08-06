@@ -437,8 +437,10 @@
         <div class="p-6 rounded-2xl bg-surface-container border border-surface-variant text-center space-y-3">
           <span class="material-symbols-outlined text-4xl text-primary">view_in_ar</span>
           <h4 class="text-lg font-bold text-on-surface">AR Multi-Object Web Creator Studio Aktif</h4>
-          <p class="text-sm text-on-surface/70 max-w-xl mx-auto font-medium">Klik tombol di atas untuk membuka editor 3D Web Studio lengkap dengan fitur Tap-to-Place, penataan posisi objek, dan publish QR Code.</p>
         </div>
+      </div>
+    </div>
+
     <!-- TAB MATERI PEMBELAJARAN AR -->
     <div id="section-materi" class="hidden space-y-6">
       <div class="magic-card p-8 rounded-3xl space-y-6">
@@ -767,12 +769,26 @@
       await checkPersistedSession();
       loadDashboardData();
 
+      const rawPath = path.replace(/^\//, '');
+      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs'];
+      const initialTab = validTabs.includes(rawPath) ? rawPath : 'dashboard';
+      if (initialTab !== 'dashboard') {
+        switchTab(initialTab, false);
+      }
+
       if (path === '/login' || path === '/register') {
         if (currentUser) {
           showToast(`Anda sudah masuk sebagai ${currentUser.name} (${currentUser.role})`);
           window.history.replaceState({}, '', '/');
         }
       }
+    });
+
+    window.addEventListener('popstate', () => {
+      const path = window.location.pathname.replace(/^\//, '');
+      const validTabs = ['materi', 'quiz', 'studio', 'unity', 'logs'];
+      const targetTab = validTabs.includes(path) ? path : 'dashboard';
+      switchTab(targetTab, false);
     });
 
     function toggleMobileMenu() {
@@ -1246,7 +1262,7 @@
       }
     }
 
-    function switchTab(tabName) {
+    function switchTab(tabName, updateUrl = true) {
       const userRole = currentUser ? currentUser.role : null;
       const isStudent = (userRole === 'STUDENT');
 
@@ -1275,6 +1291,13 @@
         renderMateriDashboard();
       } else if (tabName === 'quiz') {
         filterSiswaQuizzesByLesson(currentSiswaLessonFilter);
+      }
+
+      if (updateUrl) {
+        const targetPath = tabName === 'dashboard' ? '/' : `/${tabName}`;
+        if (window.location.pathname !== targetPath) {
+          window.history.pushState({ tab: tabName }, '', targetPath);
+        }
       }
 
       updateTabHeaderAndMetrics(tabName);
