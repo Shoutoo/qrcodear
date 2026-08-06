@@ -14,3 +14,5 @@ server/uploads/*
 !server/uploads/ecosystem-models/**
 !server/uploads/eco_*.glb
 !server/uploads/eco_*_qr.png
+!server/uploads/wild_explorer_bg.jpg
+

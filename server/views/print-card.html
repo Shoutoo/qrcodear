@@ -3,193 +3,192 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Cetak Kartu AR — {{MODEL_NAME}} | Magic AR Edu</title>
+  <title>Cetak Kartu AR — {{MODEL_NAME}} | Wild Explorer</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <!-- Material Symbols -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <!-- Quicksand Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"/>
+  <!-- Google Fonts: Plus Jakarta Sans, Be Vietnam Pro, Space Grotesk, Quicksand -->
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Quicksand:wght@500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet"/>
+
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
       theme: {
         extend: {
           "colors": {
-            "secondary": "#705d00",
-            "surface-bright": "#f4faff",
-            "primary-fixed-dim": "#cdbdff",
-            "secondary-fixed": "#ffe170",
-            "on-primary-fixed-variant": "#4f00d0",
-            "surface-container-low": "#e7f6ff",
-            "surface-tint": "#6833ea",
-            "on-primary-fixed": "#20005f",
-            "on-secondary-container": "#6f5c00",
-            "primary": "#632ce5",
-            "on-background": "#0d1e25",
-            "outline": "#7a7487",
-            "error-container": "#ffdad6",
-            "on-error-container": "#93000a",
-            "surface-variant": "#d4e5ef",
-            "primary-container": "#7c4dff",
-            "secondary-container": "#fdd400",
-            "on-tertiary": "#ffffff",
-            "background": "#f4faff",
-            "surface-dim": "#cbdde7",
-            "on-secondary-fixed": "#221b00",
-            "on-surface": "#0d1e25",
-            "on-error": "#ffffff",
-            "inverse-on-surface": "#e2f3fd",
-            "tertiary-fixed-dim": "#00daf3",
-            "inverse-primary": "#cdbdff",
-            "tertiary-fixed": "#9cf0ff",
-            "surface-container-lowest": "#ffffff",
-            "on-surface-variant": "#494455",
-            "on-primary": "#ffffff",
-            "on-secondary": "#ffffff",
-            "primary-fixed": "#e8deff",
-            "surface": "#f4faff",
-            "surface-container-highest": "#d4e5ef",
-            "on-tertiary-container": "#ebfcff",
-            "on-tertiary-fixed": "#001f24",
-            "on-secondary-fixed-variant": "#544600",
-            "outline-variant": "#cac3d8",
-            "tertiary-container": "#007e8d",
-            "secondary-fixed-dim": "#e9c400",
-            "on-primary-container": "#fcf6ff",
-            "tertiary": "#00636f",
-            "surface-container": "#dff1fb",
-            "error": "#ba1a1a",
-            "on-tertiary-fixed-variant": "#004f58",
-            "inverse-surface": "#23333a",
-            "surface-container-high": "#d9ebf5"
+            "primary": "#154212",
+            "primary-container": "#2d5a27",
+            "secondary-container": "#ff9f4e",
+            "surface-container": "#f0eee8",
+            "on-surface": "#1c1c18",
+            "on-surface-variant": "#42493e",
+            "wild-yellow": "#f8d023"
           },
           "fontFamily": {
-            "button-text": ["Quicksand"],
-            "display-lg": ["Quicksand"],
-            "body-md": ["Quicksand"],
-            "label-bold": ["Quicksand"],
-            "headline-md": ["Quicksand"]
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Be Vietnam Pro", "sans-serif"],
+            "caps": ["Space Grotesk", "sans-serif"],
+            "quicksand": ["Quicksand", "sans-serif"]
           }
         }
       }
     }
   </script>
+
   <style>
-    body { font-family: 'Quicksand', sans-serif; }
-    .chunky-button { box-shadow: 0 4px 0 0 rgba(0,0,0,0.1); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .chunky-button:active { transform: translateY(4px); box-shadow: 0 0 0 0 rgba(0,0,0,0.1); }
-    .magic-card { box-shadow: 0 10px 25px -5px rgba(99, 44, 229, 0.1); }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+    body { font-family: 'Be Vietnam Pro', sans-serif; }
+    
+    .title-shadow {
+      text-shadow: 3px 3px 0px #5c2c16;
+    }
+
+    .chunky-button {
+      box-shadow: 0 4px 0 0 rgba(0,0,0,0.15);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .chunky-button:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 0 rgba(0,0,0,0.15);
+    }
+
+    .print-exact {
+      print-color-adjust: exact !important;
+      -webkit-print-color-adjust: exact !important;
+    }
 
     /* ── PRINT STYLES ────────────────────────────────────── */
     @media print {
       body {
         background: #fff !important;
         padding: 0 !important;
+        margin: 0 !important;
         color: #000 !important;
       }
       .no-print { display: none !important; }
       .print-card-wrap {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        margin: 0 !important;
       }
       .print-card {
-        width: 148mm; /* A5 half width */
-        border-radius: 4mm;
+        width: 130mm !important;
+        height: 195mm !important;
+        border-radius: 6mm !important;
         box-shadow: none !important;
-        border: 1px solid #e2e8f0 !important;
+        border: 2px solid #2d5a27 !important;
         page-break-inside: avoid;
       }
-      .print-exact { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
   </style>
 </head>
-<body class="bg-background text-on-surface min-h-screen py-12 px-6 flex flex-col items-center">
+<body class="bg-[#f0eee8] text-on-surface min-h-screen py-10 px-4 flex flex-col items-center">
 
   <!-- Header (Screen Only) -->
-  <div class="text-center mb-10 no-print max-w-2xl w-full">
-    <div class="inline-flex items-center gap-2 mb-4 bg-primary-container/10 px-4 py-2 rounded-full text-primary font-bold">
-      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-      Magic AR Edu
+  <div class="text-center mb-8 no-print max-w-2xl w-full">
+    <div class="inline-flex items-center gap-2 mb-3 bg-[#2d5a27]/10 px-4 py-1.5 rounded-full text-[#154212] font-bold text-sm">
+      <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">explore</span>
+      Wild Explorer AR Card
     </div>
-    <h1 class="font-display-lg text-4xl text-primary mb-3">Kartu AR Ajaib</h1>
-    <p class="font-body-md text-on-surface-variant text-lg">Cetak kartu ini. Scan QR Code untuk membuka AR Viewer, lalu tekan <strong>"Lihat dalam AR"</strong> untuk menempatkan model 3D di lantai atau meja!</p>
+    <h1 class="font-headline font-extrabold text-3xl md:text-4xl text-[#154212] mb-2">Kartu AR Cetak Explorer</h1>
+    <p class="font-body text-on-surface-variant text-base">Cetak kartu ini. Scan QR Code dengan kamera HP untuk membawa ekosistem & model 3D ke dunia nyata!</p>
   </div>
 
   <!-- How to use steps (Screen Only) -->
-  <div class="flex flex-wrap justify-center items-center gap-4 mb-10 no-print">
-    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
-      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-      <span class="font-label-bold">Cetak Kartu</span>
+  <div class="flex flex-wrap justify-center items-center gap-3 mb-8 no-print text-sm font-medium">
+    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
+      <span class="bg-[#154212] text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">1</span>
+      <span>Cetak Kartu</span>
     </div>
-    <span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
-    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
-      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-      <span class="font-label-bold">Scan QR Code</span>
+    <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
+    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
+      <span class="bg-[#154212] text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">2</span>
+      <span>Scan QR Code</span>
     </div>
-    <span class="material-symbols-outlined text-outline-variant">arrow_forward</span>
-    <div class="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full">
-      <span class="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-      <span class="font-label-bold">Tekan "Lihat dalam AR"</span>
+    <span class="material-symbols-outlined text-gray-400">arrow_forward</span>
+    <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
+      <span class="bg-[#154212] text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs">3</span>
+      <span>Jelajahi dalam AR</span>
     </div>
   </div>
 
-  <!-- THE PRINTABLE CARD -->
-  <div class="print-card-wrap w-full max-w-md mx-auto mb-10">
-    <div class="print-card bg-white rounded-3xl overflow-hidden magic-card border-2 border-primary/10 mx-auto print-exact">
+  <!-- THE PRINTABLE CARD (WILD EXPLORER STYLE) -->
+  <div class="print-card-wrap w-full max-w-md mx-auto mb-8 flex justify-center">
+    <div class="print-card relative w-full max-w-[380px] aspect-[2/3] rounded-3xl overflow-hidden shadow-2xl border-4 border-[#2d5a27] flex flex-col justify-between print-exact group">
       
-      <!-- Top Band -->
-      <div class="bg-primary print-exact px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-2 text-white">
-          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-          <span class="font-bold text-lg">Magic AR Edu</span>
-        </div>
-        <div class="bg-white/20 px-3 py-1 rounded-full text-white text-xs font-bold print-exact">Kartu AR Markerless</div>
+      <!-- Full Bleed Jungle Background Image Layer -->
+      <div class="absolute inset-0 z-0 print-exact">
+        <div class="w-full h-full bg-cover bg-center print-exact" style="background-image: url('/assets/wild_explorer_bg.jpg');"></div>
       </div>
 
-      <!-- Card Body: QR Code Only (Markerless AR Card) -->
-      <div class="p-8 flex flex-col items-center border-b-2 border-dashed border-outline-variant/30 text-center">
-        <div class="text-xs font-bold text-primary uppercase tracking-wider mb-3">Scan QR Code Ini Dengan Kamera HP</div>
-        <div class="w-48 h-48 border-4 border-primary/20 rounded-2xl flex items-center justify-center bg-white p-2 mb-3 shadow-inner">
-          <img class="w-full h-full object-contain" src="{{QR_DATA_URL}}" alt="QR Code AR" />
+      <!-- Card Content Overlay Layer -->
+      <div class="relative z-10 flex flex-col justify-between h-full w-full p-5">
+        
+        <!-- Top Section: Header Title -->
+        <div class="pt-4 px-2 text-center">
+          <h2 class="font-headline font-black text-4xl md:text-5xl text-[#f8d023] title-shadow uppercase tracking-[0.15em] transform -rotate-2 drop-shadow-lg">
+            SCAN HERE
+          </h2>
+          <div class="mt-2">
+            <span class="font-caps text-[11px] font-bold text-white uppercase tracking-widest bg-black/50 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 shadow-sm inline-block max-w-[280px] truncate" title="{{MODEL_NAME}}">
+              {{MODEL_NAME}}
+            </span>
+          </div>
         </div>
-        <p class="text-xs text-on-surface-variant max-w-xs leading-relaxed font-medium">
-          Scan QR ini, lalu tekan tombol <strong>"Lihat dalam AR"</strong>, arahkan kamera ke lantai atau meja untuk menempatkan model
-        </p>
-      </div>
 
-      <!-- Card Footer -->
-      <div class="bg-surface-container-lowest px-6 py-4 flex items-center justify-between">
-        <div>
-          <div class="font-bold text-on-surface text-sm max-w-[200px] truncate" title="{{MODEL_NAME}}">{{MODEL_NAME}}</div>
-          <div class="text-[10px] text-on-surface-variant mt-0.5">{{UPLOAD_DATE}}</div>
+        <!-- Middle Section: Artwork space showing jungle & animals -->
+        <div class="flex-grow"></div>
+
+        <!-- Bottom Section: Card Info + Dashed QR Frame -->
+        <div class="relative z-20 p-3.5 rounded-2xl bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-between gap-3 shadow-2xl print-exact">
+          
+          <!-- Metadata Info -->
+          <div class="text-left text-white overflow-hidden flex-1">
+            <span class="inline-block bg-[#f8d023] text-[#2f1500] font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full mb-1 tracking-wider print-exact">
+              Kartu AR Markerless
+            </span>
+            <div class="font-headline font-bold text-sm text-white truncate max-w-[170px] leading-tight" title="{{MODEL_NAME}}">
+              {{MODEL_NAME}}
+            </div>
+            <div class="text-[11px] text-emerald-200 mt-1 flex items-center gap-1 font-medium">
+              <span class="material-symbols-outlined text-[13px]">calendar_today</span>
+              {{UPLOAD_DATE}}
+            </div>
+          </div>
+
+          <!-- QR Code Box (Dashed-Corner Frame) -->
+          <div class="bg-white p-1.5 rounded-xl shadow-lg border border-white flex-shrink-0 w-28 h-28 flex items-center justify-center transform rotate-1 group-hover:scale-105 transition-transform duration-300 print-exact">
+            <div class="w-full h-full border-4 border-dashed border-[#154212] rounded-lg flex items-center justify-center bg-gray-50 p-1 print-exact">
+              <img class="w-full h-full object-contain" src="/assets/{{QR_FILENAME}}" alt="QR Code AR" />
+            </div>
+          </div>
+
         </div>
-        <div class="bg-secondary-container text-on-secondary-container w-8 h-8 rounded-full flex items-center justify-center print-exact">
-          <span class="material-symbols-outlined text-sm">3d_rotation</span>
-        </div>
+
       </div>
 
     </div>
   </div>
 
   <!-- Actions (Screen Only) -->
-  <div class="flex flex-wrap justify-center gap-4 no-print w-full max-w-lg">
-    <button class="bg-primary-container text-white font-button-text py-4 px-8 rounded-xl chunky-button flex items-center gap-2 flex-1 min-w-[200px]" onclick="window.print()">
+  <div class="flex flex-wrap justify-center gap-4 no-print w-full max-w-md">
+    <button class="bg-[#154212] hover:bg-[#2d5a27] text-white font-headline font-bold py-3.5 px-6 rounded-xl chunky-button flex items-center justify-center gap-2 flex-1 min-w-[180px] transition-colors" onclick="window.print()">
       <span class="material-symbols-outlined">print</span> Cetak Sekarang
     </button>
-    <a href="{{VIEWER_URL}}" class="bg-secondary-container text-on-secondary-container font-button-text py-4 px-8 rounded-xl chunky-button flex items-center justify-center gap-2 flex-1 min-w-[200px]" target="_blank">
+    <a href="{{VIEWER_URL}}" class="bg-[#ff9f4e] hover:bg-[#ff8f2e] text-[#2f1500] font-headline font-bold py-3.5 px-6 rounded-xl chunky-button flex items-center justify-center gap-2 flex-1 min-w-[180px] transition-colors" target="_blank">
       <span class="material-symbols-outlined">visibility</span> Buka AR Viewer
     </a>
   </div>
   <div class="mt-4 no-print">
-    <a href="/" class="text-on-surface-variant font-medium hover:text-primary flex items-center gap-1 transition-colors">
+    <a href="/" class="text-on-surface-variant font-medium hover:text-[#154212] flex items-center gap-1 transition-colors text-sm">
       <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Beranda
     </a>
   </div>
 
 </body>
 </html>
+
