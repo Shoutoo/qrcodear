@@ -102,8 +102,9 @@ function createSpecies3DLabelMesh(name, role, angle) {
     canvas.toDataURL = function (t) {
         return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
     };
-    ctx.clearRect(0, 0, 512, 160);
-    const x = 12, y = 12, w = 488, h = 136, r = 40;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 512, 160);
+    const x = 10, y = 10, w = 492, h = 140, r = 36;
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -111,20 +112,20 @@ function createSpecies3DLabelMesh(name, role, angle) {
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
+    ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.strokeStyle = '#632ce5';
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 12;
     ctx.stroke();
     const roleDisplay = role.toUpperCase().replace(/_/g, ' ');
     ctx.font = 'bold 22px Arial, sans-serif';
     const roleMetrics = ctx.measureText(roleDisplay);
-    const roleBadgeWidth = Math.min(240, Math.max(120, roleMetrics.width + 32));
+    const roleBadgeWidth = Math.min(240, Math.max(130, roleMetrics.width + 36));
     const bx = x + w - roleBadgeWidth - 16;
-    const by = y + (h - 52) / 2;
+    const by = y + (h - 56) / 2;
     const bw = roleBadgeWidth;
-    const bh = 52;
-    const br = 16;
+    const bh = 56;
+    const br = 18;
     ctx.fillStyle = '#fdd400';
     ctx.beginPath();
     ctx.moveTo(bx + br, by);
@@ -140,11 +141,11 @@ function createSpecies3DLabelMesh(name, role, angle) {
     ctx.textBaseline = 'middle';
     ctx.fillText(roleDisplay, bx + bw / 2, by + bh / 2 + 2);
     ctx.fillStyle = '#0d1e25';
-    ctx.font = 'bold 32px Arial, sans-serif';
+    ctx.font = 'bold 34px Arial, sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     let displayName = name || 'Spesies';
-    const maxTextWidth = bx - x - 40;
+    const maxTextWidth = bx - x - 36;
     let textMetrics = ctx.measureText(displayName);
     if (textMetrics.width > maxTextWidth) {
         while (displayName.length > 3 && ctx.measureText(displayName + '..').width > maxTextWidth) {
@@ -152,7 +153,7 @@ function createSpecies3DLabelMesh(name, role, angle) {
         }
         displayName += '..';
     }
-    const textX = x + 24;
+    const textX = x + 28;
     const textY = y + h / 2 + 2;
     ctx.fillText(displayName, textX, textY);
     const texture = new THREE.CanvasTexture(canvas);
@@ -160,14 +161,12 @@ function createSpecies3DLabelMesh(name, role, angle) {
     const planeGeom = new THREE.PlaneGeometry(1.4, 0.44);
     const planeMat = new THREE.MeshStandardMaterial({
         map: texture,
-        transparent: true,
-        alphaTest: 0.05,
-        roughness: 0.4,
+        roughness: 0.5,
         metalness: 0.0,
         side: THREE.DoubleSide,
     });
     const mesh = new THREE.Mesh(planeGeom, planeMat);
-    mesh.position.set(0, 1.1, 0);
+    mesh.position.set(0, 1.15, 0);
     mesh.rotation.y = angle + Math.PI / 2;
     return mesh;
 }

@@ -59,11 +59,12 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
     return 'data:image/png;base64,' + canvas.toBuffer('image/png').toString('base64');
   };
 
-  // Clear background (transparent outside pill)
-  ctx.clearRect(0, 0, 512, 160);
+  // 1. Solid White Card Fill (Opaque - compatible with SceneViewer AR)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, 512, 160);
 
-  // 1. Outer Pill Badge (White Fill, Purple Border)
-  const x = 12, y = 12, w = 488, h = 136, r = 40;
+  // 2. Outer Rounded Rectangle Border (Purple #632ce5)
+  const x = 10, y = 10, w = 492, h = 140, r = 36;
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -72,26 +73,26 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
+  ctx.fillStyle = '#ffffff';
   ctx.fill();
 
   ctx.strokeStyle = '#632ce5';
-  ctx.lineWidth = 10;
+  ctx.lineWidth = 12;
   ctx.stroke();
 
-  // 2. Format Role Badge Text
+  // 3. Format Role Badge Text
   const roleDisplay = role.toUpperCase().replace(/_/g, ' ');
 
   ctx.font = 'bold 22px Arial, sans-serif';
   const roleMetrics = ctx.measureText(roleDisplay);
-  const roleBadgeWidth = Math.min(240, Math.max(120, roleMetrics.width + 32));
+  const roleBadgeWidth = Math.min(240, Math.max(130, roleMetrics.width + 36));
 
-  // 3. Draw Yellow Role Badge Pill on Right
+  // 4. Draw Yellow Role Badge Pill on Right (#fdd400)
   const bx = x + w - roleBadgeWidth - 16;
-  const by = y + (h - 52) / 2;
+  const by = y + (h - 56) / 2;
   const bw = roleBadgeWidth;
-  const bh = 52;
-  const br = 16;
+  const bh = 56;
+  const br = 18;
 
   ctx.fillStyle = '#fdd400';
   ctx.beginPath();
@@ -109,14 +110,14 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
   ctx.textBaseline = 'middle';
   ctx.fillText(roleDisplay, bx + bw / 2, by + bh / 2 + 2);
 
-  // 4. Draw Species Name Text on Left
+  // 5. Draw Species Name Text on Left (Dark Navy #0d1e25)
   ctx.fillStyle = '#0d1e25';
-  ctx.font = 'bold 32px Arial, sans-serif';
+  ctx.font = 'bold 34px Arial, sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
 
   let displayName = name || 'Spesies';
-  const maxTextWidth = bx - x - 40;
+  const maxTextWidth = bx - x - 36;
   let textMetrics = ctx.measureText(displayName);
   if (textMetrics.width > maxTextWidth) {
     while (displayName.length > 3 && ctx.measureText(displayName + '..').width > maxTextWidth) {
@@ -125,25 +126,24 @@ function createSpecies3DLabelMesh(name: string, role: string, angle: number): TH
     displayName += '..';
   }
 
-  const textX = x + 24;
+  const textX = x + 28;
   const textY = y + h / 2 + 2;
   ctx.fillText(displayName, textX, textY);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
 
+  // 6. Opaque Standard PBR Material (100% visible in SceneViewer & ARCore)
   const planeGeom = new THREE.PlaneGeometry(1.4, 0.44);
   const planeMat = new THREE.MeshStandardMaterial({
     map: texture,
-    transparent: true,
-    alphaTest: 0.05,
-    roughness: 0.4,
+    roughness: 0.5,
     metalness: 0.0,
     side: THREE.DoubleSide,
   });
 
   const mesh = new THREE.Mesh(planeGeom, planeMat);
-  mesh.position.set(0, 1.1, 0);
+  mesh.position.set(0, 1.15, 0);
 
   // Face outward from center ring
   mesh.rotation.y = angle + Math.PI / 2;
