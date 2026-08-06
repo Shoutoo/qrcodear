@@ -16,5 +16,7 @@ server/uploads/*
 !server/uploads/eco_*_qr.png
 !server/uploads/wild_explorer_bg.jpg
 !server/uploads/kartu-background-jungle-A6-1500x2235.jpg
+!server/uploads/ar_login_illustration.png
+
 
 

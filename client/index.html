@@ -119,7 +119,132 @@
     #toast.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-secondary-container selection:text-on-surface">
+<body class="min-h-screen flex flex-col justify-between selection:bg-secondary-container selection:text-on-surface bg-[#f4faff]">
+
+  <!-- STANDALONE SPLIT-SCREEN LOGIN PAGE -->
+  <div id="auth-split-container" class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 lg:p-10 transition-all">
+    <div class="max-w-5xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-surface-variant grid grid-cols-1 md:grid-cols-2 min-h-[620px] magic-card transition-all">
+      
+      <!-- LEFT PANEL: Brand Solid Purple Gradient & 3D AR Illustration -->
+      <div class="bg-gradient-to-br from-primary via-[#531fd4] to-[#3c0fb8] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+        
+        <!-- Background Glow Accent -->
+        <div class="absolute -top-24 -left-24 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-primary-container/40 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Top Brand Logo -->
+        <div class="relative z-10 flex items-center space-x-3">
+          <div class="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg">
+            <span class="material-symbols-outlined text-2xl">view_in_ar</span>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
+              Magic AR <span class="bg-secondary-container text-on-surface px-2 py-0.5 rounded-lg text-xs font-black">Edu</span>
+            </h1>
+            <p class="text-[11px] text-white/70 font-semibold">EduAR Platform Enterprise</p>
+          </div>
+        </div>
+
+        <!-- Middle Headline Welcome Text -->
+        <div class="relative z-10 my-6 space-y-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-secondary-fixed text-xs font-bold border border-white/15">
+            <span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span>
+            <span>Pembelajaran 3D & AR Interaktif</span>
+          </span>
+          <h2 class="text-2xl sm:text-3xl font-black text-white leading-snug tracking-tight">
+            Ubah Ekosistem & Model 3D Jadi Ajaib!
+          </h2>
+          <p class="text-xs sm:text-sm text-white/80 font-medium leading-relaxed max-w-sm">
+            Platform pembelajaran Augmented Reality untuk eksplorasi rantai makanan, studio kreasi 3D, dan kuis evaluasi interaktif siswa.
+          </p>
+        </div>
+
+        <!-- Bottom 3D AR Illustration Asset -->
+        <div class="relative z-10 mt-auto flex justify-center items-center">
+          <img src="/assets/ar_login_illustration.png" alt="AR Education 3D Illustration" class="w-full max-w-[240px] sm:max-w-[280px] object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-500"/>
+        </div>
+
+      </div>
+
+      <!-- RIGHT PANEL: Clean White Form -->
+      <div class="p-8 sm:p-12 flex flex-col justify-between bg-white relative">
+        
+        <div>
+          <!-- Title & Subtitle -->
+          <div class="space-y-1.5 mb-8">
+            <h3 id="split-form-title" class="text-2xl sm:text-3xl font-black text-on-surface tracking-tight">MASUK</h3>
+            <p id="split-form-subtitle" class="text-xs sm:text-sm text-on-surface/70 font-medium">Masukkan email & kata sandi akun Anda untuk melanjutkan</p>
+          </div>
+
+          <!-- Auth Form (Underline / Minimalist Border Style) -->
+          <form id="split-auth-form" onsubmit="handleSplitAuthSubmit(event)" class="space-y-6">
+            
+            <!-- Field: Full Name (Register Mode) -->
+            <div id="split-field-name-group" class="hidden space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Nama Lengkap</label>
+              <div class="border-b-2 border-surface-variant focus-within:border-primary transition-colors pb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-outline text-lg">person</span>
+                <input type="text" id="split-auth-name" class="w-full bg-transparent py-1.5 text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="Masukkan nama lengkap Anda"/>
+              </div>
+            </div>
+
+            <!-- Field: Email -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Email Akun</label>
+              <div class="border-b-2 border-surface-variant focus-within:border-primary transition-colors pb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-outline text-lg">mail</span>
+                <input type="email" id="split-auth-email" required class="w-full bg-transparent py-1.5 text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="nama@eduar.com"/>
+              </div>
+            </div>
+
+            <!-- Field: Password with Eye Toggle -->
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Kata Sandi</label>
+              <div class="border-b-2 border-surface-variant focus-within:border-primary transition-colors pb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-outline text-lg">lock</span>
+                <input type="password" id="split-auth-password" required class="w-full bg-transparent py-1.5 text-on-surface font-semibold text-sm focus:outline-none placeholder-outline/50" placeholder="••••••••"/>
+                <button type="button" onclick="toggleSplitPasswordVisibility()" class="text-outline hover:text-primary transition-colors p-1">
+                  <span id="split-pass-eye-icon" class="material-symbols-outlined text-lg">visibility</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Field: Role Select (Register Mode) -->
+            <div id="split-field-role-group" class="hidden space-y-1.5">
+              <label class="text-xs font-bold text-on-surface/80 uppercase tracking-wider">Peran Pengguna (Role)</label>
+              <div class="border-b-2 border-surface-variant focus-within:border-primary transition-colors pb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-outline text-lg">badge</span>
+                <select id="split-auth-role" class="w-full bg-transparent py-1.5 text-on-surface font-bold text-sm focus:outline-none cursor-pointer">
+                  <option value="STUDENT">👨‍🎓 Siswa (Student)</option>
+                  <option value="TEACHER">👨‍🏫 Guru (Teacher)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Submit Button (Full Width Solid Brand) -->
+            <button type="submit" id="split-auth-submit-btn" class="chunky-button w-full py-3.5 rounded-2xl font-bold bg-primary text-white hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-2 text-sm mt-4">
+              <span id="split-auth-spinner" class="hidden animate-spin material-symbols-outlined text-lg">progress_activity</span>
+              <span id="split-auth-btn-text">MASUK SEKARANG</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Bottom Link -->
+        <div class="pt-6 text-center border-t border-surface-variant/50 mt-6">
+          <p class="text-xs font-semibold text-on-surface/70">
+            <span id="split-switch-text">Belum memiliki akun?</span>
+            <a href="javascript:void(0)" onclick="toggleSplitAuthMode()" class="text-primary font-extrabold hover:underline ml-1" id="split-switch-link">Daftar Akun Baru</a>
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP DASHBOARD CONTAINER (HIDDEN UNTIL AUTHENTICATED) -->
+  <div id="app-dashboard-container" class="hidden min-h-screen flex flex-col justify-between">
+
 
   <!-- TOP NAVIGATION BAR (RESPONSIVE) -->
   <header class="bg-surface-lowest/90 backdrop-blur-md border-b-2 border-surface-variant px-4 sm:px-8 py-3.5 sticky top-0 z-50 shadow-sm transition-all">
@@ -416,6 +541,8 @@
       </div>
     </div>
   </footer>
+  </div>
+
 
   <!-- AUTH MODAL POPUP (REDESIGNED GLASSMORPHISM LIGHT THEME) -->
   <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
@@ -504,30 +631,27 @@
 
   <!-- CLIENT SCRIPTS -->
   <script>
+
     let activeAuthMode = 'login';
+    let activeSplitAuthMode = 'login';
     let selectedQuizId = null;
     let selectedAnswer = '';
     let currentUser = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
+      const path = window.location.pathname;
+      if (path === '/register') {
+        activeSplitAuthMode = 'register';
+        updateSplitAuthFormUI();
+      }
+
       await checkPersistedSession();
       loadDashboardData();
 
-      // Auto-open modal or auto-redirect for /login & /register URLs
-      const path = window.location.pathname;
-      if (path === '/login') {
+      if (path === '/login' || path === '/register') {
         if (currentUser) {
           showToast(`Anda sudah masuk sebagai ${currentUser.name} (${currentUser.role})`);
           window.history.replaceState({}, '', '/');
-        } else {
-          openAuthModal('login');
-        }
-      } else if (path === '/register') {
-        if (currentUser) {
-          showToast(`Anda sudah masuk sebagai ${currentUser.name} (${currentUser.role})`);
-          window.history.replaceState({}, '', '/');
-        } else {
-          openAuthModal('register');
         }
       }
     });
@@ -553,6 +677,105 @@
       } else {
         passInput.type = 'password';
         eyeIcon.innerText = 'visibility';
+      }
+    }
+
+    function toggleSplitPasswordVisibility() {
+      const passInput = document.getElementById('split-auth-password');
+      const eyeIcon = document.getElementById('split-pass-eye-icon');
+      if (passInput.type === 'password') {
+        passInput.type = 'text';
+        eyeIcon.innerText = 'visibility_off';
+      } else {
+        passInput.type = 'password';
+        eyeIcon.innerText = 'visibility';
+      }
+    }
+
+    function toggleSplitAuthMode() {
+      activeSplitAuthMode = activeSplitAuthMode === 'login' ? 'register' : 'login';
+      updateSplitAuthFormUI();
+    }
+
+    function updateSplitAuthFormUI() {
+      const title = document.getElementById('split-form-title');
+      const subtitle = document.getElementById('split-form-subtitle');
+      const nameGroup = document.getElementById('split-field-name-group');
+      const roleGroup = document.getElementById('split-field-role-group');
+      const btnText = document.getElementById('split-auth-btn-text');
+      const switchText = document.getElementById('split-switch-text');
+      const switchLink = document.getElementById('split-switch-link');
+
+      if (!title) return;
+
+      if (activeSplitAuthMode === 'register') {
+        title.innerText = 'DAFTAR AKUN BARU';
+        subtitle.innerText = 'Lengkapi data Anda untuk mendaftar sebagai Siswa atau Guru';
+        nameGroup?.classList.remove('hidden');
+        roleGroup?.classList.remove('hidden');
+        btnText.innerText = 'DAFTAR SEKARANG';
+        switchText.innerText = 'Sudah memiliki akun?';
+        switchLink.innerText = 'Masuk di sini';
+      } else {
+        title.innerText = 'MASUK';
+        subtitle.innerText = 'Masukkan email & kata sandi akun Anda untuk melanjutkan';
+        nameGroup?.classList.add('hidden');
+        roleGroup?.classList.add('hidden');
+        btnText.innerText = 'MASUK SEKARANG';
+        switchText.innerText = 'Belum memiliki akun?';
+        switchLink.innerText = 'Daftar Akun Baru';
+      }
+    }
+
+    async function handleSplitAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('split-auth-email').value;
+      const password = document.getElementById('split-auth-password').value;
+      const name = document.getElementById('split-auth-name')?.value || '';
+      const role = document.getElementById('split-auth-role')?.value || 'STUDENT';
+
+      const submitBtn = document.getElementById('split-auth-submit-btn');
+      const spinner = document.getElementById('split-auth-spinner');
+      const btnText = document.getElementById('split-auth-btn-text');
+
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.innerText = activeSplitAuthMode === 'register' ? 'MENDAFTARKAN...' : 'MEMPROSES...';
+
+      try {
+        const endpoint = activeSplitAuthMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        const body = activeSplitAuthMode === 'register'
+          ? { email, password, name, role }
+          : { email, password, device: 'web-dashboard' };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || (activeSplitAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!'));
+          if (data.accessToken) localStorage.setItem('eduar_token', data.accessToken);
+          if (data.refreshToken) localStorage.setItem('eduar_refresh_token', data.refreshToken);
+          if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('eduar_user', JSON.stringify(data.user));
+            updateUserHeader(data.user);
+          }
+          if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+            window.history.replaceState({}, '', '/');
+          }
+        } else {
+          showToast(data.message || data.error || 'Gagal memproses autentikasi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      } finally {
+        submitBtn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.innerText = activeSplitAuthMode === 'register' ? 'DAFTAR SEKARANG' : 'MASUK SEKARANG';
       }
     }
 
@@ -659,7 +882,6 @@
       const userRole = currentUser ? currentUser.role : null;
       const isStudent = (userRole === 'STUDENT');
 
-      // Protected route guard: Students cannot switch to studio or unity editor
       if (isStudent && (tabName === 'studio' || tabName === 'unity')) {
         showToast('Akses ditolak: Menu ini khusus untuk Guru', true);
         tabName = 'dashboard';
@@ -741,6 +963,7 @@
       const password = document.getElementById('auth-password').value;
       const name = document.getElementById('auth-name').value;
       const role = document.getElementById('auth-role').value;
+
       const submitBtn = document.getElementById('auth-submit-btn');
       const spinner = document.getElementById('auth-btn-spinner');
       const submitText = document.getElementById('auth-btn-text');
@@ -786,18 +1009,29 @@
 
     function updateUserHeader(user) {
       const container = document.getElementById('auth-header-container');
+      const splitAuthContainer = document.getElementById('auth-split-container');
+      const appDashboardContainer = document.getElementById('app-dashboard-container');
+
       if (!user) {
-        container.innerHTML = `
-          <button onclick="openAuthModal('login')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
-            Masuk
-          </button>
-          <button onclick="openAuthModal('register')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
-            Daftar Siswa/Guru
-          </button>
-        `;
+        if (splitAuthContainer) splitAuthContainer.classList.remove('hidden');
+        if (appDashboardContainer) appDashboardContainer.classList.add('hidden');
+
+        if (container) {
+          container.innerHTML = `
+            <button onclick="openAuthModal('login')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-white text-primary border-2 border-primary/20 hover:bg-surface-container transition-all">
+              Masuk
+            </button>
+            <button onclick="openAuthModal('register')" class="chunky-button px-5 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-surface hover:bg-secondary-fixed transition-all border border-secondary">
+              Daftar Siswa/Guru
+            </button>
+          `;
+        }
         applyRolePermissions(null);
         return;
       }
+
+      if (splitAuthContainer) splitAuthContainer.classList.add('hidden');
+      if (appDashboardContainer) appDashboardContainer.classList.remove('hidden');
 
       const isTeacher = (user.role === 'TEACHER');
       const isAdmin = (user.role === 'ADMIN');
@@ -822,6 +1056,7 @@
     }
 
     async function handleLogout() {
+
       const token = localStorage.getItem('eduar_token');
       const refreshToken = localStorage.getItem('eduar_refresh_token');
 
