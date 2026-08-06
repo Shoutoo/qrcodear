@@ -2978,9 +2978,7 @@
 
     function showUserProfileInfo() {
       closeProfileDropdown();
-      if (currentUser) {
-        showToast(`👤 Profil: ${currentUser.name} | Peran: ${currentUser.role} | Email: ${currentUser.email}`);
-      }
+      switchTab('profile');
     }
 
     function openChangePasswordModalFromDropdown() {
