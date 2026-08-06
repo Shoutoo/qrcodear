@@ -1318,11 +1318,27 @@
       setTimeout(() => { toast.classList.remove('show'); }, 3500);
     }
 
+    // ─── MASTER MODAL CONTROLLER & AUDIT ────────────────────────────────
+    function closeAllModals() {
+      const modalIds = ['auth-modal', 'modal-quiz-management', 'modal-edit-materi', 'modal-change-password'];
+      modalIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+          if (id === 'auth-modal') {
+            el.classList.add('opacity-0', 'pointer-events-none');
+          }
+        }
+      });
+    }
+
     function openAuthModal(mode) {
       if (currentUser && mode === 'login') {
         showToast(`Anda sedang masuk sebagai ${currentUser.name} (${currentUser.role})`);
         return;
       }
+      closeAllModals();
       activeAuthMode = mode;
       const modal = document.getElementById('auth-modal');
       const title = document.getElementById('modal-title');
@@ -1981,6 +1997,7 @@
 
     // ─── QUIZ MANAGEMENT MODAL & RECAP HANDLERS (GURU) ─────────────────
     function openQuizManagementModal() {
+      closeAllModals();
       const modal = document.getElementById('modal-quiz-management');
       if (modal) {
         modal.classList.remove('hidden');
@@ -2510,6 +2527,7 @@
     }
 
     function openCreateMateriModal() {
+      closeAllModals();
       document.getElementById('edit-materi-id').value = '';
       document.getElementById('edit-materi-title-input').value = '';
       document.getElementById('edit-materi-content-input').value = '';
@@ -2523,8 +2541,12 @@
     }
 
     function openEditMateriModal(lessonId) {
-      const lesson = allRawLessons.find(l => l.id === lessonId);
-      if (!lesson) return;
+      closeAllModals();
+      const lesson = allRawLessons.find(l => String(l.id) === String(lessonId));
+      if (!lesson) {
+        showToast('Modul materi tidak ditemukan', true);
+        return;
+      }
 
       document.getElementById('edit-materi-id').value = lesson.id;
       document.getElementById('edit-materi-title-input').value = lesson.title;
@@ -2543,6 +2565,31 @@
       if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+      }
+    }
+
+    async function deleteMateri(lessonId, lessonTitle) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus modul materi "${lessonTitle}"? Semua soal kuis terkait materi ini juga akan terhapus.`)) {
+        return;
+      }
+      const token = localStorage.getItem('eduar_token');
+      try {
+        const res = await fetch(`/api/lessons/${lessonId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('Modul materi berhasil dihapus!');
+          renderMateriDashboard();
+          loadDashboardData();
+        } else {
+          showToast(data.message || 'Gagal menghapus modul materi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
       }
     }
 
@@ -2600,6 +2647,7 @@
     }
 
     function openChangePasswordModal() {
+      closeAllModals();
       const oldEl = document.getElementById('change-old-password');
       const newEl = document.getElementById('change-new-password');
       const confirmEl = document.getElementById('change-confirm-password');
