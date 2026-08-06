@@ -20,7 +20,7 @@ async function bootstrap() {
         const connected = await r2.checkConnection();
         if (connected) {
             console.log('✅ Cloudflare R2 Bucket Connection: SUCCESS');
-            const testBuffer = Buffer.from('EduAR Platform R2 Connection Test - FASE R1');
+            const testBuffer = Buffer.from('AlamVerse — Where Nature Meets Reality R2 Connection Test - FASE R1');
             const testKey = `test-fase-r1-${Date.now()}.txt`;
             const uploadRes = await r2.uploadWithFallback(testKey, testBuffer, 'text/plain');
             console.log(`   R2 Test Upload Result: URL = ${uploadRes.url} (Mode: ${uploadRes.mode})`);

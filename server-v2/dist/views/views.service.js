@@ -263,7 +263,7 @@ let ViewsService = class ViewsService {
         const asset = await this.prisma.asset.findUnique({ where: { id } });
         if (!asset) {
             return `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
-      <title>Tidak Ditemukan — EduAR Platform</title>
+      <title>Tidak Ditemukan — AlamVerse — Where Nature Meets Reality</title>
       <style>body{background:#07071a;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}</style>
       </head><body><div><div style="font-size:48px;margin-bottom:16px">❌</div>
       <h2>Model Tidak Ditemukan</h2><p style="color:rgba(255,255,255,0.5);margin-top:8px">QR code ini mungkin sudah tidak valid.</p>

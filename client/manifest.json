@@ -1,0 +1,16 @@
+{
+  "short_name": "AlamVerse",
+  "name": "AlamVerse — Where Nature Meets Reality",
+  "description": "Platform Pembelajaran Augmented Reality (AR) 3D & Kuis Interaktif Sains Ekosistem SD",
+  "icons": [
+    {
+      "src": "/assets/logo/logo-warna.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512 192x192 96x96 48x48"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#5624a9",
+  "display": "standalone"
+}

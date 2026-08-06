@@ -9,7 +9,7 @@ const LEGACY_DATA_DIR = path.join(ROOT_DIR, 'server', 'data');
 
 async function migrateLegacyData() {
   console.log('=====================================================');
-  console.log('🚀 EduAR Platform — FASE R2: Script Migrasi Data');
+  console.log('🚀 AlamVerse — Where Nature Meets Reality — FASE R2: Script Migrasi Data');
   console.log('=====================================================');
   console.log(`Source data dir: ${LEGACY_DATA_DIR}\n`);
 

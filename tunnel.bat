@@ -1,7 +1,7 @@
 @echo off
 echo.
 echo ========================================================
-echo         Magic AR Edu - Membuka Akses untuk HP
+echo         AlamVerse — Where Nature Meets Reality - Membuka Akses untuk HP
 echo ========================================================
 echo.
 echo Sedang membuat tunnel aman (localhost.run)...

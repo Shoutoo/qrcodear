@@ -1,7 +1,7 @@
 {
-  "name": "server-v2",
+  "name": "alamverse-backend",
   "version": "0.0.1",
-  "description": "",
+  "description": "AlamVerse — Where Nature Meets Reality Backend Micro-services",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -15,7 +15,6 @@
     "seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
     "seed:quiz": "ts-node prisma/seed-quiz.ts",
     "seed:prod": "ts-node prisma/seed.ts && ts-node prisma/seed-quiz.ts",
-
     "test:connection": "ts-node src/test-connection.ts",
     "test:r3-api": "ts-node src/test-r3-api.ts",
     "test:r4-rewiring": "ts-node src/test-r4-rewiring.ts",

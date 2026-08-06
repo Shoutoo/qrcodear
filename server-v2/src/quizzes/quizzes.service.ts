@@ -51,7 +51,7 @@ export class QuizzesService implements OnModuleInit {
           if (!teacher) {
             teacher = await this.prisma.user.create({
               data: {
-                name: 'Guru EduAR System',
+                name: 'Guru AlamVerse System',
                 email: 'system@eduar.internal',
                 password_hash: '$2b$10$abcdefghijklmnopqrstuuvwxyz',
                 role: 'TEACHER',
@@ -129,7 +129,7 @@ export class QuizzesService implements OnModuleInit {
         if (!creatorId) {
           const fallbackUser = await this.prisma.user.create({
             data: {
-              name: 'Guru EduAR',
+              name: 'Guru AlamVerse',
               email: `guru_system@eduar.com`,
               password_hash: '$2b$10$abcdefghijklmnopqrstuv',
               role: 'TEACHER',

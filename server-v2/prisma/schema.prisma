@@ -1,4 +1,4 @@
-// Prisma Schema for EduAR Platform (FASE R1)
+// Prisma Schema for AlamVerse — Where Nature Meets Reality (FASE R1)
 // PostgreSQL Database
 
 generator client {

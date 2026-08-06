@@ -70,7 +70,7 @@ async function bootstrap() {
     app.use(express.static(clientDir));
     const port = process.env.PORT || 3002;
     await app.listen(port);
-    console.log(`🚀 NestJS EduAR Platform Server running on http://localhost:${port}`);
+    console.log(`🚀 NestJS AlamVerse Platform Server (Where Nature Meets Reality) running on http://localhost:${port}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

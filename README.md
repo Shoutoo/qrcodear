@@ -1,6 +1,6 @@
-# AR Edu QR 🎯
+# 🌿 AlamVerse — Where Nature Meets Reality
 
-> Generator QR Code untuk Konten Augmented Reality 3D — upload model 3D, dapatkan QR code, scan dan lihat AR langsung di browser.
+> AlamVerse — Where Nature Meets Reality. Platform Pembelajaran Augmented Reality (AR) 3D & Kuis Interaktif Ekosistem SD — upload model 3D, dapatkan QR code, scan dan lihat AR langsung di browser.
 
 ## 🚀 Cara Menjalankan
 

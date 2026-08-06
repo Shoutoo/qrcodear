@@ -1,7 +1,7 @@
 @echo off
 echo.
 echo ========================================================
-echo       Magic AR Edu - Tunnel Cloudflare (Ultra Stabil)
+echo       AlamVerse — Where Nature Meets Reality - Tunnel Cloudflare (Ultra Stabil)
 echo ========================================================
 echo.
 echo Sedang mendownload dan membuat tunnel Cloudflare...

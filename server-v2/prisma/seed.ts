@@ -8,7 +8,7 @@ const ROOT_DIR = path.join(__dirname, '..', '..', '..');
 const DATA_DIR = path.join(ROOT_DIR, 'server', 'data');
 
 async function seed() {
-  console.log('🌱 EduAR Platform — Prisma Seed Script');
+  console.log('🌱 AlamVerse — Where Nature Meets Reality — Prisma Seed Script');
 
   // ─── 1. Seed Ecosystem Presets ───────────────────────────────────────
   const existingPresets = await prisma.ecosystemPreset.count();
@@ -80,7 +80,7 @@ async function seed() {
         if (!defaultUser) {
           defaultUser = await prisma.user.create({
             data: {
-              name: 'EduAR System',
+              name: 'AlamVerse System',
               email: 'system@eduar.internal',
               password_hash: '$2b$10$placeholder_system_account_hash_eduar2026',
               role: 'TEACHER',
