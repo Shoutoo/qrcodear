@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuizDto, UpdateQuizDto, SubmitAnswerDto } from './dto/create-quiz.dto';
-import { QUIZ_BANK, LESSON_TITLE_MAP } from './quiz-bank.data';
+import { QUIZ_BANK, LESSON_TITLE_MAP, LESSON_CONTENT_MAP } from './quiz-bank.data';
 
 @Injectable()
 export class QuizzesService implements OnModuleInit {
@@ -15,6 +15,28 @@ export class QuizzesService implements OnModuleInit {
     try {
       const count = await this.prisma.quiz.count();
       console.log(`[QuizzesService] onModuleInit: Current Quiz count in Neon DB = ${count}`);
+
+      // Always update existing default lessons with rich material contents if missing
+      for (const [ecoKey, lessonTitle] of Object.entries(LESSON_TITLE_MAP)) {
+        const richContent = LESSON_CONTENT_MAP[ecoKey];
+        if (richContent) {
+          const existing = await this.prisma.lesson.findFirst({
+            where: {
+              OR: [
+                { title: lessonTitle },
+                { title: `Kuis Ekosistem ${ecoKey.charAt(0).toUpperCase() + ecoKey.slice(1)}` }
+              ]
+            }
+          });
+          if (existing && (!existing.content || existing.content.length < 100)) {
+            await this.prisma.lesson.update({
+              where: { id: existing.id },
+              data: { title: lessonTitle, content: richContent }
+            });
+            console.log(`✅ [Seed] Updated lesson "${lessonTitle}" with rich material reading text.`);
+          }
+        }
+      }
 
       if (count === 0) {
         console.log(`🌱 [QuizzesService] DB kosong! Memulai auto-seed ${QUIZ_BANK.length} soal dari embedded QUIZ_BANK...`);
@@ -56,7 +78,7 @@ export class QuizzesService implements OnModuleInit {
             lesson = await this.prisma.lesson.create({
               data: {
                 title: lessonTitle,
-                content: `Kuis Interaktif Ekosistem ${ecoKey} untuk Siswa SD`,
+                content: LESSON_CONTENT_MAP[ecoKey] || `Materi Pembelajaran Ekosistem ${ecoKey}`,
                 projectId: project.id,
               },
             });
@@ -64,6 +86,7 @@ export class QuizzesService implements OnModuleInit {
           }
           lessonMap[ecoKey] = lesson.id;
         }
+
 
         // Step 3: Insert semua soal kuis dari embedded QUIZ_BANK
         let seeded = 0;

@@ -273,21 +273,24 @@
       </div>
 
       <!-- Desktop Navigation Tabs (Visible on Large Screens) -->
-      <nav class="hidden lg:flex items-center space-x-1.5 bg-surface-container/70 border border-surface-variant p-1.5 rounded-2xl">
-        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="active-tab px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">dashboard</span> Beranda & Analytics
+      <nav class="hidden lg:flex items-center space-x-1 bg-surface-container/70 border border-surface-variant p-1.5 rounded-2xl">
+        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="active-tab px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">dashboard</span> Beranda
         </button>
-        <button id="tab-btn-studio" onclick="switchTab('studio')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">view_in_ar</span> AR Studio
+        <button id="tab-btn-materi" onclick="switchTab('materi')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-purple-700 transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">auto_stories</span> Materi Pembelajaran
         </button>
-        <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
+        <button id="tab-btn-quiz" onclick="switchTab('quiz')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-emerald-700 transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-base">quiz</span> Kuis Interaktif
         </button>
-        <button id="tab-btn-unity" onclick="switchTab('unity')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">sports_esports</span> Unity Assemblr
+        <button id="tab-btn-studio" onclick="switchTab('studio')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">view_in_ar</span> AR Studio
         </button>
-        <button id="tab-btn-logs" onclick="switchTab('logs')" class="px-4 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-2">
-          <span class="material-symbols-outlined text-base">analytics</span> Activity Log
+        <button id="tab-btn-unity" onclick="switchTab('unity')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-amber-700 transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">sports_esports</span> Unity Engine
+        </button>
+        <button id="tab-btn-logs" onclick="switchTab('logs')" class="px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface hover:bg-white hover:text-primary transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">analytics</span> Log Audit
         </button>
       </nav>
 
@@ -315,11 +318,14 @@
       <button id="tab-btn-dashboard-mobile" onclick="switchTab('dashboard'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
         <span class="material-symbols-outlined text-primary">dashboard</span> Beranda & Analytics
       </button>
-      <button id="tab-btn-studio-mobile" onclick="switchTab('studio'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
-        <span class="material-symbols-outlined text-primary">view_in_ar</span> AR Studio Creator
+      <button id="tab-btn-materi-mobile" onclick="switchTab('materi'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-purple-600">auto_stories</span> Materi Pembelajaran
       </button>
       <button id="tab-btn-quiz-mobile" onclick="switchTab('quiz'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
         <span class="material-symbols-outlined text-emerald-600">quiz</span> Kuis Interaktif
+      </button>
+      <button id="tab-btn-studio-mobile" onclick="switchTab('studio'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">view_in_ar</span> AR Studio Creator
       </button>
       <button id="tab-btn-unity-mobile" onclick="switchTab('unity'); toggleMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-3">
         <span class="material-symbols-outlined text-amber-600">sports_esports</span> Unity Assemblr
@@ -328,6 +334,7 @@
         <span class="material-symbols-outlined text-primary">analytics</span> Activity Log Audit
       </button>
     </div>
+
   </header>
 
   <!-- MAIN CONTAINER -->
@@ -425,11 +432,64 @@
           <h4 class="text-lg font-bold text-on-surface">AR Multi-Object Web Creator Studio Aktif</h4>
           <p class="text-sm text-on-surface/70 max-w-xl mx-auto font-medium">Klik tombol di atas untuk membuka editor 3D Web Studio lengkap dengan fitur Tap-to-Place, penataan posisi objek, dan publish QR Code.</p>
         </div>
+    <!-- TAB MATERI PEMBELAJARAN AR -->
+    <div id="section-materi" class="hidden space-y-6">
+      <div class="magic-card p-8 rounded-3xl space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-wrap items-center justify-between border-b-2 border-surface-variant pb-6 gap-4">
+          <div>
+            <h3 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-purple-600 text-3xl">auto_stories</span> Materi & Modul Pembelajaran AR
+            </h3>
+            <p class="text-on-surface/70 text-sm font-medium mt-1">Eksplorasi ilmu pengetahuan ekosistem, rantai makanan, dan komponen biotik-abiotik sebelum mengerjakan kuis.</p>
+          </div>
+          <button id="btn-create-materi" onclick="openCreateMateriModal()" class="chunky-button px-4 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary-container transition-all flex items-center gap-2 shadow-sm">
+            <span class="material-symbols-outlined text-base">library_add</span> + Buat Modul Materi Baru
+          </button>
+        </div>
+
+        <!-- Dashboard Utama Materi: Submenu Cards Grid -->
+        <div id="materi-dashboard-view" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="materi-cards-grid">
+            <!-- Loaded Dynamically -->
+          </div>
+        </div>
+
+        <!-- Submenu Reader: Pembaca Detail Materi -->
+        <div id="materi-reader-view" class="hidden space-y-6">
+          <div class="flex items-center justify-between border-b pb-4 border-surface-variant">
+            <button onclick="closeMateriReader()" class="px-3.5 py-1.5 rounded-xl bg-surface-container text-on-surface font-bold text-xs hover:bg-surface-variant transition-all flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Semua Materi
+            </button>
+            <span id="materi-reader-badge" class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">Materi AR Ekosistem</span>
+          </div>
+
+          <!-- Reader Body Box -->
+          <div class="bg-surface-container/30 border border-surface-variant rounded-2xl p-6 sm:p-8 space-y-6">
+            <h2 id="materi-reader-title" class="text-2xl font-extrabold text-on-surface"></h2>
+            <div id="materi-reader-content" class="prose max-w-none text-on-surface/90 text-sm leading-relaxed space-y-4 font-medium whitespace-pre-line"></div>
+          </div>
+
+          <!-- Call to Action: Kerjakan Kuis Materi Ini -->
+          <div class="p-6 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-primary text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h4 class="text-lg font-extrabold flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-300 text-2xl">workspace_premium</span> Siap Menguji Pemahamanmu?
+              </h4>
+              <p class="text-xs text-white/90 font-medium mt-1">Kamu sudah selesai membaca materi ini. Yuk langsung uji kemampuanmu lewat kuis interaktif!</p>
+            </div>
+            <button id="btn-start-quiz-from-materi" onclick="jumpToQuizFromMateri()" class="chunky-button px-6 py-3 rounded-xl font-black bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all flex items-center gap-2 shadow-lg flex-shrink-0">
+              <span class="material-symbols-outlined text-xl">play_circle</span> Mulai Kerjakan Kuis Materi Ini 🚀
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
 
     <!-- TAB 3: KUIS INTERAKTIF SISWA -->
     <div id="section-quiz" class="hidden space-y-6">
+
       <div class="magic-card p-8 rounded-3xl space-y-6">
         <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
           <div>
@@ -1027,6 +1087,43 @@
             <p class="text-xs text-on-surface/70 font-semibold">Baking otomatis GLB WebXR</p>
           </div>
         `;
+      } else if (tabName === 'materi') {
+        if (isStudent) {
+          heroBadge.innerText = '📖 Modul & Materi Belajar';
+          heroTitle.innerHTML = 'Materi Pembelajaran <span class="text-purple-700">AR & Sains Ekosistem</span>';
+          heroDesc.innerText = 'Baca dan pahami materi rantai makanan ekosistem di bawah ini sebelum menguji kemampuanmu di Kuis Interaktif!';
+        } else {
+          heroBadge.innerText = '📚 Manajemen Modul Pembelajaran';
+          heroTitle.innerHTML = 'Kelola Materi & <span class="text-purple-700">Bahan Ajar Ekosistem</span>';
+          heroDesc.innerText = 'Input, edit, dan susun modul materi pembelajaran edukatif yang dapat dibaca siswa secara mandiri.';
+        }
+
+        metricsContainer.innerHTML = `
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Modul Materi Aktif</span>
+              <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center"><span class="material-symbols-outlined">auto_stories</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-purple-700">${allRawLessons.length || 5}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Topik ekosistem & rantai makanan</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Soal Kuis Terkait</span>
+              <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center"><span class="material-symbols-outlined">quiz</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-emerald-700">${quizzes}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Pertanyaan kuis siap dikerjakan</p>
+          </div>
+          <div class="magic-card p-6 rounded-2xl space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-outline uppercase tracking-wider">Siswa Terjangkau</span>
+              <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><span class="material-symbols-outlined">groups</span></div>
+            </div>
+            <div class="text-3xl font-extrabold text-primary">${studentsAttempted}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Siswa terdaftar di platform</p>
+          </div>
+        `;
       } else if (tabName === 'quiz') {
         if (isStudent) {
           heroBadge.innerText = '📝 Uji Pemahaman Kamu';
@@ -1060,8 +1157,8 @@
               <span class="text-xs font-bold text-outline uppercase tracking-wider">Siswa Mengerjakan</span>
               <div class="w-9 h-9 rounded-xl bg-tertiary/10 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined">groups</span></div>
             </div>
-            <div class="text-3xl font-extrabold text-tertiary">${attempts}</div>
-            <p class="text-xs text-on-surface/70 font-semibold">Siswa ter-record di database</p>
+            <div class="text-3xl font-extrabold text-tertiary">${studentsAttempted}</div>
+            <p class="text-xs text-on-surface/70 font-semibold">Siswa unik ter-record di database</p>
           </div>
         `;
       } else if (tabName === 'unity') {
@@ -1128,7 +1225,7 @@
       }
 
       currentTabName = tabName;
-      const tabs = ['dashboard', 'studio', 'quiz', 'unity', 'logs'];
+      const tabs = ['dashboard', 'materi', 'quiz', 'studio', 'unity', 'logs'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-btn-${t}`);
         const sec = document.getElementById(`section-${t}`);
@@ -1143,8 +1240,13 @@
         }
       });
 
+      if (tabName === 'materi') {
+        renderMateriDashboard();
+      }
+
       updateTabHeaderAndMetrics(tabName);
     }
+
 
 
     function showToast(msg, isError = false) {
@@ -2207,11 +2309,224 @@
       } catch (e) {
         console.error('Error loading quiz recap:', e);
       }
+    // ─── MATERI PEMBELAJARAN AR HANDLERS ────────────────────────────────
+    let currentReadingLessonId = null;
+
+    async function renderMateriDashboard() {
+      const isTeacher = currentUser && (currentUser.role === 'TEACHER' || currentUser.role === 'ADMIN');
+      const btnCreate = document.getElementById('btn-create-materi');
+      if (btnCreate) {
+        if (isTeacher) {
+          btnCreate.classList.remove('hidden');
+        } else {
+          btnCreate.classList.add('hidden');
+        }
+      }
+
+      const grid = document.getElementById('materi-cards-grid');
+      if (!grid) return;
+
+      try {
+        const res = await fetch('/api/lessons');
+        const data = res.ok ? await res.json() : { lessons: [] };
+        const lessons = data.lessons || [];
+        allRawLessons = lessons;
+
+        if (lessons.length === 0) {
+          grid.innerHTML = `<p class="text-xs text-on-surface/60 font-medium text-center col-span-full py-8">Belum ada modul materi pembelajaran.</p>`;
+          return;
+        }
+
+        grid.innerHTML = lessons.map(l => {
+          const qCount = (l.quizzes || []).length || allRawQuizzes.filter(q => q.lessonId === l.id).length;
+          const snippet = (l.content || '').substring(0, 120).replace(/\n/g, ' ');
+
+          let ecoIcon = 'auto_stories';
+          let ecoBg = 'bg-purple-100 text-purple-700';
+          const lowerTitle = l.title.toLowerCase();
+          if (lowerTitle.includes('hutan')) { ecoIcon = 'forest'; ecoBg = 'bg-emerald-100 text-emerald-800'; }
+          else if (lowerTitle.includes('darat')) { ecoIcon = 'landscape'; ecoBg = 'bg-amber-100 text-amber-800'; }
+          else if (lowerTitle.includes('laut')) { ecoIcon = 'water'; ecoBg = 'bg-cyan-100 text-cyan-800'; }
+          else if (lowerTitle.includes('sawah')) { ecoIcon = 'grass'; ecoBg = 'bg-lime-100 text-lime-800'; }
+
+          return `
+            <div class="magic-card p-6 rounded-2xl border border-surface-variant space-y-4 flex flex-col justify-between hover:shadow-lg transition-all group">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="w-10 h-10 rounded-2xl ${ecoBg} flex items-center justify-center font-bold">
+                    <span class="material-symbols-outlined text-2xl">${ecoIcon}</span>
+                  </span>
+                  <span class="px-3 py-1 rounded-full bg-surface-container font-extrabold text-[11px] text-on-surface">
+                    ${qCount} Soal Kuis
+                  </span>
+                </div>
+                <h4 class="text-base font-extrabold text-on-surface group-hover:text-primary transition-colors leading-snug">${l.title}</h4>
+                <p class="text-xs text-on-surface/70 font-medium line-clamp-3 leading-relaxed">${snippet}...</p>
+              </div>
+
+              <div class="pt-2 space-y-2">
+                <button onclick="openMateriReader('${l.id}')" class="chunky-button w-full py-2.5 rounded-xl font-extrabold bg-primary text-white hover:bg-primary/90 text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                  <span class="material-symbols-outlined text-base">menu_book</span> Buka & Baca Materi →
+                </button>
+
+                ${isTeacher ? `
+                  <div class="grid grid-cols-2 gap-2">
+                    <button onclick="openEditMateriModal('${l.id}')" class="py-1.5 rounded-xl font-bold bg-surface-container hover:bg-surface-variant text-on-surface text-[11px] transition-all flex items-center justify-center gap-1">
+                      <span class="material-symbols-outlined text-xs">edit</span> Edit
+                    </button>
+                    <button onclick="deleteMateri('${l.id}', '${l.title.replace(/'/g, "\\'")}')" class="py-1.5 rounded-xl font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] transition-all flex items-center justify-center gap-1">
+                      <span class="material-symbols-outlined text-xs">delete</span> Hapus
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (e) {
+        console.error('Error rendering materi dashboard:', e);
+      }
+    }
+
+    async function openMateriReader(lessonId) {
+      const dashboardView = document.getElementById('materi-dashboard-view');
+      const readerView = document.getElementById('materi-reader-view');
+      if (!dashboardView || !readerView) return;
+
+      currentReadingLessonId = lessonId;
+
+      try {
+        let lesson = allRawLessons.find(l => l.id === lessonId);
+        if (!lesson) {
+          const res = await fetch(`/api/lessons/${lessonId}`);
+          if (res.ok) {
+            const data = await res.json();
+            lesson = data.lesson;
+          }
+        }
+
+        if (!lesson) {
+          showToast('Materi tidak ditemukan', true);
+          return;
+        }
+
+        document.getElementById('materi-reader-title').innerText = lesson.title;
+        document.getElementById('materi-reader-content').innerText = lesson.content || 'Belum ada penjelasan materi.';
+        document.getElementById('materi-reader-badge').innerText = `Materi: ${lesson.title}`;
+
+        dashboardView.classList.add('hidden');
+        readerView.classList.remove('hidden');
+        readerView.scrollIntoView({ behavior: 'smooth' });
+
+      } catch (e) {
+        showToast('Gagal memuat materi', true);
+      }
+    }
+
+    function closeMateriReader() {
+      const dashboardView = document.getElementById('materi-dashboard-view');
+      const readerView = document.getElementById('materi-reader-view');
+      if (dashboardView && readerView) {
+        readerView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+      }
+    }
+
+    function jumpToQuizFromMateri() {
+      if (!currentReadingLessonId) return;
+      switchTab('quiz');
+
+      const select = document.getElementById('siswa-quiz-lesson-filter');
+      if (select) {
+        select.value = currentReadingLessonId;
+      }
+      filterSiswaQuizzesByLesson(currentReadingLessonId);
+
+      const quizSec = document.getElementById('section-quiz');
+      if (quizSec) quizSec.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openCreateMateriModal() {
+      document.getElementById('edit-materi-id').value = '';
+      document.getElementById('edit-materi-title-input').value = '';
+      document.getElementById('edit-materi-content-input').value = '';
+      document.getElementById('modal-edit-materi-title').innerHTML = '<span class="material-symbols-outlined text-purple-600">library_add</span> Buat Modul Materi Baru';
+
+      const modal = document.getElementById('modal-edit-materi');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function openEditMateriModal(lessonId) {
+      const lesson = allRawLessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      document.getElementById('edit-materi-id').value = lesson.id;
+      document.getElementById('edit-materi-title-input').value = lesson.title;
+      document.getElementById('edit-materi-content-input').value = lesson.content || '';
+      document.getElementById('modal-edit-materi-title').innerHTML = '<span class="material-symbols-outlined text-purple-600">edit_note</span> Edit Modul Materi Pembelajaran';
+
+      const modal = document.getElementById('modal-edit-materi');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeEditMateriModal() {
+      const modal = document.getElementById('modal-edit-materi');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    async function handleSaveMateriSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-materi-id').value;
+      const title = document.getElementById('edit-materi-title-input').value.trim();
+      const content = document.getElementById('edit-materi-content-input').value.trim();
+      const token = localStorage.getItem('eduar_token');
+
+      if (!title) {
+        showToast('Judul materi wajib diisi', true);
+        return;
+      }
+
+      try {
+        const url = id ? `/api/lessons/${id}` : '/api/lessons';
+        const method = id ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ title, content })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(id ? 'Modul materi berhasil diperbarui!' : 'Modul materi baru berhasil dibuat!');
+          closeEditMateriModal();
+          renderMateriDashboard();
+          loadDashboardData();
+        } else {
+          showToast(data.message || 'Gagal menyimpan materi', true);
+        }
+      } catch (err) {
+        showToast('Error koneksi server', true);
+      }
     }
 
     // Initialize on DOM Ready
     window.addEventListener('DOMContentLoaded', loadDashboardData);
   </script>
+
 
 
   <!-- MODAL: KELOLA SOAL & REKAP NILAI (GURU) -->
@@ -2323,9 +2638,40 @@
         </div>
       </div>
 
+  <!-- MODAL: BUAT / EDIT MATERI PEMBELAJARAN (GURU) -->
+  <div id="modal-edit-materi" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="magic-card bg-white max-w-2xl w-full rounded-3xl p-6 sm:p-8 space-y-5 relative shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-3 border-surface-variant">
+        <h3 id="modal-edit-materi-title" class="text-lg font-extrabold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-purple-600">auto_stories</span> Modul Materi Pembelajaran
+        </h3>
+        <button onclick="closeEditMateriModal()" class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+
+      <form onsubmit="handleSaveMateriSubmit(event)" class="space-y-4">
+        <input type="hidden" id="edit-materi-id" value=""/>
+        
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface/80">Judul Materi / Topik Pembelajaran</label>
+          <input type="text" id="edit-materi-title-input" required placeholder="Contoh: Kuis & Materi Ekosistem Sungai" class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-sm font-bold focus:outline-none focus:border-primary"/>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-on-surface/80">Isi Teks Pembelajaran / Penjelasan Materi (Mendukung Teks Panjang & Poin-poin)</label>
+          <textarea id="edit-materi-content-input" required rows="8" placeholder="Tuliskan penjelasan materi lengkap di sini..." class="w-full px-3.5 py-2.5 rounded-xl border border-surface-variant bg-white text-xs font-medium focus:outline-none focus:border-primary leading-relaxed"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-surface-variant">
+          <button type="button" onclick="closeEditMateriModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-surface-container text-on-surface hover:bg-surface-variant transition-all">Batal</button>
+          <button type="submit" class="chunky-button px-5 py-2 rounded-xl text-xs font-extrabold bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-sm">save</span> Simpan Modul Materi
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-
 
 </body>
 </html>
