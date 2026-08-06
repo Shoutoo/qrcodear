@@ -14,8 +14,21 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
+    if (!dto.name || dto.name.trim().length === 0) {
+      throw new BadRequestException('Nama lengkap wajib diisi');
+    }
+
+    if (!dto.email || !dto.email.includes('@')) {
+      throw new BadRequestException('Format email tidak valid');
+    }
+
+    if (!dto.password || dto.password.length < 6) {
+      throw new BadRequestException('Kata sandi minimal 6 karakter');
+    }
+
+    const cleanEmail = dto.email.toLowerCase().trim();
     const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
+      where: { email: cleanEmail },
     });
 
     if (existing) {
@@ -28,7 +41,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         name: dto.name.trim(),
-        email: dto.email.toLowerCase().trim(),
+        email: cleanEmail,
         password_hash: hashedPassword,
         role,
       },
@@ -41,7 +54,30 @@ export class AuthService {
       },
     });
 
-    return { success: true, user };
+    // Auto-login upon registration (Generate JWT Access & Refresh Tokens)
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+
+    const refreshTokenStr = crypto.randomBytes(40).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refreshTokenStr,
+        userId: user.id,
+        device: 'web-register',
+        expiresAt,
+      },
+    });
+
+    return {
+      success: true,
+      message: `Pendaftaran berhasil! Selamat datang, ${user.name}.`,
+      accessToken,
+      refreshToken: refreshTokenStr,
+      user,
+    };
   }
 
   async login(dto: LoginDto) {

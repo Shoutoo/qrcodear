@@ -127,6 +127,42 @@ async function seed() {
     console.log(`  ℹ️  Ecosystem model assets already exist (${existingEcoModels}), skipping`);
   }
 
+  // ─── 4. Seed Test Accounts (1 TEACHER & 1 STUDENT) ─────────────────────
+  const bcrypt = require('bcryptjs');
+  const defaultPasswordHash = await bcrypt.hash('Test1234!', 10);
+
+  const teacher = await prisma.user.upsert({
+    where: { email: 'guru@eduar.id' },
+    update: {
+      name: 'Bapak Guru Test',
+      password_hash: defaultPasswordHash,
+      role: 'TEACHER',
+    },
+    create: {
+      name: 'Bapak Guru Test',
+      email: 'guru@eduar.id',
+      password_hash: defaultPasswordHash,
+      role: 'TEACHER',
+    },
+  });
+  console.log(`  ✅ Seeded TEACHER account: guru@eduar.id (Password: Test1234!)`);
+
+  const student = await prisma.user.upsert({
+    where: { email: 'siswa@eduar.id' },
+    update: {
+      name: 'Siswa Belajar Test',
+      password_hash: defaultPasswordHash,
+      role: 'STUDENT',
+    },
+    create: {
+      name: 'Siswa Belajar Test',
+      email: 'siswa@eduar.id',
+      password_hash: defaultPasswordHash,
+      role: 'STUDENT',
+    },
+  });
+  console.log(`  ✅ Seeded STUDENT account: siswa@eduar.id (Password: Test1234!)`);
+
   await prisma.$disconnect();
   console.log('🌱 Seed complete!');
 }

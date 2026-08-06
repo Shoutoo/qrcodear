@@ -1,6 +1,9 @@
-import { Controller, Get, Post, Param, Body, Req } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Req, UseGuards } from '@nestjs/common';
 import { ScenesService } from './scenes.service';
-import { Request } from 'express';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('api')
 export class ScenesController {
@@ -18,6 +21,8 @@ export class ScenesController {
     return { success: true, scene };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.TEACHER, Role.ADMIN)
   @Post('studio/publish/:id')
   async publishStudioScene(
     @Param('id') id: string,
@@ -29,3 +34,4 @@ export class ScenesController {
     return this.scenesService.publishScene(id, sceneData, hostHeader, protocol);
   }
 }
+

@@ -228,10 +228,10 @@
     <!-- TAB 1: DASHBOARD OVERVIEW & PRESETS -->
     <div id="section-dashboard" class="space-y-6">
       <div class="flex items-center justify-between">
-        <h3 class="text-xl font-bold text-on-surface flex items-center gap-2">
+        <h3 id="dash-title" class="text-xl font-bold text-on-surface flex items-center gap-2">
           <span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem Rantai Makanan AR
         </h3>
-        <a href="/studio" target="_blank" class="chunky-button px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary-container transition-all flex items-center gap-2">
+        <a id="hero-studio-btn" href="/studio" target="_blank" class="chunky-button px-5 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary-container transition-all flex items-center gap-2">
           <span class="material-symbols-outlined">add_box</span> Buka AR Web Studio
         </a>
       </div>
@@ -271,6 +271,9 @@
             </h3>
             <p class="text-on-surface/70 text-sm font-medium mt-1">Uji pemahaman siswa mengenai rantai makanan dan ekosistem AR</p>
           </div>
+          <button id="btn-quiz-management" onclick="showToast('Fitur Kelola Soal & Rekap Nilai Aktif untuk Guru')" class="chunky-button px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined">add_task</span> Kelola Soal & Rekap Nilai
+          </button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -342,7 +345,7 @@
       <div class="magic-card p-8 rounded-3xl space-y-6">
         <div class="flex items-center justify-between border-b-2 border-surface-variant pb-6">
           <div>
-            <h3 class="text-2xl font-bold text-on-surface flex items-center gap-2">
+            <h3 id="log-header-title" class="text-2xl font-bold text-on-surface flex items-center gap-2">
               <span class="material-symbols-outlined text-primary">analytics</span> Activity Log Audit Table
             </h3>
             <p class="text-on-surface/70 text-sm font-medium mt-1">Audit real-time aktivitas pemindaian QR Code, tampilan AR, auto-bake GLB, dan pengerjaan kuis</p>
@@ -388,10 +391,10 @@
       <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-on-surface">
         <span class="material-symbols-outlined">close</span>
       </button>
-
-      <div>
-        <h3 class="text-2xl font-bold text-primary" id="modal-title">Masuk ke Magic AR Edu</h3>
-        <p class="text-on-surface/70 text-xs font-semibold mt-1">Akses fitur terintegrasi platform pembelajaran AR</p>
+      
+      <div class="text-center space-y-1">
+        <h3 id="modal-title" class="text-2xl font-extrabold text-on-surface">Masuk ke Magic AR Edu</h3>
+        <p class="text-xs text-on-surface/70 font-medium">Gunakan akun Guru atau Siswa untuk melanjutkan</p>
       </div>
 
       <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
@@ -436,6 +439,18 @@
     let activeAuthMode = 'login';
     let selectedQuizId = null;
     let selectedAnswer = '';
+    let currentUser = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUser = localStorage.getItem('eduar_user');
+      if (savedUser) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          updateUserHeader(currentUser);
+        } catch (e) {}
+      }
+      loadDashboardData();
+    });
 
     function switchTab(tabName) {
       const tabs = ['dashboard', 'studio', 'quiz', 'unity', 'logs'];
@@ -476,7 +491,7 @@
       const fieldRole = document.getElementById('field-role-group');
 
       if (mode === 'register') {
-        title.innerText = 'Daftar Akun Baru';
+        title.innerText = 'Daftar Akun Baru (Siswa / Guru)';
         submitBtn.innerText = 'Daftar Sekarang';
         fieldName.classList.remove('hidden');
         fieldRole.classList.remove('hidden');
@@ -516,9 +531,13 @@
 
         const data = await res.json();
         if (res.ok && data.success) {
-          showToast(activeAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!');
+          showToast(data.message || (activeAuthMode === 'register' ? 'Pendaftaran berhasil!' : 'Selamat datang kembali!'));
           if (data.accessToken) localStorage.setItem('eduar_token', data.accessToken);
-          if (data.user) updateUserHeader(data.user);
+          if (data.user) {
+            currentUser = data.user;
+            localStorage.setItem('eduar_user', JSON.stringify(data.user));
+            updateUserHeader(data.user);
+          }
           closeAuthModal();
         } else {
           showToast(data.message || data.error || 'Gagal memproses autentikasi', true);
@@ -530,13 +549,76 @@
 
     function updateUserHeader(user) {
       const container = document.getElementById('auth-header-container');
+      const roleBadgeColor = user.role === 'TEACHER' ? 'bg-amber-600' : 'bg-primary';
+      const roleLabel = user.role === 'TEACHER' ? 'GURU' : user.role === 'ADMIN' ? 'ADMIN' : 'SISWA';
+
       container.innerHTML = `
         <div class="flex items-center space-x-3 bg-primary/10 px-4 py-2 rounded-xl border border-primary/20">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-sm font-bold text-primary">${user.name}</span>
-          <span class="px-2 py-0.5 rounded bg-primary text-white text-xs font-bold">${user.role}</span>
+          <div class="flex flex-col text-left">
+            <span class="text-xs font-bold text-primary">${user.name}</span>
+            <span class="text-[10px] text-on-surface/60 font-medium">${user.email}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded ${roleBadgeColor} text-white text-xs font-bold">${roleLabel}</span>
+          <button onclick="handleLogout()" class="ml-2 text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">logout</span> Keluar
+          </button>
         </div>
       `;
+
+      applyRolePermissions(user.role);
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('eduar_token');
+      localStorage.removeItem('eduar_user');
+      currentUser = null;
+      window.location.reload();
+    }
+
+    function applyRolePermissions(role) {
+      const isStudent = (role === 'STUDENT');
+
+      const studioTabBtn = document.getElementById('tab-btn-studio');
+      const unityTabBtn = document.getElementById('tab-btn-unity');
+      const heroStudioBtn = document.getElementById('hero-studio-btn');
+      const quizMgmtBtn = document.getElementById('btn-quiz-management');
+      const dashTitle = document.getElementById('dash-title');
+      const logHeaderTitle = document.getElementById('log-header-title');
+
+      if (isStudent) {
+        // Hide Studio & Unity Editor tabs for Student
+        if (studioTabBtn) studioTabBtn.style.display = 'none';
+        if (unityTabBtn) unityTabBtn.style.display = 'none';
+        if (heroStudioBtn) heroStudioBtn.style.display = 'none';
+        if (quizMgmtBtn) quizMgmtBtn.style.display = 'none';
+
+        if (dashTitle) {
+          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Progres Belajar & Presets Ekosistem AR Saya`;
+        }
+        if (logHeaderTitle) {
+          logHeaderTitle.innerText = 'Activity Log — Aktivitas Belajar Saya';
+        }
+
+        // If active tab was studio or unity, switch to dashboard
+        const currentActiveBtn = document.querySelector('.active-tab');
+        if (currentActiveBtn && (currentActiveBtn.id === 'tab-btn-studio' || currentActiveBtn.id === 'tab-btn-unity')) {
+          switchTab('dashboard');
+        }
+      } else {
+        // Teacher / Admin: Show all menus & features
+        if (studioTabBtn) studioTabBtn.style.display = 'flex';
+        if (unityTabBtn) unityTabBtn.style.display = 'flex';
+        if (heroStudioBtn) heroStudioBtn.style.display = 'inline-flex';
+        if (quizMgmtBtn) quizMgmtBtn.style.display = 'inline-flex';
+
+        if (dashTitle) {
+          dashTitle.innerHTML = `<span class="material-symbols-outlined text-primary">space_dashboard</span> Presets Ekosistem & Analitik Semua Kelas`;
+        }
+        if (logHeaderTitle) {
+          logHeaderTitle.innerText = 'Activity Log — Audit Semua Siswa & Kelas';
+        }
+      }
     }
 
     async function loadDashboardData() {
