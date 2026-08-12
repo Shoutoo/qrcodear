@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>{{ECOSYSTEM_NAME}} — AlamVerse AR & 3D Viewer</title>
-  
-  <!-- Tailwind CSS & Google Fonts -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>{{ECOSYSTEM_NAME}} — AlamVerse AR Viewer</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Google <model-viewer> Library for 3D View mode -->
+  <!-- Google model-viewer for 3D mode -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
-  <!-- Local MindAR 1.1.5 Three.js UMD Script Bundle & Three.js -->
-  <script src="/assets/vendor/three.min.js"></script>
-  <script src="/assets/vendor/GLTFLoader.js"></script>
-  <script src="/assets/vendor/mindar-image-three.prod.js"></script>
+  <!-- ImportMap for MindAR 1.2.5 ES Module + Three.js r160 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+    }
+  }
+  </script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,751 +29,610 @@
       overflow: hidden;
       font-family: 'Quicksand', sans-serif;
       background: #0f172a;
-      color: #0d1e25;
       -webkit-tap-highlight-color: transparent;
     }
 
     model-viewer {
       width: 100vw; height: 100vh;
       position: absolute; inset: 0;
-      background: radial-gradient(circle at center, #ffffff 0%, #dff1fb 100%);
+      background: radial-gradient(circle at center, #e0f2fe 0%, #dbeafe 100%);
       display: block;
     }
 
-    /* 3D Hotspot Species Labels */
-    .species-hotspot {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 2px solid #632ce5;
-      border-radius: 14px;
-      padding: 4px 10px;
-      box-shadow: 0 6px 20px rgba(99, 44, 229, 0.2);
-      font-family: 'Quicksand', sans-serif;
-      font-size: 11px;
-      font-weight: 800;
-      color: #0d1e25;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
-      white-space: nowrap;
-      user-select: none;
-    }
-    .species-hotspot:hover {
-      transform: scale(1.08);
-      background: #632ce5;
-      color: #ffffff;
-    }
-    .species-role-badge {
-      background: #fdd400;
-      color: #0d1e25;
-      font-size: 9px;
-      font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    /* Floating HUD Card */
-    .hud-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid #cbd5e1;
-      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.2);
-      color: #0d1e25;
-    }
-
-    /* Mode button active/inactive styles */
-    .mode-btn-active {
-      background: #632ce5 !important;
-      color: #ffffff !important;
-      font-weight: 900 !important;
-      box-shadow: 0 2px 8px rgba(99,44,229,0.35) !important;
-    }
-    .mode-btn-inactive {
-      color: #475569 !important;
-      font-weight: 700 !important;
-      background: transparent !important;
-    }
-    .mode-btn-inactive:hover {
-      background: #ffffff !important;
-      color: #632ce5 !important;
-    }
-
-    /* ── AR Camera Mode Container & CRITICAL Z-INDEX FIX ───── */
-    #mindar-container {
+    /* ── AR Container ─────────────────────────────────────── */
+    #ar-container {
       display: none;
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      width: 100vw;
-      height: 100vh;
-      height: -webkit-fill-available;
+      inset: 0;
+      width: 100vw; height: 100vh;
       z-index: 10;
       background: #000;
       overflow: hidden;
     }
-    #mindar-container.active { display: block; }
+    #ar-container.active { display: block; }
 
-    /* Video element MUST be z-index 1 (background) */
-    #mindar-container video {
+    /* MindAR injects video & canvas inside ar-container — must overlay correctly */
+    #ar-container video {
       position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      min-width: 100% !important;
-      min-height: 100% !important;
-      width: 100vw !important;
-      height: 100vh !important;
+      width: 100% !important; height: 100% !important;
       object-fit: cover !important;
+      top: 0 !important; left: 0 !important;
       z-index: 1 !important;
     }
-
-    /* Canvas WebGL 3D element MUST be z-index 2 (foreground) */
-    #mindar-container canvas {
+    #ar-container canvas {
       position: absolute !important;
-      top: 50% !important;
-      left: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      min-width: 100% !important;
-      min-height: 100% !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      object-fit: cover !important;
+      width: 100% !important; height: 100% !important;
+      top: 0 !important; left: 0 !important;
       z-index: 2 !important;
       pointer-events: none !important;
     }
 
-    #ar-status-bar {
+    /* ── HUD overlays (z-index 50+) ─────────────────────── */
+    .ar-hud {
       position: absolute;
-      top: 66px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 50%; transform: translateX(-50%);
       z-index: 50;
-      white-space: nowrap;
       pointer-events: none;
-      max-width: 90vw;
     }
 
-    #ar-scan-hint {
-      position: absolute;
-      bottom: max(24px, env(safe-area-inset-bottom));
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 50;
-      pointer-events: auto;
-      text-align: center;
+    #ar-status {
+      top: 72px;
+      background: rgba(15,23,42,0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 12px; font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 999px;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
       white-space: nowrap;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* Wrong Card Alert Card Overlay */
-    #wrong-card-alert {
+    #ar-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #fbbf24;
+      display: inline-block; flex-shrink: 0;
+    }
+
+    #ar-hint {
+      bottom: max(28px, env(safe-area-inset-bottom));
+      pointer-events: auto;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+
+    .hint-pill {
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 11px; font-weight: 800;
+      padding: 7px 16px; border-radius: 999px;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .reset-btn {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #fff; font-size: 11px; font-weight: 900;
+      padding: 8px 18px; border-radius: 999px;
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(109,40,217,0.5);
+      display: flex; align-items: center; gap: 6px;
+      transition: transform 0.15s;
+    }
+    .reset-btn:active { transform: scale(0.95); }
+
+    /* Wrong card alert */
+    #wrong-alert {
       display: none;
-      position: absolute;
-      top: 120px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 60;
-      background: rgba(239, 68, 68, 0.96);
+      top: 124px;
+      background: rgba(220, 38, 38, 0.96);
       backdrop-filter: blur(16px);
       border: 2px solid #f87171;
-      color: #ffffff;
-      padding: 12px 18px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(225, 29, 72, 0.4);
-      width: min(340px, 88vw);
+      color: #fff;
+      padding: 12px 18px; border-radius: 18px;
+      width: min(320px, 88vw);
       text-align: center;
-      animation: pulseAlert 1.5s infinite alternate ease-in-out;
+      box-shadow: 0 8px 28px rgba(220,38,38,0.4);
+      pointer-events: auto;
+      animation: alertPulse 1.5s ease-in-out infinite alternate;
     }
-    #wrong-card-alert.show { display: block; }
-
-    @keyframes pulseAlert {
+    #wrong-alert.show { display: block; }
+    @keyframes alertPulse {
       from { transform: translateX(-50%) scale(1); }
-      to { transform: translateX(-50%) scale(1.03); }
+      to   { transform: translateX(-50%) scale(1.03); }
+    }
+    .alert-title { font-weight: 900; font-size: 13px; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .alert-body  { font-size: 11px; font-weight: 700; margin-bottom: 8px; opacity: 0.93; line-height: 1.4; }
+    .switch-btn  {
+      background: #fff; color: #dc2626;
+      font-size: 11px; font-weight: 900;
+      padding: 6px 14px; border-radius: 10px;
+      border: none; cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
     }
 
-    #ar-scan-frame {
+    /* Scan frame corners */
+    #scan-frame {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: min(220px, 62vw);
-      height: min(220px, 62vw);
-      border: 3px dashed rgba(251, 191, 36, 0.85);
-      border-radius: 24px;
+      width: min(200px, 56vw); height: min(200px, 56vw);
+      border: 2.5px dashed rgba(251,191,36,0.8);
+      border-radius: 20px;
       z-index: 40;
       pointer-events: none;
-      box-sizing: border-box;
     }
-    #ar-scan-frame::before,
-    #ar-scan-frame::after {
-      content: '';
-      position: absolute;
-      width: 24px;
-      height: 24px;
-      border-color: #fbbf24;
-      border-style: solid;
+    #scan-frame::before, #scan-frame::after {
+      content: ''; position: absolute;
+      width: 22px; height: 22px;
+      border-color: #fbbf24; border-style: solid;
     }
-    #ar-scan-frame::before {
-      top: -3px; left: -3px;
-      border-width: 4px 0 0 4px;
-      border-radius: 8px 0 0 0;
-    }
-    #ar-scan-frame::after {
-      bottom: -3px; right: -3px;
-      border-width: 0 4px 4px 0;
-      border-radius: 0 0 8px 0;
-    }
+    #scan-frame::before { top:-3px; left:-3px; border-width:4px 0 0 4px; border-radius:7px 0 0 0; }
+    #scan-frame::after  { bottom:-3px; right:-3px; border-width:0 4px 4px 0; border-radius:0 0 7px 0; }
 
-    #ar-error-overlay {
+    /* Error overlay */
+    #ar-error {
       display: none;
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       z-index: 70;
-      background: rgba(15, 23, 42, 0.95);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      padding: 24px;
-      text-align: center;
+      background: rgba(15,23,42,0.97);
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 14px; padding: 28px; text-align: center;
     }
-    #ar-error-overlay.show { display: flex; }
+    #ar-error.show { display: flex; }
+    #ar-error p { color: #fff; font-size: 13px; font-weight: 700; max-width: 280px; line-height: 1.5; }
 
-    .chunky-btn {
-      transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      border-radius: 12px;
-      cursor: pointer;
+    /* ── Top Nav HUD ──────────────────────────────────────── */
+    #top-nav {
+      position: fixed; top: 10px; left: 10px; right: 10px;
+      z-index: 30; pointer-events: auto;
     }
-    .chunky-btn:active { transform: scale(0.94); }
+    .nav-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 6px 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      max-width: 850px; margin: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .nav-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+    .nav-logo {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 8px rgba(109,40,217,0.3);
+    }
+    .nav-name { font-weight: 900; font-size: 13px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-sub  { font-size: 10px; color: #64748b; font-weight: 700; display: flex; align-items: center; gap: 4px; margin-top: 1px; }
+    .nav-dot  { width: 5px; height: 5px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+
+    .mode-switcher {
+      display: flex; align-items: center; gap: 3px;
+      background: #f1f5f9; padding: 3px; border-radius: 12px;
+      border: 1px solid #e2e8f0; flex-shrink: 0;
+    }
+    .mode-btn {
+      padding: 6px 10px; font-size: 11px; font-weight: 700;
+      border: none; border-radius: 9px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      transition: all 0.18s; background: transparent; color: #475569;
+    }
+    .mode-btn.active {
+      background: #7c3aed !important; color: #fff !important;
+      font-weight: 900 !important;
+      box-shadow: 0 2px 8px rgba(109,40,217,0.35);
+    }
+    .mode-btn:hover:not(.active) { background: #fff; color: #7c3aed; }
+
+    /* ── 3D bottom controls ───────────────────────────────── */
+    #ctrl-bar {
+      position: fixed;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%);
+      z-index: 30; pointer-events: auto;
+      width: calc(100% - 20px); max-width: 420px;
+    }
+    .ctrl-card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid #e2e8f0; border-radius: 16px;
+      padding: 8px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .ctrl-btn {
+      padding: 7px 10px; font-size: 11px; font-weight: 900;
+      border: none; border-radius: 10px; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      transition: transform 0.15s;
+      background: #ede9fe; color: #7c3aed; flex: 1; justify-content: center;
+    }
+    .ctrl-btn:active { transform: scale(0.94); }
+    .ctrl-btn.secondary { background: #f1f5f9; color: #0f172a; flex: none; }
+    .speed-select {
+      background: #f1f5f9; border: 1px solid #e2e8f0;
+      padding: 6px 8px; border-radius: 10px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .speed-select span { font-size: 10px; color: #64748b; font-weight: 700; }
+    .speed-select select {
+      background: transparent; border: none; font-size: 11px;
+      font-weight: 900; color: #7c3aed; outline: none; cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <!-- LAYER 1: 3D VIEWER via Google model-viewer -->
+  <!-- ── 3D VIEWER ─────────────────────────────────────── -->
   <model-viewer
     id="eco-viewer"
     src="{{ECOSYSTEM_GLB_URL}}"
-    camera-controls
-    camera-orbit="30deg 60deg 7.5m"
-    shadow-intensity="1.5"
-    shadow-softness="0.8"
     alt="{{ECOSYSTEM_NAME}}"
-    loading="eager"
-    auto-rotate
-    auto-rotate-delay="0"
+    camera-controls
+    auto-rotate auto-rotate-delay="0"
     rotation-per-second="20deg"
+    camera-orbit="30deg 65deg 8m"
+    shadow-intensity="1.5" shadow-softness="0.8"
+    loading="eager"
   >
-    <!-- Slot 0 Hotspot: Produsen -->
-    <button slot="hotspot-0" class="species-hotspot" data-position="2.65 1.35 0" data-normal="0 1 0">
-      <span>{{SLOT_0_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_0_ROLE}}</span>
-    </button>
-    <!-- Slot 1 Hotspot: Konsumen I -->
-    <button slot="hotspot-1" class="species-hotspot" data-position="1.32 1.45 2.29" data-normal="0 1 0">
-      <span>{{SLOT_1_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_1_ROLE}}</span>
-    </button>
-    <!-- Slot 2 Hotspot: Konsumen II -->
-    <button slot="hotspot-2" class="species-hotspot" data-position="-1.32 1.35 2.29" data-normal="0 1 0">
-      <span>{{SLOT_2_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_2_ROLE}}</span>
-    </button>
-    <!-- Slot 3 Hotspot: Konsumen III -->
-    <button slot="hotspot-3" class="species-hotspot" data-position="-2.65 1.45 0" data-normal="0 1 0">
-      <span>{{SLOT_3_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_3_ROLE}}</span>
-    </button>
-    <!-- Slot 4 Hotspot: Konsumen Final -->
-    <button slot="hotspot-4" class="species-hotspot" data-position="-1.32 1.35 -2.29" data-normal="0 1 0">
-      <span>{{SLOT_4_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_4_ROLE}}</span>
-    </button>
-    <!-- Slot 5 Hotspot: Decomposer -->
-    <button slot="hotspot-5" class="species-hotspot" data-position="1.32 1.45 -2.29" data-normal="0 1 0">
-      <span>{{SLOT_5_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_5_ROLE}}</span>
-    </button>
-    <!-- Center Ring Badge -->
-    <button slot="hotspot-center" class="species-hotspot" data-position="0 2.6 0" data-normal="0 1 0" style="border-color:#705d00;background:#ffe170;color:#0d1e25;">
-      <span class="material-symbols-outlined" style="font-size:14px;color:#705d00;">cyclone</span>
-      <span style="font-weight:900;">RANTAI MAKANAN 360°</span>
-    </button>
+    <button slot="hotspot-0" data-position="2.65 1.35 0" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_0_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_0_ROLE}}</span></button>
+    <button slot="hotspot-1" data-position="1.32 1.45 2.29" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_1_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_1_ROLE}}</span></button>
+    <button slot="hotspot-2" data-position="-1.32 1.35 2.29" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_2_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_2_ROLE}}</span></button>
+    <button slot="hotspot-3" data-position="-2.65 1.45 0" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_3_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_3_ROLE}}</span></button>
+    <button slot="hotspot-4" data-position="-1.32 1.35 -2.29" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_4_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_4_ROLE}}</span></button>
+    <button slot="hotspot-5" data-position="1.32 1.45 -2.29" data-normal="0 1 0" style="background:#fff;border:2px solid #7c3aed;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:5px;cursor:pointer;">{{SLOT_5_LABEL}}<span style="background:#fde047;color:#0f172a;font-size:9px;font-weight:900;padding:2px 6px;border-radius:5px;">{{SLOT_5_ROLE}}</span></button>
   </model-viewer>
 
-  <!-- LAYER 2: MINDAR CAMERA TRACKING CONTAINER -->
-  <div id="mindar-container">
-    <div id="ar-status-bar">
-      <div id="ar-status-pill" style="background:rgba(255,255,255,0.95);border:1.5px solid #cbd5e1;backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#0d1e25;box-shadow:0 6px 20px rgba(0,0,0,0.25);">
-        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
-        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">✨ Model 3D AR Aktif (Tampilan Kamera)</span>
-      </div>
+  <!-- ── AR CAMERA CONTAINER ────────────────────────────── -->
+  <div id="ar-container">
+
+    <!-- Status pill -->
+    <div id="ar-status" class="ar-hud">
+      <span id="ar-dot"></span>
+      <span id="ar-text">Memulai kamera AR...</span>
     </div>
 
-    <!-- WRONG CARD DETECTED ALERT POPUP -->
-    <div id="wrong-card-alert">
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-weight:900;font-size:13px;margin-bottom:3px;">
-        <span class="material-symbols-outlined" style="font-size:20px;color:#fef08a;">warning</span>
-        <span>KARTU / QR TIDAK SESUAI!</span>
+    <!-- Wrong card alert -->
+    <div id="wrong-alert" class="ar-hud">
+      <div class="alert-title">⚠️ KARTU TIDAK SESUAI!</div>
+      <p id="wrong-body" class="alert-body">Arahkan ke QR Code yang sesuai dengan ekosistem ini.</p>
+      <button class="switch-btn" onclick="goToDetectedEco()">🔀 Pindah ke Ekosistem Terdeteksi</button>
+    </div>
+
+    <!-- Scan frame overlay -->
+    <div id="scan-frame"></div>
+
+    <!-- Bottom hint -->
+    <div id="ar-hint" class="ar-hud">
+      <div class="hint-pill">
+        <span>📷</span>
+        <span>Arahkan ke QR Code Kartu {{ECOSYSTEM_NAME}}</span>
       </div>
-      <p id="wrong-card-text" style="font-size:11px;font-weight:700;line-height:1.3;margin-bottom:8px;opacity:0.95;">
-        Anda memindai Kartu Ekosistem Sawah.
-      </p>
-      <button id="btn-switch-ecosystem" onclick="navigateToScannedEcosystem()" style="background:#ffffff;color:#dc2626;font-size:11px;font-weight:900;padding:6px 14px;border-radius:10px;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;">
-        🔀 Pindah ke Ekosistem Terdeteksi
+      <button class="reset-btn" onclick="resetModelPos()">
+        <span class="material-symbols-outlined" style="font-size:15px;">center_focus_strong</span>
+        Posisikan Ulang Model
       </button>
     </div>
 
-    <div id="ar-scan-frame"></div>
-
-    <div id="ar-scan-hint">
-      <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-        <span>📷 Arahkan Kamera ke Kartu / QR Code {{ECOSYSTEM_NAME}}</span>
-      </div>
-
-      <button onclick="resetModelToCameraSpace()" class="chunky-btn" style="background:linear-gradient(135deg,#632ce5,#7c4dff);color:#fff;font-size:11px;font-weight:900;padding:8px 18px;border-radius:999px;border:none;box-shadow:0 6px 16px rgba(99,44,229,0.5);display:flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:15px;color:#ffe170;">center_focus_strong</span>
-        <span>🎯 Posisikan Ulang Model 3D</span>
-      </button>
+    <!-- Error overlay -->
+    <div id="ar-error">
+      <span class="material-symbols-outlined" style="font-size:48px;color:#fbbf24;">videocam_off</span>
+      <p id="ar-error-msg">Gagal menjalankan AR.</p>
+      <button onclick="switchMode('3d')" style="background:#7c3aed;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;">← Kembali ke 3D View</button>
     </div>
 
-    <div id="ar-error-overlay">
-      <span class="material-symbols-outlined" style="font-size:42px;color:#fbbf24;">videocam_off</span>
-      <p id="ar-error-text" style="color:#fff;font-size:13px;font-weight:700;max-width:280px;line-height:1.4;"></p>
-      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-top:6px;">
-        ← Kembali ke 3D View
-      </button>
-    </div>
   </div>
 
-  <!-- LAYER 3: TOP NAVIGATION HUD — Mobile Clean Compact Header -->
-  <header style="position:fixed;top:10px;left:10px;right:10px;z-index:30;pointer-events:auto;">
-    <div class="hud-card" style="border-radius:16px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:850px;margin:auto;">
-      
-      <!-- Left: Logo & Ecosystem Name -->
-      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-        <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(99,44,229,0.3);">
+  <!-- ── TOP NAV ────────────────────────────────────────── -->
+  <div id="top-nav">
+    <div class="nav-card">
+      <div class="nav-left">
+        <div class="nav-logo">
           <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
         </div>
-        <div style="min-width:0;flex:1;">
-          <div style="font-weight:900;font-size:13px;line-height:1.2;color:#0d1e25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            {{ECOSYSTEM_NAME}}
-          </div>
-          <div style="font-size:10px;color:#64748b;font-weight:700;display:flex;align-items:center;gap:4px;margin-top:1px;">
-            <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">SD Edu • Siklus 360°</span>
-          </div>
+        <div>
+          <div class="nav-name">{{ECOSYSTEM_NAME}}</div>
+          <div class="nav-sub"><span class="nav-dot"></span><span>AlamVerse · Edu AR</span></div>
         </div>
       </div>
-
-      <!-- Right: 2 Mode Selector Buttons -->
-      <div id="mode-switcher" style="display:flex;align-items:center;gap:3px;background:#f1f5f9;padding:3px;border-radius:12px;border:1px solid #cbd5e1;flex-shrink:0;">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span>
-          <span>3D View</span>
+      <div class="mode-switcher">
+        <button id="btn-3d" class="mode-btn active" onclick="switchMode('3d')">
+          <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span> 3D View
         </button>
-        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span>
-          <span>Mode AR</span>
+        <button id="btn-ar" class="mode-btn" onclick="switchMode('ar')">
+          <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span> Mode AR
         </button>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- Sub-header circular text banner (only in 3D View mode) -->
-  <div id="circular-text-hud" style="position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;white-space:nowrap;max-width:92vw;overflow:hidden;">
-    <div style="background:#fbbf24;border:1.5px solid #f59e0b;color:#0d1e25;font-size:10px;font-weight:900;padding:4px 14px;border-radius:999px;display:flex;align-items:center;gap:5px;box-shadow:0 4px 10px rgba(251,191,36,0.3);overflow:hidden;text-overflow:ellipsis;">
-      <span class="material-symbols-outlined" style="font-size:13px;flex-shrink:0;">autorenew</span>
-      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ PENGURAI</span>
-    </div>
-  </div>
-
-  <!-- LAYER 4: BOTTOM ROTATION CONTROLS (3D View mode only) -->
-  <div id="bottom-controls-hud" style="position:fixed;bottom:max(12px, env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:30;pointer-events:auto;width:100%;max-width:400px;padding:0 10px;">
-    <div class="hud-card" style="padding:8px 12px;border-radius:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-        
-        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn" style="padding:7px 10px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:4px;background:#ede9fe;color:#632ce5;border:none;flex:1;justify-content:center;">
-          <span id="rot-icon" class="material-symbols-outlined" style="font-size:15px;">pause_circle</span>
-          <span id="rot-text">Hentikan</span>
-        </button>
-
-        <button onclick="reverseRotation()" class="chunky-btn" style="padding:7px 10px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:4px;background:#f1f5f9;color:#0d1e25;border:none;">
-          <span class="material-symbols-outlined" style="font-size:15px;">screen_rotation</span>
-          Arah
-        </button>
-
-        <div style="display:flex;align-items:center;gap:3px;background:#f1f5f9;padding:5px 8px;border-radius:10px;border:1px solid #cbd5e1;">
-          <span style="font-size:10px;color:#64748b;font-weight:700;">Kec:</span>
-          <select onchange="changeSpeed(this.value)" style="background:transparent;font-size:11px;font-weight:900;color:#632ce5;border:none;outline:none;cursor:pointer;">
-            <option value="10deg">🐢</option>
-            <option value="20deg" selected>🚶</option>
-            <option value="45deg">🚀</option>
-          </select>
-        </div>
-
       </div>
     </div>
   </div>
 
+  <!-- ── 3D BOTTOM CONTROLS ─────────────────────────────── -->
+  <div id="ctrl-bar">
+    <div class="ctrl-card">
+      <button class="ctrl-btn" onclick="toggleRot()" id="rot-btn">
+        <span id="rot-icon" class="material-symbols-outlined" style="font-size:15px;">pause_circle</span>
+        <span id="rot-label">Hentikan</span>
+      </button>
+      <button class="ctrl-btn secondary" onclick="reverseRot()">
+        <span class="material-symbols-outlined" style="font-size:15px;">screen_rotation</span> Balik
+      </button>
+      <div class="speed-select">
+        <span>Kec:</span>
+        <select onchange="setSpeed(this.value)">
+          <option value="10deg">🐢</option>
+          <option value="20deg" selected>🚶</option>
+          <option value="45deg">🚀</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3D VIEW CONTROLLER ─────────────────────────────── -->
   <script>
-    // ══════════════════════════════════════════════════════
-    // 3D VIEW CONTROLLER
-    // ══════════════════════════════════════════════════════
-    const viewer = document.getElementById('eco-viewer');
-    let isRotating = true;
-    let rotationSpeed = '20deg';
-    let isReversed = false;
+    const ecoViewer = document.getElementById('eco-viewer');
+    let rotating = true, reversed = false, speed = '20deg';
 
-    function forceStartAutoRotate() {
-      if (!isRotating || !viewer) return;
-      viewer.setAttribute('auto-rotate', '');
-      viewer.setAttribute('auto-rotate-delay', '0');
-      let speed = parseInt(rotationSpeed) || 20;
-      if (isReversed) speed = -Math.abs(speed);
-      viewer.setAttribute('rotation-per-second', speed + 'deg');
+    function applyRotation() {
+      if (!ecoViewer) return;
+      if (!rotating) { ecoViewer.removeAttribute('auto-rotate'); return; }
+      ecoViewer.setAttribute('auto-rotate', '');
+      ecoViewer.setAttribute('auto-rotate-delay', '0');
+      const deg = parseInt(speed) * (reversed ? -1 : 1);
+      ecoViewer.setAttribute('rotation-per-second', deg + 'deg');
     }
 
-    window.addEventListener('DOMContentLoaded', forceStartAutoRotate);
-    if (viewer) {
-      viewer.addEventListener('load', forceStartAutoRotate);
-      viewer.addEventListener('poster-dismissed', forceStartAutoRotate);
+    function toggleRot() {
+      rotating = !rotating;
+      document.getElementById('rot-icon').innerText = rotating ? 'pause_circle' : 'play_circle';
+      document.getElementById('rot-label').innerText = rotating ? 'Hentikan' : 'Putar';
+      applyRotation();
     }
+    function reverseRot() { reversed = !reversed; applyRotation(); }
+    function setSpeed(v) { speed = v; applyRotation(); }
 
-    function toggleRotation() {
-      const btnText = document.getElementById('rot-text');
-      const btnIcon = document.getElementById('rot-icon');
-      if (isRotating) {
-        viewer.removeAttribute('auto-rotate');
-        isRotating = false;
-        if (btnText) btnText.innerText = 'Mulai';
-        if (btnIcon) btnIcon.innerText = 'play_circle';
-      } else {
-        viewer.setAttribute('auto-rotate', '');
-        viewer.setAttribute('auto-rotate-delay', '0');
-        isRotating = true;
-        if (btnText) btnText.innerText = 'Hentikan';
-        if (btnIcon) btnIcon.innerText = 'pause_circle';
-        forceStartAutoRotate();
-      }
-    }
+    ecoViewer?.addEventListener('load', applyRotation);
+    window.addEventListener('DOMContentLoaded', applyRotation);
+  </script>
 
-    function reverseRotation() {
-      isReversed = !isReversed;
-      forceStartAutoRotate();
-    }
+  <!-- ── AR CONTROLLER (ES MODULE) ─────────────────────── -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { MindARThree } from 'mindar-image-three';
 
-    function changeSpeed(val) {
-      rotationSpeed = val;
-      forceStartAutoRotate();
-    }
+    const ECOSYSTEM_ID  = '{{ECOSYSTEM_ID}}';
+    const GLB_URL       = '{{ECOSYSTEM_GLB_URL}}';
+    const MIND_URL      = '/assets/markers/all-presets.mind';
 
-    // ══════════════════════════════════════════════════════
-    // MODE AR CONTROLLER (Guaranteed 3D WebGL Camera Rendering & Marker Tracking)
-    // ══════════════════════════════════════════════════════
-    let mindarThree = null;
-    let arModelObj = null;
-    let arStarted = false;
-    let targetAnchors = [];
-    let scannedWrongPresetId = null;
-    let mainScene = null;
-    let activeAnchorGroup = null;
-
+    // Map index → ecosystem id (same order as compile-mind.js)
     const PRESET_MAP = [
-      { id: 'laut', name: 'Ekosistem Laut' },
+      { id: 'laut',  name: 'Ekosistem Laut'  },
       { id: 'sawah', name: 'Ekosistem Sawah' },
       { id: 'darat', name: 'Ekosistem Darat' },
-      { id: 'hutan', name: 'Ekosistem Hutan' }
+      { id: 'hutan', name: 'Ekosistem Hutan' },
     ];
 
-    function currentEcosystemId() {
-      const raw = '{{ECOSYSTEM_ID}}' || 'laut';
-      return raw.replace(/^preset-/, '');
-    }
+    const cleanId = ECOSYSTEM_ID.replace(/^preset-/, '');
 
-    function setArStatus(text, color, isAlert) {
-      const dot = document.getElementById('mindar-dot');
-      const txt = document.getElementById('mindar-text');
-      const pill = document.getElementById('ar-status-pill');
-      if (dot) dot.style.background = color || '#10b981';
-      if (txt) txt.innerText = text;
+    let mindAR = null, arStarted = false;
+    let wrongEcoId = null;
+    let arModel = null, arScene = null;
+
+    // ─── UI helpers ────────────────────────────────────────
+    function setStatus(text, color = '#10b981', alert = false) {
+      const pill = document.getElementById('ar-status');
+      const dot  = document.getElementById('ar-dot');
+      const txt  = document.getElementById('ar-text');
+      if (dot) dot.style.background = color;
+      if (txt) txt.textContent = text;
       if (pill) {
-        if (isAlert) {
-          pill.style.background = 'rgba(239, 68, 68, 0.95)';
-          pill.style.color = '#ffffff';
-          pill.style.borderColor = '#f87171';
-        } else {
-          pill.style.background = 'rgba(255, 255, 255, 0.95)';
-          pill.style.color = '#0d1e25';
-          pill.style.borderColor = '#cbd5e1';
-        }
+        pill.style.background = alert
+          ? 'rgba(220,38,38,0.95)' : 'rgba(15,23,42,0.88)';
+        pill.style.borderColor = alert
+          ? '#f87171' : 'rgba(255,255,255,0.18)';
       }
     }
 
-    function showWrongCardAlert(detectedPreset) {
-      scannedWrongPresetId = detectedPreset.id;
-      const alertBox = document.getElementById('wrong-card-alert');
-      const alertTxt = document.getElementById('wrong-card-text');
-      const btn = document.getElementById('btn-switch-ecosystem');
+    function showWrongAlert(preset) {
+      wrongEcoId = preset.id;
+      document.getElementById('wrong-body').textContent =
+        `Kamera mendeteksi QR Code ${preset.name}. Ini bukan kartu untuk halaman ini.`;
+      document.getElementById('wrong-alert').classList.add('show');
+      setStatus(`⚠️ QR TIDAK SESUAI: ${preset.name}`, '#ef4444', true);
+    }
 
-      if (alertTxt) {
-        alertTxt.innerText = `Anda sedang di halaman {{ECOSYSTEM_NAME}}, tetapi memindai Kartu/QR ${detectedPreset.name}.`;
+    function hideWrongAlert() {
+      wrongEcoId = null;
+      document.getElementById('wrong-alert').classList.remove('show');
+    }
+
+    window.goToDetectedEco = function() {
+      if (wrongEcoId) window.location.href = `/ecosystem/view/${wrongEcoId}`;
+    };
+
+    function showError(msg) {
+      document.getElementById('ar-error-msg').textContent = msg;
+      document.getElementById('ar-error').classList.add('show');
+    }
+
+    window.resetModelPos = function() {
+      if (arModel && arScene) {
+        arModel.position.set(0, 0, 0);
+        arScene.add(arModel);
+        setStatus('✨ Model 3D aktif di tampilan kamera');
       }
-      if (btn) {
-        btn.innerText = `🔀 Pindah ke ${detectedPreset.name}`;
-      }
-      if (alertBox) alertBox.classList.add('show');
+    };
 
-      setArStatus(`⚠️ TIDAK SESUAI: ${detectedPreset.name}`, '#ef4444', true);
-    }
-
-    function hideWrongCardAlert() {
-      scannedWrongPresetId = null;
-      const alertBox = document.getElementById('wrong-card-alert');
-      if (alertBox) alertBox.classList.remove('show');
-    }
-
-    function navigateToScannedEcosystem() {
-      if (scannedWrongPresetId) {
-        window.location.href = `/ecosystem/view/${scannedWrongPresetId}`;
-      }
-    }
-
-    function showArError(msg) {
-      const overlay = document.getElementById('ar-error-overlay');
-      const errTxt = document.getElementById('ar-error-text');
-      if (overlay) overlay.classList.add('show');
-      if (errTxt) errTxt.innerText = msg;
-    }
-
-    function hideArError() {
-      const overlay = document.getElementById('ar-error-overlay');
-      if (overlay) overlay.classList.remove('show');
-    }
-
-    function resetModelToCameraSpace() {
-      if (!arModelObj || !mainScene) return;
-      arModelObj.position.set(0, -0.15, -1.3);
-      arModelObj.rotation.set(0, 0, 0);
-      mainScene.add(arModelObj);
-      setArStatus('✨ Model 3D Ditempatkan di Kamera', '#10b981');
-    }
-
-    async function startMindAR() {
+    // ─── Start MindAR ──────────────────────────────────────
+    async function startAR() {
       if (arStarted) return;
-      const container = document.getElementById('mindar-container');
-      container.classList.add('active');
-      hideArError();
-      hideWrongCardAlert();
-      setArStatus('Memulai kamera AR...', '#fbbf24');
 
-      let MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
-
-      if (!MINDARThreeClass) {
-        setArStatus('Memuat pustaka MindAR...', '#fbbf24');
-        try {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image-three.prod.js';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-          MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
-        } catch (e) {
-          console.warn('CDN MindAR fallback load failed:', e);
-        }
-      }
-
-      if (!MINDARThreeClass) {
-        showArError('Library MindAR belum siap. Refresh halaman untuk mencoba kembali.');
-        return;
-      }
+      const container = document.getElementById('ar-container');
+      setStatus('Memulai kamera AR...', '#fbbf24');
 
       try {
-        const activeEcoId = currentEcosystemId();
-        const mindPath = `/assets/markers/all-presets.mind`;
-
-        mindarThree = new MINDARThreeClass({
-          container: container,
-          imageTargetSrc: mindPath,
+        mindAR = new MindARThree({
+          container,
+          imageTargetSrc: MIND_URL,
           maxTrack: 1,
           warmupTolerance: 2,
-          missTolerance: 20,
+          missTolerance: 15,
           filterMinCF: 0.0001,
           filterBeta: 0.001,
           uiLoading: 'no',
           uiScanning: 'no',
-          uiError: 'no'
+          uiError: 'no',
         });
 
-        const { renderer, scene, camera } = mindarThree;
-        mainScene = scene;
+        const { renderer, scene, camera } = mindAR;
+        arScene = scene;
 
-        // Force transparent clear color so WebGL canvas renders over video
+        // Transparent canvas so video shows through
         renderer.setClearColor(0x000000, 0);
+        renderer.setPixelRatio(window.devicePixelRatio || 1);
 
-        // High Intensity Lighting
-        const ambLight = new THREE.AmbientLight(0xffffff, 3.0);
-        scene.add(ambLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 3.0);
+        // Lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 2.5));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
         dirLight.position.set(3, 8, 5);
         scene.add(dirLight);
 
-        // Register Anchors for all 4 Target Cards/QRs [0: Laut, 1: Sawah, 2: Darat, 3: Hutan]
-        PRESET_MAP.forEach((preset, index) => {
-          const anchor = mindarThree.addAnchor(index);
-          targetAnchors[index] = anchor;
+        // Register one anchor per preset (indices 0-3 match compile order)
+        PRESET_MAP.forEach((preset, idx) => {
+          const anchor = mindAR.addAnchor(idx);
 
-          // Bright 3D Torus Ring Indicator
-          const ringGeo = new THREE.TorusGeometry(0.55, 0.04, 16, 64);
-          const isCorrect = (preset.id === activeEcoId);
-          const ringColor = isCorrect ? 0x10b981 : 0xef4444;
-          const ringMat = new THREE.MeshBasicMaterial({ color: ringColor, wireframe: false });
-          const targetRing = new THREE.Mesh(ringGeo, ringMat);
-          targetRing.rotation.x = Math.PI / 2;
-          anchor.group.add(targetRing);
-
-          if (isCorrect) {
-            activeAnchorGroup = anchor.group;
-          }
+          // Small ring on anchor plane for visual feedback
+          const ring = new THREE.Mesh(
+            new THREE.TorusGeometry(0.5, 0.04, 12, 48),
+            new THREE.MeshBasicMaterial({
+              color: preset.id === cleanId ? 0x10b981 : 0xef4444,
+            })
+          );
+          ring.rotation.x = -Math.PI / 2;
+          anchor.group.add(ring);
 
           anchor.onTargetFound = () => {
-            if (preset.id === activeEcoId) {
-              hideWrongCardAlert();
-              if (arModelObj) {
-                arModelObj.position.set(0, 0, 0);
-                anchor.group.add(arModelObj);
+            if (preset.id === cleanId) {
+              hideWrongAlert();
+              if (arModel) {
+                anchor.group.add(arModel);
+                arModel.position.set(0, 0.05, 0);
               }
-              setArStatus(`✅ TERKUNCI PADA KARTU/QR {{ECOSYSTEM_NAME}}!`, '#10b981');
+              setStatus('✅ QR Terkunci — Model 3D Tampil!', '#10b981');
             } else {
-              showWrongCardAlert(preset);
+              showWrongAlert(preset);
             }
           };
 
           anchor.onTargetLost = () => {
-            hideWrongCardAlert();
-            if (preset.id === activeEcoId && arModelObj) {
-              arModelObj.position.set(0, -0.15, -1.3);
-              scene.add(arModelObj);
+            hideWrongAlert();
+            if (preset.id === cleanId && arModel) {
+              // Return model to camera space when target lost
+              scene.add(arModel);
+              arModel.position.set(0, -0.1, -1.2);
             }
-            setArStatus(`✨ Model 3D AR Aktif (Tampilan Kamera)`, '#10b981');
+            setStatus('✨ Model 3D AR — arahkan ke QR Code kartu');
           };
         });
 
-        // Load GLB 3D model
-        const GLTFLoaderClass = (window.THREE && window.THREE.GLTFLoader) || window.GLTFLoader;
+        // Load GLB model
+        const loader = new GLTFLoader();
+        loader.load(GLB_URL, (gltf) => {
+          arModel = gltf.scene;
 
-        if (GLTFLoaderClass) {
-          const loader = new GLTFLoaderClass();
-          loader.load('{{ECOSYSTEM_GLB_URL}}', (gltf) => {
-            arModelObj = gltf.scene;
-
-            arModelObj.traverse((child) => {
-              if (child.isMesh && child.material) {
-                child.material.side = THREE.DoubleSide;
-                child.material.depthWrite = true;
-                child.material.transparent = false;
-                child.material.opacity = 1.0;
-              }
-            });
-
-            // Normalize size using Box3
-            const box = new THREE.Box3().setFromObject(arModelObj);
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            const fitScale = 0.75 / maxDim;
-
-            arModelObj.scale.set(fitScale, fitScale, fitScale);
-            const center = box.getCenter(new THREE.Vector3());
-            arModelObj.position.set(-center.x * fitScale, -center.y * fitScale - 0.15, -center.z * fitScale - 1.3);
-
-            // ALWAYS ADD DIRECTLY TO SCENE FIRST SO IT IS 100% VISIBLE IMMEDIATELY IN CAMERA SPACE!
-            scene.add(arModelObj);
-
-            setArStatus(`✨ Model 3D AR Aktif (Tampilan Kamera)`, '#10b981');
-          }, undefined, (err) => {
-            console.warn('GLB load error in AR:', err);
+          arModel.traverse(child => {
+            if (child.isMesh && child.material) {
+              child.material.side = THREE.DoubleSide;
+              child.material.depthWrite = true;
+            }
           });
-        }
 
-        await mindarThree.start();
+          // Normalize scale
+          const box    = new THREE.Box3().setFromObject(arModel);
+          const size   = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const scale  = 0.7 / maxDim;
+          arModel.scale.setScalar(scale);
+
+          const center = box.getCenter(new THREE.Vector3());
+          arModel.position.set(-center.x * scale, -center.y * scale - 0.1, -center.z * scale - 1.2);
+
+          // Place immediately in camera space so it's always visible
+          scene.add(arModel);
+          setStatus('✨ Model 3D AR aktif — arahkan ke QR Code kartu');
+        }, undefined, (err) => {
+          console.warn('[AR] GLB load error:', err);
+          setStatus('Model 3D gagal dimuat', '#ef4444');
+        });
+
+        await mindAR.start();
         arStarted = true;
 
         renderer.setAnimationLoop(() => {
-          if (arModelObj) {
-            arModelObj.rotation.y += 0.008;
-          }
+          if (arModel) arModel.rotation.y += 0.006;
           renderer.render(scene, camera);
         });
 
       } catch (err) {
-        console.error('MindAR start failed:', err);
-        const msg = String(err && err.message ? err.message : err);
-        if (msg.toLowerCase().includes('camera') || msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('notallowed')) {
-          showArError('Akses kamera ditolak. Izinkan akses kamera pada browser Anda dan coba lagi.');
-        } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-          showArError('Mode AR kamera membutuhkan HTTPS pada HP. Akses via HTTP diblokir oleh browser HP.');
+        console.error('[AR] MindAR start error:', err);
+        const msg = String(err?.message || err);
+        if (/camera|permission|notallowed/i.test(msg)) {
+          showError('Akses kamera ditolak. Izinkan kamera di pengaturan browser Anda.');
+        } else if (location.protocol !== 'https:' &&
+                   !['localhost','127.0.0.1'].includes(location.hostname)) {
+          showError('Mode AR butuh HTTPS. Gunakan link qrcodear.onrender.com di HP Anda.');
         } else {
-          showArError('Gagal menjalankan AR Kamera: ' + msg);
+          showError('Gagal menjalankan AR: ' + msg);
         }
       }
     }
 
-    function stopMindAR() {
-      if (mindarThree) {
+    function stopAR() {
+      if (mindAR) {
         try {
-          if (mindarThree.renderer) mindarThree.renderer.setAnimationLoop(null);
-          mindarThree.stop();
-        } catch (e) {}
-        mindarThree = null;
+          mindAR.renderer?.setAnimationLoop(null);
+          mindAR.stop();
+        } catch (e) { /* ignore */ }
+        mindAR = null;
       }
-      arModelObj = null;
-      arStarted = false;
-      targetAnchors = [];
-      mainScene = null;
-      activeAnchorGroup = null;
-      hideArError();
-      hideWrongCardAlert();
-
-      const container = document.getElementById('mindar-container');
-      container.classList.remove('active');
+      arModel = null; arScene = null; arStarted = false;
+      hideWrongAlert();
+      document.getElementById('ar-error').classList.remove('show');
     }
 
-    // ══════════════════════════════════════════════════════
-    // MODE SWITCHER (3D View vs Mode AR)
-    // ══════════════════════════════════════════════════════
-    function switchViewMode(mode) {
-      const btn3D = document.getElementById('btn-mode-3d');
-      const btnAR = document.getElementById('btn-mode-ar');
-      const btmControls = document.getElementById('bottom-controls-hud');
-      const circularHud = document.getElementById('circular-text-hud');
+    // ─── Mode switcher ─────────────────────────────────────
+    window.switchMode = function(mode) {
+      const container = document.getElementById('ar-container');
+      const viewer    = document.getElementById('eco-viewer');
+      const ctrlBar   = document.getElementById('ctrl-bar');
+      const btn3d     = document.getElementById('btn-3d');
+      const btnAr     = document.getElementById('btn-ar');
 
       if (mode === 'ar') {
-        if (btn3D) btn3D.className = 'mode-btn-inactive chunky-btn';
-        if (btnAR) btnAR.className = 'mode-btn-active chunky-btn';
-        if (btmControls) btmControls.style.display = 'none';
-        if (circularHud) circularHud.style.display = 'none';
-        if (viewer) viewer.style.display = 'none';
-        startMindAR();
+        btn3d.classList.remove('active');
+        btnAr.classList.add('active');
+        ctrlBar.style.display = 'none';
+        viewer.style.display  = 'none';
+        container.classList.add('active');
+        startAR();
       } else {
-        if (btn3D) btn3D.className = 'mode-btn-active chunky-btn';
-        if (btnAR) btnAR.className = 'mode-btn-inactive chunky-btn';
-        if (btmControls) btmControls.style.display = '';
-        if (circularHud) circularHud.style.display = '';
-        if (viewer) viewer.style.display = 'block';
-        stopMindAR();
-        forceStartAutoRotate();
+        btn3d.classList.add('active');
+        btnAr.classList.remove('active');
+        ctrlBar.style.display = '';
+        viewer.style.display  = 'block';
+        container.classList.remove('active');
+        stopAR();
+        // Resume 3D rotation
+        document.getElementById('eco-viewer')?.setAttribute('auto-rotate', '');
       }
-    }
+    };
   </script>
+
 </body>
 </html>
