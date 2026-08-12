@@ -307,8 +307,20 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Clean Mode & Touch 360° Inspection) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With 3D AR Billboard Badges & Always-Face-Camera) ── -->
   <script>
+    // ── Register A-Frame Billboard Component (Always Faces Camera Head-On, Never Flips) ──
+    if (window.AFRAME && !AFRAME.components['billboard']) {
+      AFRAME.registerComponent('billboard', {
+        tick: function () {
+          const camera = this.el.sceneEl.camera;
+          if (camera) {
+            this.el.object3D.lookAt(camera.getWorldPosition(new THREE.Vector3()));
+          }
+        }
+      });
+    }
+
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
     const GLB_URL = '{{ECOSYSTEM_GLB_URL}}';
     const cleanId = ECOSYSTEM_ID.replace(/^preset-/, '');
@@ -320,17 +332,82 @@
       { id: 'hutan', name: 'Hutan', idx: 3 },
     ];
 
+    const SLOT_BADGES = [
+      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.42 0.32 0' },
+      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.21 0.32 0.36' },
+      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.21 0.32 0.36' },
+      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.42 0.32 0' },
+      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.21 0.32 -0.36' },
+      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.21 0.32 -0.36' },
+    ];
+
     let arActive = false;
     let wrongEcoId = null;
     let qrScanInterval = null;
     let isLockedCleanMode = false;
 
-    // Touch gesture variables for 360° model inspection
+    // Touch gesture variables for 360° interactive model inspection
     let isTouchDragging = false;
     let previousTouchX = 0;
     let previousTouchY = 0;
     let customRotX = 0;
     let customRotY = 0;
+
+    // ── Generate Canvas Texture for Rounded Species Badges ──
+    function createSlotBadgeDataUrl(label, role) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+
+      // White Pill with Purple Border
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 8;
+      
+      const r = 32;
+      ctx.beginPath();
+      ctx.moveTo(r, 4);
+      ctx.arcTo(508, 4, 508, 124, r);
+      ctx.arcTo(508, 124, 4, 124, r);
+      ctx.arcTo(4, 124, 4, 4, r);
+      ctx.arcTo(4, 4, 508, 4, r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Label Name Text
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px Quicksand, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      const displayLabel = label.startsWith('{{') ? 'Spesies' : label;
+      ctx.fillText(displayLabel, 28, 64);
+
+      // Role Yellow Tag
+      const displayRole = role.startsWith('{{') ? 'PERAN' : role;
+      ctx.font = 'bold 24px Quicksand, sans-serif';
+      const roleWidth = ctx.measureText(displayRole).width + 24;
+      const roleX = 508 - roleWidth - 16;
+
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      const rx = roleX, ry = 32, rw = roleWidth, rh = 64, rr = 16;
+      ctx.moveTo(rx + rr, ry);
+      ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
+      ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr);
+      ctx.arcTo(rx, ry + rh, rx, ry, rr);
+      ctx.arcTo(rx, ry, rx + rw, ry, rr);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 24px Quicksand, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(displayRole, roleX + roleWidth / 2, 64);
+
+      return canvas.toDataURL();
+    }
 
     // ── Status & Clean Screen Mode helpers ──
     function setStatus(text, color = '#10b981') {
@@ -344,12 +421,10 @@
       if (isLockedCleanMode) return;
       isLockedCleanMode = true;
 
-      // 1. Hide scan frame bounding box
       document.getElementById('scan-frame').classList.add('hidden');
       document.getElementById('ar-hint').classList.add('hidden');
       document.getElementById('top-nav').classList.add('dimmed');
 
-      // 2. Set Status to Clean Guidance
       setStatus(`✨ ${presetName.toUpperCase()} TERKUNCI — Geser Layar untuk Memutar 360°`, '#10b981');
     }
 
@@ -381,7 +456,6 @@
       if (wrongEcoId) window.location.href = `/ecosystem/view/${wrongEcoId}`;
     };
 
-    // Reveal 3D model in camera space when QR is decoded via jsQR
     function revealCameraSpaceModel() {
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
@@ -398,9 +472,19 @@
       }
     }
 
-    // ── Build HTML for A-Frame Scene ──
+    // ── Build HTML for A-Frame Scene (With 3D AR Billboard Badges) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
+
+      // Build 6 Billboard Badge Entities
+      let badgeEntities = '';
+      SLOT_BADGES.forEach((slot, idx) => {
+        const badgeDataUrl = createSlotBadgeDataUrl(slot.label, slot.role);
+        badgeEntities += `
+          <a-entity position="${slot.pos}" billboard>
+            <a-plane src="${badgeDataUrl}" width="0.34" height="0.085" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
+          </a-entity>`;
+      });
 
       return `
         <a-scene
@@ -411,11 +495,13 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Camera-Space Fallback 3D Model (visible when QR decoded by jsQR) -->
+            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
             <a-entity id="camera-space-model" position="0 -0.1 -0.85" scale="0 0 0" visible="false">
-              <a-gltf-model id="cam-glb" src="${GLB_URL}" scale="0.28 0.28 0.28"
+              <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-              </a-gltf-model>
+                <a-gltf-model src="${GLB_URL}" scale="0.28 0.28 0.28"></a-gltf-model>
+                ${badgeEntities}
+              </a-entity>
               <a-torus radius="0.48" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
@@ -425,12 +511,13 @@
           <a-light type="directional" position="2 5 3" intensity="3.0"></a-light>
           <a-light type="directional" position="-2 -3 2" intensity="1.5"></a-light>
 
-          <!-- MindAR Anchor 0 (locks 3D model on physical card when marker tracked) -->
+          <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-gltf-model id="anchor-glb" src="${GLB_URL}"
-              position="0 0.05 0" rotation="0 0 0" scale="0.28 0.28 0.28"
+            <a-entity id="anchor-glb-group"
               animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-            </a-gltf-model>
+              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" scale="0.28 0.28 0.28"></a-gltf-model>
+              ${badgeEntities}
+            </a-entity>
             <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
               animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
             </a-torus>
@@ -460,13 +547,12 @@
         customRotY += deltaX * 0.6;
         customRotX += deltaY * 0.4;
 
-        // Apply rotation to both camera space & anchor GLB models
-        const camGlb = document.getElementById('cam-glb');
-        const anchorGlb = document.getElementById('anchor-glb');
+        const camGlbGroup = document.getElementById('cam-glb-group');
+        const anchorGlbGroup = document.getElementById('anchor-glb-group');
 
         const rotStr = `${customRotX} ${customRotY} 0`;
-        if (camGlb) camGlb.setAttribute('rotation', rotStr);
-        if (anchorGlb) anchorGlb.setAttribute('rotation', rotStr);
+        if (camGlbGroup) camGlbGroup.setAttribute('rotation', rotStr);
+        if (anchorGlbGroup) anchorGlbGroup.setAttribute('rotation', rotStr);
 
         previousTouchX = e.touches[0].clientX;
         previousTouchY = e.touches[0].clientY;
@@ -489,7 +575,6 @@
         const video = document.querySelector('#ar-container video');
         if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
 
-        // Crop center 320x320 for instant high-res QR decoding
         canvas.width = 320;
         canvas.height = 320;
         const sx = (video.videoWidth - 320) / 2 || 0;
@@ -506,13 +591,12 @@
           if (code && code.data) {
             const scannedUrl = code.data.toLowerCase();
 
-            // Match scanned QR code URL against presets
             const matchedPreset = PRESETS.find(p => scannedUrl.includes(`/view/${p.id}`) || scannedUrl.includes(p.id));
             if (matchedPreset) {
               if (matchedPreset.id === cleanId) {
                 hideWrong();
                 revealCameraSpaceModel();
-                triggerCleanLockedView(matchedPreset.name); // Clean UI mode!
+                triggerCleanLockedView(matchedPreset.name);
               } else {
                 hideCameraSpaceModel();
                 resetCleanScanView();
@@ -537,7 +621,6 @@
 
       const container = document.getElementById('ar-container');
       
-      // Request camera permission explicitly first
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
         stream.getTracks().forEach(t => t.stop());
@@ -547,7 +630,6 @@
         return;
       }
 
-      // Inject clean A-Frame scene
       container.innerHTML = buildArSceneHTML();
       container.classList.add('active');
 
@@ -560,16 +642,14 @@
         document.getElementById('ar-hint').classList.add('active');
         setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
 
-        // Setup touch drag for 360 degree model inspection
         setupTouchGestureRotation();
 
-        // Engine 1: MindAR Image Target Anchor Listener
         const anchorEl = sceneEl.querySelector('#anchor-match');
         if (anchorEl) {
           anchorEl.addEventListener('targetFound', () => {
             hideWrong();
             revealCameraSpaceModel();
-            triggerCleanLockedView(cleanId); // Clean UI mode!
+            triggerCleanLockedView(cleanId);
           });
 
           anchorEl.addEventListener('targetLost', () => {
@@ -578,7 +658,6 @@
           });
         }
 
-        // Engine 2: Start jsQR Fallback Decoder
         startQrCodeFallbackScanner();
       }
 
@@ -606,7 +685,6 @@
         } catch(e) {}
       }
 
-      // Stop any orphan video streams
       document.querySelectorAll('video').forEach(v => {
         if (v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
         v.srcObject = null;
