@@ -113,6 +113,133 @@ app.get('/ar-debug', (req, res) => {
   res.sendFile(path.join(VIEWS_DIR, 'ar-debug.html'));
 });
 
+// AR Test — fully inline, available immediately
+app.get('/ar-test', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>AR Test</title>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/","mindar-image-three":"https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"}}</script>
+<style>
+body{margin:0;background:#0f172a;color:#e2e8f0;font-family:monospace;padding:10px;font-size:12px;}
+h2{color:#fbbf24;margin:8px 0;}
+.log{background:#1e293b;padding:8px;border-radius:6px;max-height:200px;overflow-y:auto;margin:6px 0;}
+.ok{color:#4ade80;} .err{color:#f87171;} .warn{color:#fbbf24;}
+button{background:#3b82f6;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;margin:3px;}
+.green{background:#10b981!important;} .red{background:#ef4444!important;}
+#cam-view{width:100%;max-height:160px;border-radius:6px;background:#000;display:none;margin:4px 0;}
+#ar-box{width:100%;height:200px;background:#000;border-radius:6px;display:none;position:relative;margin:4px 0;overflow:hidden;}
+</style>
+</head>
+<body>
+<h2>🔬 AR Test — AlamVerse</h2>
+
+<div><b>STEP 1:</b> Import Libraries</div>
+<button onclick="step1()">Test Import</button>
+<div id="s1" class="log">—</div>
+
+<div><b>STEP 2:</b> Kamera</div>
+<button class="green" onclick="step2()">Buka Kamera</button>
+<button class="red" onclick="stopCam()">Stop</button>
+<video id="cam-view" autoplay muted playsinline></video>
+<div id="s2" class="log">—</div>
+
+<div><b>STEP 3:</b> .mind File</div>
+<button onclick="step3()">Test Download .mind</button>
+<div id="s3" class="log">—</div>
+
+<div><b>STEP 4:</b> MindAR Full (arahkan ke QR setelah start)</div>
+<button onclick="step4()">Start MindAR + Load Model 3D</button>
+<button class="red" onclick="stopAR()">Stop</button>
+<div id="ar-box"></div>
+<div id="s4" class="log">—</div>
+
+<script type="module">
+const L=(id,msg,cls='ok')=>{const el=document.getElementById(id);el.innerHTML+=\`<div class="\${cls}">\${msg}</div>\`;el.scrollTop=el.scrollHeight;};
+
+window.step1=async()=>{
+  L('s1','Testing...');
+  try{
+    const THREE=await import('three');
+    L('s1','✅ Three.js r'+THREE.REVISION);
+    const {MindARThree}=await import('mindar-image-three');
+    L('s1','✅ MindARThree type: '+typeof MindARThree);
+    const {GLTFLoader}=await import('three/addons/loaders/GLTFLoader.js');
+    L('s1','✅ GLTFLoader OK');
+  }catch(e){L('s1','❌ '+e.message,'err');}
+};
+
+let camStream=null;
+window.step2=async()=>{
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    const v=document.getElementById('cam-view');v.srcObject=camStream;v.style.display='block';
+    L('s2','✅ Camera: '+camStream.getVideoTracks()[0].label);
+  }catch(e){L('s2','❌ '+e.name+': '+e.message,'err');}
+};
+window.stopCam=()=>{
+  if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;}
+  document.getElementById('cam-view').style.display='none';
+};
+
+window.step3=async()=>{
+  L('s3','Fetching /assets/markers/all-presets.mind...');
+  try{
+    const r=await fetch('/assets/markers/all-presets.mind');
+    L('s3','HTTP '+r.status+' '+r.statusText,r.ok?'ok':'err');
+    const buf=await r.arrayBuffer();
+    L('s3','✅ Size: '+(buf.byteLength/1024).toFixed(0)+' KB');
+    if(buf.byteLength<50000)L('s3','⚠️ Terlalu kecil — mungkin invalid!','warn');
+  }catch(e){L('s3','❌ '+e.message,'err');}
+};
+
+let mindARInst=null;
+window.step4=async()=>{
+  const box=document.getElementById('ar-box');box.style.display='block';
+  L('s4','Importing libraries...');
+  try{
+    const THREE=await import('three');
+    const {MindARThree}=await import('mindar-image-three');
+    const {GLTFLoader}=await import('three/addons/loaders/GLTFLoader.js');
+    L('s4','✅ Imports OK');
+    mindARInst=new MindARThree({container:box,imageTargetSrc:'/assets/markers/all-presets.mind',maxTrack:1,uiLoading:'yes',uiScanning:'yes'});
+    const {renderer,scene,camera}=mindARInst;
+    renderer.setClearColor(0,0);
+    scene.add(new THREE.AmbientLight(0xffffff,2));
+    L('s4','✅ MindARThree created');
+    // Anchor 0 = laut
+    const anc=mindARInst.addAnchor(0);
+    const cube=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.15,0.15),new THREE.MeshStandardMaterial({color:0x00ff00}));
+    anc.group.add(cube);
+    anc.onTargetFound=()=>L('s4','🎯 TARGET DITEMUKAN! Arahkan QR ke kamera!');
+    anc.onTargetLost=()=>L('s4','Target hilang','warn');
+    // Load GLB
+    new GLTFLoader().load('/assets/eco_laut_baked.glb',(g)=>{
+      const m=g.scene;const b=new THREE.Box3().setFromObject(m);
+      const s=b.getSize(new THREE.Vector3());const sc=0.5/Math.max(s.x,s.y,s.z);
+      m.scale.setScalar(sc);anc.group.add(m);L('s4','✅ GLB model loaded!');
+    },undefined,(e)=>L('s4','⚠️ GLB err: '+e.message,'warn'));
+    L('s4','Calling mindARInst.start()...');
+    await mindARInst.start();
+    L('s4','✅ MindAR STARTED! Arahkan ke QR Code laut.');
+    renderer.setAnimationLoop(()=>{cube.rotation.y+=0.01;renderer.render(scene,camera);});
+  }catch(e){L('s4','❌ ERROR: '+e.message,'err');console.error(e);}
+};
+window.stopAR=()=>{
+  if(mindARInst){try{mindARInst.renderer?.setAnimationLoop(null);mindARInst.stop();}catch(e){}}
+  mindARInst=null;document.getElementById('ar-box').style.display='none';
+};
+
+window.onerror=(m,s,l,c,e)=>L('s4','window.onerror: '+m,'err');
+window.onunhandledrejection=(e)=>L('s4','Rejection: '+(e.reason?.message||e.reason),'err');
+</script>
+</body>
+</html>`);
+});
+
+
 // ─── Data helpers ──────────────────────────────────────────────────────────────
 function loadAssets() {
   if (!fs.existsSync(DATA_FILE)) return [];
