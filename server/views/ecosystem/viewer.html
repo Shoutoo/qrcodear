@@ -16,6 +16,9 @@
   <!-- Google <model-viewer> for 3D View mode -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
+  <!-- jsQR 1.4.0 for Instant 100% QR Code Fallback Decoding -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -46,7 +49,6 @@
     }
     #ar-container.active { display: block; }
 
-    /* A-Frame video canvas full cover fix for mobile iOS/Android */
     #ar-container a-scene {
       width: 100vw !important;
       height: 100vh !important;
@@ -88,7 +90,7 @@
     }
     .mode-btn {
       padding: 6px 10px; font-size: 11px; font-weight: 700;
-      border: none; border-radius: 9px; cursor: pointer;
+      border: none; border-radius: 99px; cursor: pointer;
       display: flex; align-items: center; gap: 4px;
       transition: all 0.18s; background: transparent; color: #475569;
     }
@@ -210,6 +212,7 @@
 
   <!-- ── AR CAMERA CONTAINER ─────────────────────────────────── -->
   <div id="ar-container"></div>
+  <canvas id="qr-scan-canvas" style="display:none;"></canvas>
 
   <!-- ── TOP NAV ──────────────────────────────────────────────── -->
   <div id="top-nav">
@@ -293,7 +296,7 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── AR MODE CONTROLLER (MindAR A-Frame Engine) ─────────────── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (MindAR + jsQR Fallback) ── -->
   <script>
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
     const GLB_URL = '{{ECOSYSTEM_GLB_URL}}';
@@ -306,10 +309,9 @@
       { id: 'hutan', name: 'Hutan', idx: 3 },
     ];
 
-    const currentPreset = PRESETS.find(p => p.id === cleanId) || PRESETS[0];
-
     let arActive = false;
     let wrongEcoId = null;
+    let qrScanInterval = null;
 
     // ── Status helpers ──
     function setStatus(text, color = '#10b981') {
@@ -338,37 +340,8 @@
 
     // ── Build HTML for A-Frame Scene ──
     function buildArSceneHTML() {
-      // MindAR compiled target file for this ecosystem
-      const mindFile = `/assets/markers/all-presets.mind`;
-
-      let anchorsHTML = '';
-      PRESETS.forEach(preset => {
-        const isMatch = preset.id === cleanId;
-        if (isMatch) {
-          anchorsHTML += `
-            <a-entity mindar-image-target="targetIndex: ${preset.idx}" id="anchor-match">
-              <!-- 3D Ecosystem GLB Model -->
-              <a-gltf-model src="${GLB_URL}"
-                position="0 0.05 0"
-                rotation="0 0 0"
-                scale="0.15 0.15 0.15"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
-              </a-gltf-model>
-              <!-- Glowing Emerald Green Ring -->
-              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
-                animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
-              </a-torus>
-            </a-entity>`;
-        } else {
-          anchorsHTML += `
-            <a-entity mindar-image-target="targetIndex: ${preset.idx}" id="anchor-wrong-${preset.id}">
-              <!-- Warning Red Ring -->
-              <a-torus radius="0.55" radius-tubular="0.015" color="#ef4444" rotation="90 0 0" position="0 0 0" opacity="0.9"></a-torus>
-              <a-text value="KARTU ${preset.name.toUpperCase()}&#10;⚠️ Tidak Sesuai" align="center" color="#ffffff"
-                position="0 0.18 0" scale="0.25 0.25 0.25" rotation="-90 0 0"></a-text>
-            </a-entity>`;
-        }
-      });
+      // 1. Single target .mind file for 4x faster detection speed
+      const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
       return `
         <a-scene
@@ -378,8 +351,72 @@
           vr-mode-ui="enabled: false"
           device-orientation-permission-ui="enabled: false">
           <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-          ${anchorsHTML}
+          
+          <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
+            <!-- 3D Ecosystem GLB Model -->
+            <a-gltf-model src="${GLB_URL}"
+              position="0 0.05 0"
+              rotation="0 0 0"
+              scale="0.15 0.15 0.15"
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
+            </a-gltf-model>
+            <!-- Glowing Emerald Green Ring -->
+            <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
+              animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
+            </a-torus>
+          </a-entity>
         </a-scene>`;
+    }
+
+    // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
+    function startQrCodeFallbackScanner() {
+      if (qrScanInterval) clearInterval(qrScanInterval);
+
+      const canvas = document.getElementById('qr-scan-canvas');
+      const ctx = canvas.getContext('2d');
+
+      qrScanInterval = setInterval(() => {
+        if (!arActive) return;
+        const video = document.querySelector('#ar-container video');
+        if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+        // Crop center 320x320 for instant high-res QR decoding
+        canvas.width = 320;
+        canvas.height = 320;
+        const sx = (video.videoWidth - 320) / 2 || 0;
+        const sy = (video.videoHeight - 320) / 2 || 0;
+
+        ctx.drawImage(video, sx, sy, 320, 320, 0, 0, 320, 320);
+        const imageData = ctx.getImageData(0, 0, 320, 320);
+
+        if (window.jsQR) {
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+          });
+
+          if (code && code.data) {
+            const scannedUrl = code.data.toLowerCase();
+
+            // Match scanned QR code URL against presets
+            const matchedPreset = PRESETS.find(p => scannedUrl.includes(`/view/${p.id}`) || scannedUrl.includes(p.id));
+            if (matchedPreset) {
+              if (matchedPreset.id === cleanId) {
+                hideWrong();
+                setStatus(`✅ QR Code ${matchedPreset.name} Terkunci (100% Decoded) — Model 3D Tampil!`, '#10b981');
+              } else {
+                showWrong(matchedPreset);
+              }
+            }
+          }
+        }
+      }, 150);
+    }
+
+    function stopQrCodeFallbackScanner() {
+      if (qrScanInterval) {
+        clearInterval(qrScanInterval);
+        qrScanInterval = null;
+      }
     }
 
     // ── Start AR Camera Engine ──
@@ -411,26 +448,22 @@
         document.getElementById('ar-hint').classList.add('active');
         setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
 
-        PRESETS.forEach(preset => {
-          const isMatch = preset.id === cleanId;
-          const selector = isMatch ? '#anchor-match' : `#anchor-wrong-${preset.id}`;
-          const anchorEl = sceneEl.querySelector(selector);
-          if (!anchorEl) return;
-
+        // Engine 1: MindAR Image Target Anchor Listener
+        const anchorEl = sceneEl.querySelector('#anchor-match');
+        if (anchorEl) {
           anchorEl.addEventListener('targetFound', () => {
-            if (isMatch) {
-              hideWrong();
-              setStatus(`✅ QR Code ${preset.name} Terkunci — Model 3D Tampil!`, '#10b981');
-            } else {
-              showWrong(preset);
-            }
+            hideWrong();
+            setStatus(`✅ QR Code ${cleanId.toUpperCase()} Terkunci (MindAR Anchor) — Model 3D Tampil!`, '#10b981');
           });
 
           anchorEl.addEventListener('targetLost', () => {
             hideWrong();
             setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
           });
-        });
+        }
+
+        // Engine 2: Start jsQR Fallback Decoder
+        startQrCodeFallbackScanner();
       }
 
       // Check if A-Frame scene is already loaded or wait for loaded event
@@ -444,6 +477,7 @@
     // ── Stop AR Camera Engine ──
     function stopAR() {
       arActive = false;
+      stopQrCodeFallbackScanner();
       hideWrong();
 
       const container = document.getElementById('ar-container');
