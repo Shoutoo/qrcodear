@@ -13,10 +13,10 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js -->
+  <!-- Local MindAR 1.1.5 Three.js UMD Script Bundle & Three.js -->
   <script src="/assets/vendor/three.min.js"></script>
   <script src="/assets/vendor/GLTFLoader.js"></script>
-  <script src="/assets/vendor/mindar-1.1.5.js"></script>
+  <script src="/assets/vendor/mindar-image-three.prod.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -396,7 +396,23 @@
       hideWrongCardAlert();
       setArStatus('Memulai kamera AR...', '#fbbf24');
 
-      const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
+      let MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
+
+      if (!MINDARThreeClass) {
+        setArStatus('Memuat pustaka MindAR...', '#fbbf24');
+        try {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image-three.prod.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+          MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
+        } catch (e) {
+          console.warn('CDN MindAR fallback load failed:', e);
+        }
+      }
 
       if (!MINDARThreeClass) {
         showArError('Library MindAR belum siap. Refresh halaman untuk mencoba kembali.');
