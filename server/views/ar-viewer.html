@@ -189,8 +189,8 @@
   <div id="mindar-container">
     <div id="ar-status-bar">
       <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
-        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
-        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">✨ Model 3D AR Aktif (Tampilan Kamera)</span>
+        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📷 Arahkan kamera ke Kartu AR...</span>
       </div>
     </div>
 
@@ -198,8 +198,14 @@
 
     <div id="ar-scan-hint">
       <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
-        <span>📷 Arahkan ke Kartu AR (Monitor Layar / Print)</span>
+        <span>📷 Arahkan ke Kartu AR (Monitor / Print)</span>
       </div>
+
+      <!-- Instant Force-Show Button -->
+      <button onclick="forceShow3DModelInCamera()" class="chunky-btn" style="background:linear-gradient(135deg,#632ce5,#7c4dff);color:#fff;font-size:11px;font-weight:900;padding:8px 18px;border-radius:999px;border:none;box-shadow:0 6px 16px rgba(99,44,229,0.5);display:flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:15px;color:#ffe170;">auto_awesome</span>
+        <span>✨ Tampilkan Model 3D di Kamera</span>
+      </button>
     </div>
 
     <div id="ar-error-overlay">
@@ -267,6 +273,20 @@
       if (overlay) overlay.classList.remove('show');
     }
 
+    function forceShow3DModelInCamera() {
+      if (!mindarThree || !arModelObj) return;
+      try {
+        const camModel = arModelObj.clone();
+        camModel.position.set(0, -0.25, -1.6);
+        camModel.scale.set(0.35, 0.35, 0.35);
+        camModel.name = 'forcedCameraModel';
+        mindarThree.scene.add(camModel);
+        setArStatus('✨ Model 3D Tampil di Kamera', '#10b981');
+      } catch (e) {
+        console.warn('forceShow3DModelInCamera error:', e);
+      }
+    }
+
     async function startMindAR() {
       if (arStarted) return;
       const container = document.getElementById('mindar-container');
@@ -302,11 +322,18 @@
         const anchor = mindarThree.addAnchor(0);
         arAnchorGroup = anchor.group;
 
-        const ambLight = new THREE.AmbientLight(0xffffff, 2.2);
+        const ambLight = new THREE.AmbientLight(0xffffff, 2.5);
         scene.add(ambLight);
         const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
         dirLight.position.set(3, 8, 5);
         scene.add(dirLight);
+
+        // 1. Native bright 3D torus ring target indicator
+        const ringGeo = new THREE.TorusGeometry(0.5, 0.04, 16, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, wireframe: false });
+        const targetRing = new THREE.Mesh(ringGeo, ringMat);
+        targetRing.rotation.x = Math.PI / 2;
+        arAnchorGroup.add(targetRing);
 
         const GLTFLoaderClass = (window.THREE && window.THREE.GLTFLoader) || window.GLTFLoader;
 
@@ -315,41 +342,34 @@
           loader.load('{{MODEL_URL}}', (gltf) => {
             arModelObj = gltf.scene;
 
+            arModelObj.traverse((child) => {
+              if (child.isMesh && child.material) {
+                child.material.side = THREE.DoubleSide;
+              }
+            });
+
             const box = new THREE.Box3().setFromObject(arModelObj);
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            const fitScale = 1.0 / maxDim;
+            const fitScale = 0.8 / maxDim;
 
             arModelObj.scale.set(fitScale, fitScale, fitScale);
             const center = box.getCenter(new THREE.Vector3());
-            arModelObj.position.sub(center.multiplyScalar(fitScale));
+            arModelObj.position.set(-center.x * fitScale, -center.y * fitScale + 0.1, -center.z * fitScale);
 
             arAnchorGroup.add(arModelObj);
-
-            const fallbackGroup = arModelObj.clone();
-            fallbackGroup.position.set(0, -0.2, -1.8);
-            fallbackGroup.scale.set(0.35, 0.35, 0.35);
-            fallbackGroup.name = 'fallbackModel';
-            scene.add(fallbackGroup);
-
-            setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
+            setArStatus('📷 Arahkan kamera ke Kartu AR (Monitor / Print)', '#fbbf24');
           }, undefined, (err) => {
             console.warn('GLB load error:', err);
           });
         }
 
         anchor.onTargetFound = () => {
-          const fallback = scene.getObjectByName('fallbackModel');
-          if (fallback) fallback.visible = false;
-
           setArStatus('✅ Terkunci pada Kartu AR!', '#10b981');
         };
 
         anchor.onTargetLost = () => {
-          const fallback = scene.getObjectByName('fallbackModel');
-          if (fallback) fallback.visible = true;
-
-          setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
+          setArStatus('📷 Arahkan kamera ke Kartu AR (Monitor / Print)', '#fbbf24');
         };
 
         await mindarThree.start();
@@ -357,11 +377,14 @@
 
         renderer.setAnimationLoop(() => {
           if (arModelObj) {
-            arModelObj.rotation.y += 0.006;
+            arModelObj.rotation.y += 0.008;
           }
-          const fallback = scene.getObjectByName('fallbackModel');
-          if (fallback) {
-            fallback.rotation.y += 0.006;
+          if (targetRing) {
+            targetRing.rotation.z += 0.01;
+          }
+          const forced = scene.getObjectByName('forcedCameraModel');
+          if (forced) {
+            forced.rotation.y += 0.008;
           }
           renderer.render(scene, camera);
         });
