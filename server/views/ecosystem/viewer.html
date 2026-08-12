@@ -826,19 +826,18 @@
 
     // ── Switch Mode (3D View <-> Mode AR) ──
     window.switchMode = function(mode) {
-      const btn3d.classList = document.getElementById('btn-3d');
-      const btn3dEl = document.getElementById('btn-3d');
+      const btn3d = document.getElementById('btn-3d');
       const btnAr = document.getElementById('btn-ar');
       const ctrlBar = document.getElementById('ctrl-bar');
       const mvEl = document.getElementById('eco-mv');
 
       if (mode === 'ar') {
-        btn3dEl.classList.remove('active'); btnAr.classList.add('active');
+        btn3d.classList.remove('active'); btnAr.classList.add('active');
         mvEl.style.display = 'none';
         ctrlBar.style.display = 'none';
         startAR();
       } else {
-        btn3dEl.classList.add('active'); btnAr.classList.remove('active');
+        btn3d.classList.add('active'); btnAr.classList.remove('active');
         mvEl.style.display = 'block';
         ctrlBar.style.display = '';
         stopAR();
