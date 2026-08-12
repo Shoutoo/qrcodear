@@ -75,7 +75,6 @@
     }
     #mindar-container.active { display: block; }
 
-    /* Force MindAR Video and Canvas to fill entire viewport cleanly */
     #mindar-container video,
     #mindar-container canvas {
       position: absolute !important;
@@ -115,6 +114,32 @@
       gap: 8px;
     }
 
+    /* Wrong Card Alert Card Overlay */
+    #wrong-card-alert {
+      display: none;
+      position: absolute;
+      top: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      background: rgba(239, 68, 68, 0.96);
+      backdrop-filter: blur(16px);
+      border: 2px solid #f87171;
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(225, 29, 72, 0.4);
+      width: min(340px, 88vw);
+      text-align: center;
+      animation: pulseAlert 1.5s infinite alternate ease-in-out;
+    }
+    #wrong-card-alert.show { display: block; }
+
+    @keyframes pulseAlert {
+      from { transform: translateX(-50%) scale(1); }
+      to { transform: translateX(-50%) scale(1.03); }
+    }
+
     #ar-scan-frame {
       position: absolute;
       top: 50%;
@@ -152,7 +177,7 @@
       display: none;
       position: absolute;
       inset: 0;
-      z-index: 60;
+      z-index: 70;
       background: rgba(15, 23, 42, 0.95);
       flex-direction: column;
       align-items: center;
@@ -188,17 +213,31 @@
   <!-- LAYER 2: MINDAR CONTAINER -->
   <div id="mindar-container">
     <div id="ar-status-bar">
-      <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
+      <div id="ar-status-pill" style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
         <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
-        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📷 Arahkan kamera ke Kartu AR...</span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📷 Sasar Kartu AR {{MODEL_TITLE}}...</span>
       </div>
+    </div>
+
+    <!-- WRONG CARD DETECTED ALERT POPUP -->
+    <div id="wrong-card-alert">
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-weight:900;font-size:13px;margin-bottom:3px;">
+        <span class="material-symbols-outlined" style="font-size:20px;color:#fef08a;">warning</span>
+        <span>KARTU TIDAK SESUAI!</span>
+      </div>
+      <p id="wrong-card-text" style="font-size:11px;font-weight:700;line-height:1.3;margin-bottom:8px;opacity:0.95;">
+        Anda memindai Kartu Ekosistem yang berbeda.
+      </p>
+      <button id="btn-switch-ecosystem" onclick="navigateToScannedEcosystem()" style="background:#ffffff;color:#dc2626;font-size:11px;font-weight:900;padding:6px 14px;border-radius:10px;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;">
+        🔀 Pindah ke Ekosistem Terdeteksi
+      </button>
     </div>
 
     <div id="ar-scan-frame"></div>
 
     <div id="ar-scan-hint">
       <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
-        <span>📷 Arahkan ke Kartu AR (Monitor / Print)</span>
+        <span>📷 Sasar Kartu AR {{MODEL_TITLE}}</span>
       </div>
 
       <!-- Instant Force-Show Button -->
@@ -252,13 +291,67 @@
     let mindarThree = null;
     let arModelObj = null;
     let arStarted = false;
-    let arAnchorGroup = null;
+    let targetAnchors = [];
+    let scannedWrongPresetId = null;
 
-    function setArStatus(text, color) {
+    const PRESET_MAP = [
+      { id: 'laut', name: 'Ekosistem Laut' },
+      { id: 'sawah', name: 'Ekosistem Sawah' },
+      { id: 'darat', name: 'Ekosistem Darat' },
+      { id: 'hutan', name: 'Ekosistem Hutan' }
+    ];
+
+    function currentEcosystemId() {
+      const raw = '{{ASSET_ID}}' || 'default-card';
+      return raw.replace(/^preset-/, '');
+    }
+
+    function setArStatus(text, color, isAlert) {
       const dot = document.getElementById('mindar-dot');
       const txt = document.getElementById('mindar-text');
+      const pill = document.getElementById('ar-status-pill');
       if (dot) dot.style.background = color || '#fbbf24';
       if (txt) txt.innerText = text;
+      if (pill) {
+        if (isAlert) {
+          pill.style.background = 'rgba(239, 68, 68, 0.95)';
+          pill.style.color = '#ffffff';
+          pill.style.borderColor = '#f87171';
+        } else {
+          pill.style.background = 'rgba(15, 23, 42, 0.9)';
+          pill.style.color = '#ffffff';
+          pill.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        }
+      }
+    }
+
+    function showWrongCardAlert(detectedPreset) {
+      scannedWrongPresetId = detectedPreset.id;
+      const alertBox = document.getElementById('wrong-card-alert');
+      const alertTxt = document.getElementById('wrong-card-text');
+      const btn = document.getElementById('btn-switch-ecosystem');
+
+      if (alertTxt) {
+        alertTxt.innerText = `Anda sedang di halaman {{MODEL_TITLE}}, tetapi memindai ${detectedPreset.name}.`;
+      }
+      if (btn) {
+        btn.innerText = `🔀 Pindah ke ${detectedPreset.name}`;
+      }
+      if (alertBox) alertBox.classList.add('show');
+
+      setArStatus(`⚠️ KARTU TIDAK SESUAI: ${detectedPreset.name}`, '#ef4444', true);
+    }
+
+    function hideWrongCardAlert() {
+      scannedWrongPresetId = null;
+      const alertBox = document.getElementById('wrong-card-alert');
+      if (alertBox) alertBox.classList.remove('show');
+    }
+
+    function navigateToScannedEcosystem() {
+      if (scannedWrongPresetId) {
+        window.location.href = `/ecosystem/view/${scannedWrongPresetId}`;
+      }
     }
 
     function showArError(msg) {
@@ -292,6 +385,7 @@
       const container = document.getElementById('mindar-container');
       container.classList.add('active');
       hideArError();
+      hideWrongCardAlert();
       setArStatus('Memulai kamera AR...', '#fbbf24');
 
       const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
@@ -302,8 +396,8 @@
       }
 
       try {
-        const assetId = '{{ASSET_ID}}' || 'default-card';
-        const mindPath = `/assets/markers/${assetId}.mind`;
+        const activeEcoId = currentEcosystemId();
+        const mindPath = `/assets/markers/all-presets.mind`;
 
         mindarThree = new MINDARThreeClass({
           container: container,
@@ -319,21 +413,12 @@
         });
 
         const { renderer, scene, camera } = mindarThree;
-        const anchor = mindarThree.addAnchor(0);
-        arAnchorGroup = anchor.group;
 
         const ambLight = new THREE.AmbientLight(0xffffff, 2.5);
         scene.add(ambLight);
         const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
         dirLight.position.set(3, 8, 5);
         scene.add(dirLight);
-
-        // 1. Native bright 3D torus ring target indicator
-        const ringGeo = new THREE.TorusGeometry(0.5, 0.04, 16, 64);
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, wireframe: false });
-        const targetRing = new THREE.Mesh(ringGeo, ringMat);
-        targetRing.rotation.x = Math.PI / 2;
-        arAnchorGroup.add(targetRing);
 
         const GLTFLoaderClass = (window.THREE && window.THREE.GLTFLoader) || window.GLTFLoader;
 
@@ -357,20 +442,43 @@
             const center = box.getCenter(new THREE.Vector3());
             arModelObj.position.set(-center.x * fitScale, -center.y * fitScale + 0.1, -center.z * fitScale);
 
-            arAnchorGroup.add(arModelObj);
-            setArStatus('📷 Arahkan kamera ke Kartu AR (Monitor / Print)', '#fbbf24');
+            const activeIndex = PRESET_MAP.findIndex(p => p.id === activeEcoId);
+            const targetIndex = activeIndex >= 0 ? activeIndex : 0;
+
+            targetAnchors[targetIndex].group.add(arModelObj);
+
+            setArStatus(`📷 Sasar Kartu AR: {{MODEL_TITLE}}`, '#fbbf24');
           }, undefined, (err) => {
             console.warn('GLB load error:', err);
           });
         }
 
-        anchor.onTargetFound = () => {
-          setArStatus('✅ Terkunci pada Kartu AR!', '#10b981');
-        };
+        PRESET_MAP.forEach((preset, index) => {
+          const anchor = mindarThree.addAnchor(index);
+          targetAnchors[index] = anchor;
 
-        anchor.onTargetLost = () => {
-          setArStatus('📷 Arahkan kamera ke Kartu AR (Monitor / Print)', '#fbbf24');
-        };
+          const ringGeo = new THREE.TorusGeometry(0.5, 0.04, 16, 64);
+          const isCorrect = (preset.id === activeEcoId);
+          const ringColor = isCorrect ? 0x10b981 : 0xef4444;
+          const ringMat = new THREE.MeshBasicMaterial({ color: ringColor, wireframe: false });
+          const targetRing = new THREE.Mesh(ringGeo, ringMat);
+          targetRing.rotation.x = Math.PI / 2;
+          anchor.group.add(targetRing);
+
+          anchor.onTargetFound = () => {
+            if (preset.id === activeEcoId) {
+              hideWrongCardAlert();
+              setArStatus(`✅ KARTU SESUAI: Terkunci pada {{MODEL_TITLE}}!`, '#10b981');
+            } else {
+              showWrongCardAlert(preset);
+            }
+          };
+
+          anchor.onTargetLost = () => {
+            hideWrongCardAlert();
+            setArStatus(`📷 Sasar Kartu AR: {{MODEL_TITLE}}`, '#fbbf24');
+          };
+        });
 
         await mindarThree.start();
         arStarted = true;
@@ -378,9 +486,6 @@
         renderer.setAnimationLoop(() => {
           if (arModelObj) {
             arModelObj.rotation.y += 0.008;
-          }
-          if (targetRing) {
-            targetRing.rotation.z += 0.01;
           }
           const forced = scene.getObjectByName('forcedCameraModel');
           if (forced) {
@@ -412,8 +517,9 @@
       }
       arModelObj = null;
       arStarted = false;
-      arAnchorGroup = null;
+      targetAnchors = [];
       hideArError();
+      hideWrongCardAlert();
 
       const container = document.getElementById('mindar-container');
       container.classList.remove('active');
