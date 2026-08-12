@@ -46,6 +46,7 @@
       z-index: 100;
       background: #000;
       overflow: hidden;
+      touch-action: none;
     }
     #ar-container.active { display: block; }
 
@@ -62,7 +63,11 @@
     #top-nav {
       position: fixed; top: 10px; left: 10px; right: 10px;
       z-index: 200; pointer-events: auto;
+      transition: opacity 0.4s ease;
     }
+    #top-nav.dimmed { opacity: 0.35; }
+    #top-nav.dimmed:hover { opacity: 1.0; }
+
     .nav-card {
       background: rgba(255,255,255,0.96);
       backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
@@ -112,9 +117,11 @@
       z-index: 200; pointer-events: none;
       white-space: nowrap; max-width: 90vw;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      transition: opacity 0.3s ease;
     }
     #ar-dot { width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; flex-shrink: 0; }
 
+    /* Scan Frame with Smooth Fade */
     #scan-frame {
       display: none;
       position: fixed; top: 50%; left: 50%;
@@ -122,7 +129,9 @@
       width: min(220px, 60vw); height: min(220px, 60vw);
       border: 2.5px dashed rgba(251,191,36,0.85);
       border-radius: 24px; z-index: 150; pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
+    #scan-frame.hidden { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
     #scan-frame::before, #scan-frame::after {
       content: ''; position: absolute;
       width: 24px; height: 24px;
@@ -137,8 +146,10 @@
       left: 50%; transform: translateX(-50%);
       z-index: 200; pointer-events: auto;
       flex-direction: column; align-items: center; gap: 8px;
+      transition: opacity 0.4s ease;
     }
     #ar-hint.active { display: flex; }
+    #ar-hint.hidden { opacity: 0; pointer-events: none; }
     .hint-pill {
       background: rgba(15,23,42,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.2); color: #fff;
@@ -296,7 +307,7 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (MindAR + jsQR Fallback + Ambient Lighting) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Clean Mode & Touch 360° Inspection) ── -->
   <script>
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
     const GLB_URL = '{{ECOSYSTEM_GLB_URL}}';
@@ -312,13 +323,45 @@
     let arActive = false;
     let wrongEcoId = null;
     let qrScanInterval = null;
+    let isLockedCleanMode = false;
 
-    // ── Status helpers ──
+    // Touch gesture variables for 360° model inspection
+    let isTouchDragging = false;
+    let previousTouchX = 0;
+    let previousTouchY = 0;
+    let customRotX = 0;
+    let customRotY = 0;
+
+    // ── Status & Clean Screen Mode helpers ──
     function setStatus(text, color = '#10b981') {
       const dot = document.getElementById('ar-dot');
       const txt = document.getElementById('ar-text');
       if (dot) dot.style.background = color;
       if (txt) txt.textContent = text;
+    }
+
+    function triggerCleanLockedView(presetName) {
+      if (isLockedCleanMode) return;
+      isLockedCleanMode = true;
+
+      // 1. Hide scan frame bounding box
+      document.getElementById('scan-frame').classList.add('hidden');
+      document.getElementById('ar-hint').classList.add('hidden');
+      document.getElementById('top-nav').classList.add('dimmed');
+
+      // 2. Set Status to Clean Guidance
+      setStatus(`✨ ${presetName.toUpperCase()} TERKUNCI — Geser Layar untuk Memutar 360°`, '#10b981');
+    }
+
+    function resetCleanScanView() {
+      if (!isLockedCleanMode) return;
+      isLockedCleanMode = false;
+
+      document.getElementById('scan-frame').classList.remove('hidden');
+      document.getElementById('ar-hint').classList.remove('hidden');
+      document.getElementById('top-nav').classList.remove('dimmed');
+
+      setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
     }
 
     function showWrong(preset) {
@@ -343,7 +386,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
-        modelEl.setAttribute('scale', '1 1 1');
+        modelEl.setAttribute('scale', '1.1 1.1 1.1');
       }
     }
 
@@ -369,33 +412,69 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model (visible when QR decoded by jsQR) -->
-            <a-entity id="camera-space-model" position="0 -0.15 -0.85" scale="0 0 0" visible="false"
-              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
-              <a-gltf-model src="${GLB_URL}" scale="0.25 0.25 0.25"></a-gltf-model>
-              <a-torus radius="0.45" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
+            <a-entity id="camera-space-model" position="0 -0.1 -0.85" scale="0 0 0" visible="false">
+              <a-gltf-model id="cam-glb" src="${GLB_URL}" scale="0.28 0.28 0.28"
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+              </a-gltf-model>
+              <a-torus radius="0.48" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
-          <!-- HIGH-INTENSITY AMBIENT & DIRECTIONAL LIGHTS (CRITICAL FOR GLTF PBR MATERIALS!) -->
+          <!-- HIGH-INTENSITY LIGHTING FOR VIVID GLTF PBR MATERIALS -->
           <a-light type="ambient" intensity="3.5"></a-light>
           <a-light type="directional" position="2 5 3" intensity="3.0"></a-light>
           <a-light type="directional" position="-2 -3 2" intensity="1.5"></a-light>
 
           <!-- MindAR Anchor 0 (locks 3D model on physical card when marker tracked) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <!-- 3D Ecosystem GLB Model -->
-            <a-gltf-model src="${GLB_URL}"
-              position="0 0.05 0"
-              rotation="0 0 0"
-              scale="0.25 0.25 0.25"
-              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
+            <a-gltf-model id="anchor-glb" src="${GLB_URL}"
+              position="0 0.05 0" rotation="0 0 0" scale="0.28 0.28 0.28"
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
             </a-gltf-model>
-            <!-- Glowing Emerald Green Ring -->
             <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
               animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
             </a-torus>
           </a-entity>
         </a-scene>`;
+    }
+
+    // ── Touch Gesture Setup for 360° Interactive Model Inspection ──
+    function setupTouchGestureRotation() {
+      const container = document.getElementById('ar-container');
+      if (!container) return;
+
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isTouchDragging = true;
+          previousTouchX = e.touches[0].clientX;
+          previousTouchY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchmove', (e) => {
+        if (!isTouchDragging || e.touches.length !== 1) return;
+
+        const deltaX = e.touches[0].clientX - previousTouchX;
+        const deltaY = e.touches[0].clientY - previousTouchY;
+
+        customRotY += deltaX * 0.6;
+        customRotX += deltaY * 0.4;
+
+        // Apply rotation to both camera space & anchor GLB models
+        const camGlb = document.getElementById('cam-glb');
+        const anchorGlb = document.getElementById('anchor-glb');
+
+        const rotStr = `${customRotX} ${customRotY} 0`;
+        if (camGlb) camGlb.setAttribute('rotation', rotStr);
+        if (anchorGlb) anchorGlb.setAttribute('rotation', rotStr);
+
+        previousTouchX = e.touches[0].clientX;
+        previousTouchY = e.touches[0].clientY;
+      }, { passive: true });
+
+      container.addEventListener('touchend', () => {
+        isTouchDragging = false;
+      }, { passive: true });
     }
 
     // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
@@ -432,10 +511,11 @@
             if (matchedPreset) {
               if (matchedPreset.id === cleanId) {
                 hideWrong();
-                revealCameraSpaceModel(); // Reveal 3D model immediately!
-                setStatus(`✅ QR Code ${matchedPreset.name} Terkunci (100% Decoded) — Model 3D Tampil!`, '#10b981');
+                revealCameraSpaceModel();
+                triggerCleanLockedView(matchedPreset.name); // Clean UI mode!
               } else {
                 hideCameraSpaceModel();
+                resetCleanScanView();
                 showWrong(matchedPreset);
               }
             }
@@ -480,18 +560,21 @@
         document.getElementById('ar-hint').classList.add('active');
         setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
 
+        // Setup touch drag for 360 degree model inspection
+        setupTouchGestureRotation();
+
         // Engine 1: MindAR Image Target Anchor Listener
         const anchorEl = sceneEl.querySelector('#anchor-match');
         if (anchorEl) {
           anchorEl.addEventListener('targetFound', () => {
             hideWrong();
             revealCameraSpaceModel();
-            setStatus(`✅ QR Code ${cleanId.toUpperCase()} Terkunci (MindAR Anchor) — Model 3D Tampil!`, '#10b981');
+            triggerCleanLockedView(cleanId); // Clean UI mode!
           });
 
           anchorEl.addEventListener('targetLost', () => {
             hideWrong();
-            setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
+            resetCleanScanView();
           });
         }
 
@@ -499,7 +582,6 @@
         startQrCodeFallbackScanner();
       }
 
-      // Check if A-Frame scene is already loaded or wait for loaded event
       if (sceneEl.hasLoaded) {
         setupAnchorListeners();
       } else {
@@ -512,6 +594,7 @@
       arActive = false;
       stopQrCodeFallbackScanner();
       hideWrong();
+      resetCleanScanView();
 
       const container = document.getElementById('ar-container');
       const sceneEl = container.querySelector('a-scene');
