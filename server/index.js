@@ -90,11 +90,17 @@ app.get('/assets/markers/:filename', (req, res) => {
 // Endpoint to save compiled .mind target binary files
 app.post('/api/save-marker-mind', express.raw({ type: 'application/octet-stream', limit: '50mb' }), (req, res) => {
   if (!req.body || !req.body.length) return res.status(400).json({ error: 'Empty buffer' });
-  const targetFiles = ['preset-darat.mind', 'preset-hutan.mind', 'preset-laut.mind', 'preset-sawah.mind', 'default-card.mind'];
-  targetFiles.forEach(name => {
-    fs.writeFileSync(path.join(MARKERS_DIR, name), req.body);
-  });
-  console.log(`✅ Compiled .mind target saved to all marker files (${req.body.length} bytes)!`);
+  const target = req.query.target;
+  if (target && target.endsWith('.mind')) {
+    fs.writeFileSync(path.join(MARKERS_DIR, target), req.body);
+    console.log(`✅ Compiled .mind target saved to ${target} (${req.body.length} bytes)!`);
+  } else {
+    const targetFiles = ['preset-darat.mind', 'preset-hutan.mind', 'preset-laut.mind', 'preset-sawah.mind', 'default-card.mind'];
+    targetFiles.forEach(name => {
+      fs.writeFileSync(path.join(MARKERS_DIR, name), req.body);
+    });
+    console.log(`✅ Compiled .mind target saved to all marker files (${req.body.length} bytes)!`);
+  }
   res.json({ success: true, bytes: req.body.length });
 });
 

@@ -2,15 +2,15 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>AlamVerse — Automatic MindAR Marker Compiler</title>
+  <title>AlamVerse — Full Finished Card Target Compiler</title>
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image.prod.js"></script>
 </head>
 <body style="font-family: system-ui, sans-serif; padding: 40px; background: #0f172a; color: #f8fafc;">
-  <div style="max-width: 600px; margin: auto; background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-    <h2 style="margin-top:0; color:#fbbf24;">AlamVerse Auto-Compiler Target</h2>
-    <p id="status" style="font-weight: bold; color: #94a3b8;">Memuat gambar kartu print...</p>
+  <div style="max-width: 650px; margin: auto; background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <h2 style="margin-top:0; color:#fbbf24;">AlamVerse Full Finished Card Auto-Compiler</h2>
+    <p id="status" style="font-weight: bold; color: #94a3b8;">Memuat gambar latar belakang...</p>
 
-    <img id="target-img" src="/assets/kartu-background-jungle-A6-1500x2235.jpg" style="max-width:100%; border-radius: 12px; margin: 16px 0; border: 2px solid #334155;" />
+    <div id="preview-container" style="display:flex; gap:10px; margin: 16px 0; overflow-x: auto; padding-bottom: 10px;"></div>
 
     <div id="progress-bar-bg" style="width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; margin-top: 16px;">
       <div id="progress-bar" style="width: 0%; height: 100%; background: #632ce5; transition: width 0.2s;"></div>
@@ -18,24 +18,120 @@
   </div>
 
   <script>
-    async function compile() {
+    function loadImage(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = url;
+      });
+    }
+
+    function createFullCardCanvas(presetName, bgImg, qrImg) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 1192;
+      const ctx = canvas.getContext('2d');
+
+      // Outer green border
+      ctx.fillStyle = '#1b4332';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(0, 0, 800, 1192, 40); else ctx.rect(0, 0, 800, 1192);
+      ctx.fill();
+
+      // Background Jungle Image
+      if (bgImg) {
+        ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(16, 16, 768, 1160, 32); else ctx.rect(16, 16, 768, 1160);
+        ctx.clip();
+        ctx.drawImage(bgImg, 16, 16, 768, 1160);
+        ctx.restore();
+      }
+
+      // Top "SCAN HERE" text
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '900 64px Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 4;
+      ctx.fillText('SCAN HERE', 400, 130);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+
+      // Subtitle pill badge
+      ctx.fillStyle = 'rgba(30, 41, 59, 0.88)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(240, 155, 320, 44, 22); else ctx.rect(240, 155, 320, 44);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '800 20px Arial, sans-serif';
+      ctx.fillText(`EKOSISTEM ${presetName.toUpperCase()}`, 400, 184);
+
+      // Bottom Dark Card Overlay Box
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(50, 790, 700, 340, 36); else ctx.rect(50, 790, 700, 340);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Yellow Tag Badge
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(80, 825, 220, 36, 12); else ctx.rect(80, 825, 220, 36);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '900 13px Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('KARTU AR MARKERLESS', 95, 848);
+
+      // Title Text
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 34px Arial, sans-serif';
+      ctx.fillText(`Ekosistem ${presetName}`, 80, 900);
+
+      // Date Text
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '700 18px Arial, sans-serif';
+      ctx.fillText('🗓️ 5 Agustus 2026', 80, 942);
+
+      // White QR Code Box Frame
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(470, 815, 250, 290, 24); else ctx.rect(470, 815, 250, 290);
+      ctx.fill();
+
+      if (qrImg) {
+        ctx.drawImage(qrImg, 485, 830, 220, 260);
+      } else {
+        // Draw sample QR pattern placeholder
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(505, 850, 180, 180);
+      }
+
+      return canvas;
+    }
+
+    async function compileAllPresets() {
       const status = document.getElementById('status');
       const progressBar = document.getElementById('progress-bar');
-      const img = document.getElementById('target-img');
+      const preview = document.getElementById('preview-container');
 
-      await new Promise(r => { if (img.complete) r(); else img.onload = r; });
+      status.innerText = 'Memuat aset latar belakang kartu...';
+      const bgImg = await loadImage('/assets/kartu-background-jungle-A6-1500x2235.jpg');
+      const qrImg = await loadImage('/assets/markers/custom-marker.png');
 
-      status.innerText = 'Mengoptimalkan ukuran gambar...';
-
-      const canvas = document.createElement('canvas');
-      const scale = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight));
-      canvas.width = Math.round(img.naturalWidth * scale);
-      canvas.height = Math.round(img.naturalHeight * scale);
-
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      status.innerText = 'Ekstraksi poin fitur MindAR...';
+      const presets = [
+        { id: 'preset-laut', name: 'Laut' },
+        { id: 'preset-sawah', name: 'Sawah' },
+        { id: 'preset-darat', name: 'Darat' },
+        { id: 'preset-hutan', name: 'Hutan' },
+        { id: 'default-card', name: 'AR Explorer' }
+      ];
 
       const MINDARCompiler = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.Compiler) || window.Compiler;
 
@@ -44,31 +140,42 @@
         return;
       }
 
-      const compiler = new MINDARCompiler();
-      await compiler.compileImageTargets([canvas], (p) => {
-        status.innerText = `Proses ekstraksi fitur target: ${p.toFixed(1)}%`;
-        progressBar.style.width = `${p}%`;
-      });
+      for (let i = 0; i < presets.length; i++) {
+        const item = presets[i];
+        status.innerText = `[${i+1}/${presets.length}] Mengompresi & Ekstraksi Fitur Kartu Cetak ${item.name}...`;
 
-      status.innerText = 'Menyimpan file binary .mind ke server...';
-      const buffer = compiler.exportData();
+        const canvas = createFullCardCanvas(item.name, bgImg, qrImg);
 
-      const res = await fetch('/api/save-marker-mind', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/octet-stream' },
-        body: buffer
-      });
+        // Append preview thumbnail
+        const thumb = document.createElement('img');
+        thumb.src = canvas.toDataURL('image/jpeg');
+        thumb.style.width = '100px';
+        thumb.style.borderRadius = '8px';
+        thumb.style.border = '2px solid #632ce5';
+        preview.appendChild(thumb);
 
-      const json = await res.json();
-      if (json.success) {
-        status.innerHTML = `<b style="color:#10b981; font-size: 16px;">✅ BERHASIL! Marker .mind telah diekstraksi dan disimpan (${json.bytes} bytes). SELURUH PRESET AR TELAH DIPERBARUI!</b>`;
-        progressBar.style.background = '#10b981';
-      } else {
-        status.innerHTML = '<b style="color:#ef4444;">Gagal menyimpan marker ke server</b>';
+        const compiler = new MINDARCompiler();
+        await compiler.compileImageTargets([canvas], (p) => {
+          const totalProgress = ((i + p/100) / presets.length) * 100;
+          progressBar.style.width = `${totalProgress}%`;
+        });
+
+        const buffer = compiler.exportData();
+
+        // Send POST to server endpoint with filename parameter
+        await fetch(`/api/save-marker-mind?target=${item.id}.mind`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/octet-stream' },
+          body: buffer
+        });
       }
+
+      status.innerHTML = `<b style="color:#10b981; font-size: 16px;">✅ BERHASIL! Seluruh 5 Kartu Cetak Utuh (Full Card) telah diekstraksi dan disimpan ke server!</b>`;
+      progressBar.style.background = '#10b981';
+      progressBar.style.width = '100%';
     }
 
-    window.addEventListener('DOMContentLoaded', compile);
+    window.addEventListener('DOMContentLoaded', compileAllPresets);
   </script>
 </body>
 </html>
