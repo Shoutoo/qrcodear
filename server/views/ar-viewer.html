@@ -145,10 +145,10 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: min(240px, 68vw);
-      height: min(320px, 46vh);
+      width: min(220px, 62vw);
+      height: min(220px, 62vw);
       border: 3px dashed rgba(251, 191, 36, 0.85);
-      border-radius: 20px;
+      border-radius: 24px;
       z-index: 40;
       pointer-events: none;
       box-sizing: border-box;
@@ -215,7 +215,7 @@
     <div id="ar-status-bar">
       <div id="ar-status-pill" style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
         <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
-        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📷 Sasar Kartu AR {{MODEL_TITLE}}...</span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📷 Sasar QR Code {{MODEL_TITLE}}...</span>
       </div>
     </div>
 
@@ -223,10 +223,10 @@
     <div id="wrong-card-alert">
       <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-weight:900;font-size:13px;margin-bottom:3px;">
         <span class="material-symbols-outlined" style="font-size:20px;color:#fef08a;">warning</span>
-        <span>KARTU TIDAK SESUAI!</span>
+        <span>QR CODE TIDAK SESUAI!</span>
       </div>
       <p id="wrong-card-text" style="font-size:11px;font-weight:700;line-height:1.3;margin-bottom:8px;opacity:0.95;">
-        Anda memindai Kartu Ekosistem yang berbeda.
+        Anda memindai QR Code Ekosistem yang berbeda.
       </p>
       <button id="btn-switch-ecosystem" onclick="navigateToScannedEcosystem()" style="background:#ffffff;color:#dc2626;font-size:11px;font-weight:900;padding:6px 14px;border-radius:10px;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);cursor:pointer;">
         🔀 Pindah ke Ekosistem Terdeteksi
@@ -237,7 +237,7 @@
 
     <div id="ar-scan-hint">
       <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
-        <span>📷 Sasar Kartu AR {{MODEL_TITLE}}</span>
+        <span>📷 Sasar QR Code {{MODEL_TITLE}}</span>
       </div>
 
       <!-- Instant Force-Show Button -->
@@ -332,14 +332,14 @@
       const btn = document.getElementById('btn-switch-ecosystem');
 
       if (alertTxt) {
-        alertTxt.innerText = `Anda sedang di halaman {{MODEL_TITLE}}, tetapi memindai ${detectedPreset.name}.`;
+        alertTxt.innerText = `Anda sedang di halaman {{MODEL_TITLE}}, tetapi memindai QR Code ${detectedPreset.name}.`;
       }
       if (btn) {
         btn.innerText = `🔀 Pindah ke ${detectedPreset.name}`;
       }
       if (alertBox) alertBox.classList.add('show');
 
-      setArStatus(`⚠️ KARTU TIDAK SESUAI: ${detectedPreset.name}`, '#ef4444', true);
+      setArStatus(`⚠️ QR CODE TIDAK SESUAI: ${detectedPreset.name}`, '#ef4444', true);
     }
 
     function hideWrongCardAlert() {
@@ -447,7 +447,7 @@
 
             targetAnchors[targetIndex].group.add(arModelObj);
 
-            setArStatus(`📷 Sasar Kartu AR: {{MODEL_TITLE}}`, '#fbbf24');
+            setArStatus(`📷 Sasar QR Code: {{MODEL_TITLE}}`, '#fbbf24');
           }, undefined, (err) => {
             console.warn('GLB load error:', err);
           });
@@ -468,7 +468,7 @@
           anchor.onTargetFound = () => {
             if (preset.id === activeEcoId) {
               hideWrongCardAlert();
-              setArStatus(`✅ KARTU SESUAI: Terkunci pada {{MODEL_TITLE}}!`, '#10b981');
+              setArStatus(`✅ QR CODE TERKUNCI: {{MODEL_TITLE}}!`, '#10b981');
             } else {
               showWrongCardAlert(preset);
             }
@@ -476,7 +476,7 @@
 
           anchor.onTargetLost = () => {
             hideWrongCardAlert();
-            setArStatus(`📷 Sasar Kartu AR: {{MODEL_TITLE}}`, '#fbbf24');
+            setArStatus(`📷 Sasar QR Code: {{MODEL_TITLE}}`, '#fbbf24');
           };
         });
 
