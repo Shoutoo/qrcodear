@@ -307,18 +307,50 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With 3D AR Billboard Badges & Always-Face-Camera) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Auto-Centering + 3D AR Billboard Badges) ── -->
   <script>
-    // ── Register A-Frame Billboard Component (Always Faces Camera Head-On, Never Flips) ──
-    if (window.AFRAME && !AFRAME.components['billboard']) {
-      AFRAME.registerComponent('billboard', {
-        tick: function () {
-          const camera = this.el.sceneEl.camera;
-          if (camera) {
-            this.el.object3D.lookAt(camera.getWorldPosition(new THREE.Vector3()));
+    // ── Register A-Frame Components ────────────────────────
+    if (window.AFRAME) {
+      // 1. Billboard Component (Always face camera head-on)
+      if (!AFRAME.components['billboard']) {
+        AFRAME.registerComponent('billboard', {
+          tick: function () {
+            const camera = this.el.sceneEl.camera;
+            if (camera) {
+              this.el.object3D.lookAt(camera.getWorldPosition(new THREE.Vector3()));
+            }
           }
-        }
-      });
+        });
+      }
+
+      // 2. Center-Model Component (CRITICAL FIX: auto-centers GLB meshes to (0,0,0) so model is NEVER off-screen!)
+      if (!AFRAME.components['center-model']) {
+        AFRAME.registerComponent('center-model', {
+          init: function () {
+            this.el.addEventListener('model-loaded', () => {
+              const obj = this.el.getObject3D('mesh');
+              if (!obj) return;
+
+              // Compute GLB mesh bounding box
+              const box = new THREE.Box3().setFromObject(obj);
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z) || 1;
+
+              // Auto-center mesh at origin (0, 0, 0)
+              obj.position.x -= center.x;
+              obj.position.y -= center.y;
+              obj.position.z -= center.z;
+
+              // Normalize scale to fit nicely in 3D AR viewport
+              const desiredScale = 0.55 / maxDim;
+              this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
+
+              console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
+            });
+          }
+        });
+      }
     }
 
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
@@ -333,12 +365,12 @@
     ];
 
     const SLOT_BADGES = [
-      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.42 0.32 0' },
-      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.21 0.32 0.36' },
-      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.21 0.32 0.36' },
-      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.42 0.32 0' },
-      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.21 0.32 -0.36' },
-      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.21 0.32 -0.36' },
+      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.45 0.24 0' },
+      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.22 0.24 0.39' },
+      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.22 0.24 0.39' },
+      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.45 0.24 0' },
+      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.22 0.24 -0.39' },
+      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.22 0.24 -0.39' },
     ];
 
     let arActive = false;
@@ -460,7 +492,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
-        modelEl.setAttribute('scale', '1.1 1.1 1.1');
+        modelEl.setAttribute('scale', '1 1 1');
       }
     }
 
@@ -472,7 +504,7 @@
       }
     }
 
-    // ── Build HTML for A-Frame Scene (With 3D AR Billboard Badges) ──
+    // ── Build HTML for A-Frame Scene (With Auto-Centering + 3D AR Billboard Badges) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
@@ -482,7 +514,7 @@
         const badgeDataUrl = createSlotBadgeDataUrl(slot.label, slot.role);
         badgeEntities += `
           <a-entity position="${slot.pos}" billboard>
-            <a-plane src="${badgeDataUrl}" width="0.34" height="0.085" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
+            <a-plane src="${badgeDataUrl}" width="0.36" height="0.09" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
           </a-entity>`;
       });
 
@@ -496,13 +528,13 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.1 -0.85" scale="0 0 0" visible="false">
+            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" scale="0.28 0.28 0.28"></a-gltf-model>
+                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
                 ${badgeEntities}
               </a-entity>
-              <a-torus radius="0.48" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
+              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
@@ -515,7 +547,7 @@
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
             <a-entity id="anchor-glb-group"
               animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" scale="0.28 0.28 0.28"></a-gltf-model>
+              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
               ${badgeEntities}
             </a-entity>
             <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
