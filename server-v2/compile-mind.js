@@ -41,16 +41,16 @@ async function compile() {
   const rawImg = jpeg.decode(jpegData, { useTArray: true });
   console.log(`Original image size: ${rawImg.width}x${rawImg.height}`);
 
-  // Downscale image to max width 600 for optimal feature point density
+  // Downscale image to target width 800 for optimal feature point density across screens and print
   let width = rawImg.width;
   let height = rawImg.height;
   let data = rawImg.data;
-  const targetW = 600;
+  const targetW = 800;
 
   if (width > targetW) {
     const scale = targetW / width;
     const targetH = Math.round(height * scale);
-    console.log(`Resizing image to ${targetW}x${targetH} for feature extraction...`);
+    console.log(`Resizing image to ${targetW}x${targetH} for multi-scale feature extraction...`);
     const resized = new Uint8Array(targetW * targetH * 4);
     for (let y = 0; y < targetH; y++) {
       for (let x = 0; x < targetW; x++) {
@@ -69,11 +69,17 @@ async function compile() {
     data = resized;
   }
 
-  // Create grayscale target image object
+  // Create contrast-enhanced grayscale target image object for monitor screen & print robustness
   const greyImageData = new Uint8Array(width * height);
   for (let i = 0; i < greyImageData.length; i++) {
     const offset = i * 4;
-    greyImageData[i] = Math.floor((data[offset] + data[offset + 1] + data[offset + 2]) / 3);
+    const r = data[offset];
+    const g = data[offset + 1];
+    const b = data[offset + 2];
+    let gray = Math.floor(0.299 * r + 0.587 * g + 0.114 * b);
+    // Apply contrast stretch (min 20, max 235) to boost edge contrast on LED screens
+    gray = Math.max(0, Math.min(255, Math.floor((gray - 20) * (255 / 215))));
+    greyImageData[i] = gray;
   }
 
   const targetImageObj = { data: greyImageData, height, width };
@@ -106,7 +112,7 @@ async function compile() {
     console.log(`✅ Saved ${fileName} (${buffer.length} bytes)`);
   });
 
-  console.log('🎉 ALL PRESET MARKERS COMPILED & UPDATED SUCCESSFULLY!');
+  console.log('🎉 ALL PRESET MARKERS COMPILED FOR SCREEN & PRINT!');
 }
 
 compile().catch(err => {

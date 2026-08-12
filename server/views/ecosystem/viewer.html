@@ -216,9 +216,7 @@
 </head>
 <body>
 
-  <!-- ════════════════════════════════════════════════════════
-       LAYER 1: 3D VIEWER via Google model-viewer
-  ════════════════════════════════════════════════════════ -->
+  <!-- LAYER 1: 3D VIEWER via Google model-viewer -->
   <model-viewer
     id="eco-viewer"
     src="{{ECOSYSTEM_GLB_URL}}"
@@ -269,9 +267,7 @@
     </button>
   </model-viewer>
 
-  <!-- ════════════════════════════════════════════════════════
-       LAYER 2: MINDAR CAMERA TRACKING CONTAINER
-  ════════════════════════════════════════════════════════ -->
+  <!-- LAYER 2: MINDAR CAMERA TRACKING CONTAINER -->
   <div id="mindar-container">
     <div id="ar-status-bar">
       <div style="background:rgba(255,255,255,0.95);border:1.5px solid #cbd5e1;backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#0d1e25;box-shadow:0 6px 20px rgba(0,0,0,0.25);">
@@ -284,22 +280,20 @@
 
     <div id="ar-scan-hint">
       <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-        <span>📷 Arahkan ke Kartu AR untuk Mengunci Posisi</span>
+        <span>📷 Arahkan ke Kartu AR (Monitor Layar / Print)</span>
       </div>
     </div>
 
     <div id="ar-error-overlay">
       <span class="material-symbols-outlined" style="font-size:42px;color:#fbbf24;">videocam_off</span>
       <p id="ar-error-text" style="color:#fff;font-size:13px;font-weight:700;max-width:280px;line-height:1.4;"></p>
-      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:99px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-top:6px;">
+      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-top:6px;">
         ← Kembali ke 3D View
       </button>
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════
-       LAYER 3: TOP NAVIGATION HUD — Mobile Clean Compact Header
-  ════════════════════════════════════════════════════════ -->
+  <!-- LAYER 3: TOP NAVIGATION HUD — Mobile Clean Compact Header -->
   <header style="position:fixed;top:10px;left:10px;right:10px;z-index:30;pointer-events:auto;">
     <div class="hud-card" style="border-radius:16px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:850px;margin:auto;">
       
@@ -342,9 +336,7 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════════════
-       LAYER 4: BOTTOM ROTATION CONTROLS (3D View mode only)
-  ════════════════════════════════════════════════════════ -->
+  <!-- LAYER 4: BOTTOM ROTATION CONTROLS (3D View mode only) -->
   <div id="bottom-controls-hud" style="position:fixed;bottom:max(12px, env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:30;pointer-events:auto;width:100%;max-width:400px;padding:0 10px;">
     <div class="hud-card" style="padding:8px 12px;border-radius:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
@@ -425,7 +417,7 @@
     }
 
     // ══════════════════════════════════════════════════════
-    // MODE AR CONTROLLER (MindAR + Immediate Camera AR Fallback)
+    // MODE AR CONTROLLER (Dual Monitor & Print Image Tracking)
     // ══════════════════════════════════════════════════════
     let mindarThree = null;
     let arModelObj = null;
@@ -473,6 +465,11 @@
         mindarThree = new MINDARThreeClass({
           container: container,
           imageTargetSrc: mindPath,
+          maxTrack: 1,
+          warmupTolerance: 3,
+          missTolerance: 15,
+          filterMinCF: 0.0001,
+          filterBeta: 0.001,
           uiLoading: 'no',
           uiScanning: 'no',
           uiError: 'no'
@@ -511,7 +508,7 @@
             arModelObj.scale.set(0.32, 0.32, 0.32);
             arAnchorGroup.add(arModelObj);
           }
-          setArStatus('✅ Terkunci pada Kartu Print AR!', '#10b981');
+          setArStatus('✅ Terkunci pada Kartu Print/Layar AR!', '#10b981');
         };
 
         anchor.onTargetLost = () => {
