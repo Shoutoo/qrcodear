@@ -461,11 +461,127 @@
           </button>
         </div>
 
-        <!-- Dashboard Utama Materi: Submenu Cards Grid -->
-        <div id="materi-dashboard-view" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="materi-cards-grid">
-            <!-- Loaded Dynamically -->
+        <!-- Dashboard Utama Materi: Submenu Cards Grid & Video Section -->
+        <div id="materi-dashboard-view" class="space-y-8">
+          
+          <!-- YOUTUBE VIDEO SECTION: MATERI RANTAI MAKANAN UNTUK ANAK SD -->
+          <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white shadow-2xl space-y-6 relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-64 h-64 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-red-600/90 text-white flex items-center justify-center shadow-lg font-black">
+                  <span class="material-symbols-outlined text-3xl">play_circle</span>
+                </div>
+                <div>
+                  <h4 class="text-xl font-extrabold text-white flex items-center gap-2">
+                    Video Pembelajaran Rantai Makanan SD 🎬
+                  </h4>
+                  <p class="text-xs text-white/80 font-medium">Tonton video edukasi animasi rantai makanan dan ekosistem ramah anak SD dari YouTube</p>
+                </div>
+              </div>
+              <span class="px-3.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 text-xs font-bold flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Kurikulum Merdeka SD
+              </span>
+            </div>
+
+            <!-- Active Featured YouTube Player Container -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+              
+              <!-- Left 2 Cols: Main Player -->
+              <div class="lg:col-span-2 space-y-3">
+                <div class="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 bg-black">
+                  <iframe 
+                    id="yt-main-player"
+                    class="w-full h-full border-none"
+                    src="https://www.youtube.com/embed/OfMw4uIG0hk?rel=0" 
+                    title="Video Rantai Makanan Ekosistem SD" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                  </iframe>
+                </div>
+                <div class="flex flex-wrap items-center justify-between text-xs text-white/70 font-semibold px-1 gap-2">
+                  <span id="yt-player-title" class="text-amber-300 font-extrabold text-sm">🦁 Rantai Makanan & Keseimbangan Ekosistem SD</span>
+                  <div class="flex items-center gap-2">
+                    <a id="yt-external-link" href="https://www.youtube.com/watch?v=OfMw4uIG0hk" target="_blank" class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold flex items-center gap-1.5 shadow transition-all hover:scale-105">
+                      <span class="material-symbols-outlined text-sm">play_circle</span> Buka Video di YouTube
+                    </a>
+                    <span class="px-2 py-1 rounded-lg bg-white/10 text-white/80 text-[11px] font-bold">1080p HD</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right 1 Col: Video Playlist Items for SD -->
+              <div class="space-y-3">
+                <h5 class="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-base">subscriptions</span> Pilih Video Pembelajaran SD:
+                </h5>
+                <div class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                  
+                  <!-- Video 1: Rantai & Jaring Makanan SD (Confirmed Working) -->
+                  <div onclick="changeYtVideo('OfMw4uIG0hk', '🦁 Rantai Makanan & Keseimbangan Ekosistem SD', this)" 
+                       class="yt-playlist-item p-3 rounded-2xl bg-white/20 border-2 border-amber-400 cursor-pointer transition-all flex items-center gap-3 group shadow-md">
+                    <div class="w-14 h-12 rounded-xl bg-amber-600 flex items-center justify-center flex-shrink-0 font-bold text-white shadow">
+                      <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">pets</span>
+                    </div>
+                    <div class="space-y-0.5">
+                      <p class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-2">Rantai Makanan & Keseimbangan Alam</p>
+                      <span class="text-[10px] text-amber-300 font-bold">Materi SD • 4 Menit</span>
+                    </div>
+                  </div>
+
+                  <!-- Video 2: Video Pembelajaran Rantai Makanan SD (Ibv6duDhWeU) -->
+                  <div onclick="changeYtVideo('Ibv6duDhWeU', '🌱 Video Pembelajaran Rantai Makanan SD', this)" 
+                       class="yt-playlist-item p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 cursor-pointer transition-all flex items-center gap-3 group">
+                    <div class="w-14 h-12 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0 font-bold text-white shadow">
+                      <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">eco</span>
+                    </div>
+                    <div class="space-y-0.5">
+                      <p class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors line-clamp-2">Video Pembelajaran Rantai Makanan SD</p>
+                      <span class="text-[10px] text-emerald-300 font-bold">Materi SD • 5 Menit</span>
+                    </div>
+                  </div>
+
+                  <!-- Video 3: Konsep Rantai & Jaring Makanan SD (pKpWvj3QVe0) -->
+                  <div onclick="changeYtVideo('pKpWvj3QVe0', '🎥 Konsep Rantai & Jaring Makanan SD', this)" 
+                       class="yt-playlist-item p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 cursor-pointer transition-all flex items-center gap-3 group">
+                    <div class="w-14 h-12 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0 font-bold text-white shadow">
+                      <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">play_arrow</span>
+                    </div>
+                    <div class="space-y-0.5">
+                      <p class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-2">Konsep Rantai & Jaring Makanan SD</p>
+                      <span class="text-[10px] text-amber-300 font-bold">IPAS SD Kelas 5 • Animasi</span>
+                    </div>
+                  </div>
+
+                  <!-- Video 4: Lagu Rantai Makanan Interaktif (2XVqVQqkT-k) -->
+                  <div onclick="changeYtVideo('2XVqVQqkT-k', '🎵 Lagu Edukasi Rantai Makanan SD', this)" 
+                       class="yt-playlist-item p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 cursor-pointer transition-all flex items-center gap-3 group">
+                    <div class="w-14 h-12 rounded-xl bg-purple-600 flex items-center justify-center flex-shrink-0 font-bold text-white shadow">
+                      <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">music_note</span>
+                    </div>
+                    <div class="space-y-0.5">
+                      <p class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2">Lagu Edukasi Rantai Makanan SD</p>
+                      <span class="text-[10px] text-purple-300 font-bold">Lagu SD • Interaktif</span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
           </div>
+
+          <!-- Modul Teks Materi Cards Grid -->
+          <div class="space-y-3">
+            <h4 class="text-lg font-bold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary">article</span> Modul & Teks Bacaan Pembelajaran
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="materi-cards-grid">
+              <!-- Loaded Dynamically -->
+            </div>
+          </div>
+
         </div>
 
         <!-- Submenu Reader: Pembaca Detail Materi -->
@@ -475,6 +591,11 @@
               <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Semua Materi
             </button>
             <span id="materi-reader-badge" class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">Materi AR Ekosistem</span>
+          </div>
+
+          <!-- Embedded YouTube Video Container inside Reader -->
+          <div id="materi-reader-video-box" class="hidden rounded-2xl overflow-hidden border-2 border-primary/30 bg-black aspect-video max-w-3xl mx-auto shadow-xl">
+            <iframe id="materi-reader-iframe" class="w-full h-full border-none" src="" title="Video Pembelajaran Materi" allowfullscreen></iframe>
           </div>
 
           <!-- Reader Body Box -->
@@ -2601,6 +2722,27 @@
 
     // ─── MATERI PEMBELAJARAN AR HANDLERS ────────────────────────────────
     let currentReadingLessonId = null;
+
+    function changeYtVideo(videoId, title, el) {
+      const player = document.getElementById('yt-main-player');
+      const titleEl = document.getElementById('yt-player-title');
+      const extLink = document.getElementById('yt-external-link');
+      if (player) {
+        player.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+      }
+      if (titleEl) {
+        titleEl.innerText = title;
+      }
+      if (extLink) {
+        extLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+      }
+      if (el) {
+        document.querySelectorAll('.yt-playlist-item').forEach(item => {
+          item.className = "yt-playlist-item p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 cursor-pointer transition-all flex items-center gap-3 group";
+        });
+        el.className = "yt-playlist-item p-3 rounded-2xl bg-white/20 border-2 border-amber-400 cursor-pointer transition-all flex items-center gap-3 group shadow-md";
+      }
+    }
 
     async function renderMateriDashboard() {
       const isTeacher = currentUser && (currentUser.role === 'TEACHER' || currentUser.role === 'ADMIN');

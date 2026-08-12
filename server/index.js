@@ -151,11 +151,11 @@ const speciesMap = {
   'sawah/padi.glb': buildPadiToy,
 };
 
-async function ensureEcosystemGlbExists(id) {
+async function ensureEcosystemGlbExists(id, forceRebake = false) {
   const glbFilename = id.endsWith('.glb') ? id : `${id}.glb`;
   const glbPath = path.join(ASSETS_DIR, glbFilename);
 
-  if (fs.existsSync(glbPath)) {
+  if (!forceRebake && fs.existsSync(glbPath)) {
     const stat = fs.statSync(glbPath);
     if (stat.size > 10000) return glbFilename;
   }
@@ -183,12 +183,65 @@ async function ensureEcosystemGlbExists(id) {
   const numSlots = slots.length || 6;
   const radius = 2.2;
 
+  // ─── 3D Ecosystem Food Chain Connecting Energy Arcs & Arrowheads ───────────
+  // Add 3D Connecting Energy Arcs & Arrowheads between slots
+  for (let i = 0; i < numSlots; i++) {
+    const nextIdx = (i + 1) % numSlots;
+    const a1 = (i * 2 * Math.PI) / numSlots;
+    const a2 = (nextIdx * 2 * Math.PI) / numSlots;
+
+    // Start, Mid, End 3D Points along arc (lowered Y to not block animals)
+    const p1 = new THREE.Vector3(radius * Math.cos(a1), 0.15, radius * Math.sin(a1));
+    const p2 = new THREE.Vector3(radius * Math.cos(a2), 0.15, radius * Math.sin(a2));
+
+    const midAngle = a1 + (a2 < a1 ? a2 + 2 * Math.PI - a1 : a2 - a1) / 2;
+    const pMid = new THREE.Vector3(radius * Math.cos(midAngle), 0.35, radius * Math.sin(midAngle));
+
+    // Curved Tube Arc
+    const curve = new THREE.CatmullRomCurve3([p1, pMid, p2]);
+    const tubeGeo = new THREE.TubeGeometry(curve, 24, 0.025, 12, false);
+    const tubeMat = new THREE.MeshPhysicalMaterial({
+      color: 0x632ce5,
+      roughness: 0.2,
+      clearcoat: 0.9
+    });
+    const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+    sceneGroup.add(tubeMesh);
+
+    // Directional Arrowhead Cone pointing to p2
+    const arrowGeo = new THREE.ConeGeometry(0.08, 0.22, 14);
+    const arrowMat = new THREE.MeshPhysicalMaterial({
+      color: 0xfdd400,
+      roughness: 0.15,
+      clearcoat: 1.0
+    });
+    const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
+    arrowMesh.position.copy(pMid);
+
+    // Orient arrow along tangent
+    const tangent = curve.getTangentAt(0.55).normalize();
+    const defaultDir = new THREE.Vector3(0, 1, 0);
+    const quat = new THREE.Quaternion().setFromUnitVectors(defaultDir, tangent);
+    arrowMesh.quaternion.copy(quat);
+    sceneGroup.add(arrowMesh);
+
+    // Subtle Animal Pod Pedestal Base
+    const podGeo = new THREE.CylinderGeometry(0.55, 0.6, 0.04, 32);
+    const podMat = new THREE.MeshStandardMaterial({
+      color: 0xf1f5f9,
+      roughness: 0.5
+    });
+    const podMesh = new THREE.Mesh(podGeo, podMat);
+    podMesh.position.set(radius * Math.cos(a1), 0.02, radius * Math.sin(a1));
+    sceneGroup.add(podMesh);
+  }
+
   slots.forEach((slot, i) => {
     const angle = (i * 2 * Math.PI) / numSlots;
     const slotGroup = new THREE.Group();
     slotGroup.position.set(radius * Math.cos(angle), 0.5, radius * Math.sin(angle));
 
-    let relPath = (slot.modelSrc || '').replace(/^\/assets\/ecosystem-models\/library\//, '');
+    let relPath = (slot.modelSrc || '').replace(/^\/(assets|uploads)\/ecosystem-models\/library\//, '');
     let builderFn = speciesMap[relPath] || buildRumputToy;
 
     try {
@@ -316,15 +369,13 @@ const upload = multer({
 
 // ─── Static routes ─────────────────────────────────────────────────────────────
 app.use('/assets', express.static(ASSETS_DIR, {
-  maxAge: '7d',
-  immutable: true,
   setHeaders: (res, filePath) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', '*');
     if (filePath.endsWith('.glb')) {
       res.setHeader('Content-Type', 'model/gltf-binary');
-      res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     } else if (filePath.endsWith('.gltf')) {
       res.setHeader('Content-Type', 'model/gltf+json');
     } else if (filePath.endsWith('.usdz')) {
@@ -722,10 +773,11 @@ app.get('/studio/view/:id', (req, res) => {
 // ─── Ecosystem Preset Baked AR Viewer Route (FASE P5) ─────────────────────────
 app.get('/ecosystem/view/:id', async (req, res) => {
   const { id } = req.params;
+  const forceRebake = req.query.rebake === 'true' || req.query.rebake === '1';
 
   // Auto-bake engine: ensure the combined GLB file exists on disk
   try {
-    await ensureEcosystemGlbExists(id);
+    await ensureEcosystemGlbExists(id, forceRebake);
   } catch (err) {
     console.error(`[Auto-Bake Error] Failed to auto-bake GLB for ${id}:`, err.message);
   }
@@ -753,12 +805,39 @@ app.get('/ecosystem/view/:id', async (req, res) => {
   if (!isLocal) {
     fullGlbUrl = fullGlbUrl.replace(/^http:\/\//, 'https://');
   }
+  // Cache-busting query param so browser never serves stale disk-cached GLB
+  fullGlbUrl = `${fullGlbUrl}?v=${Date.now()}`;
 
-  const name = item ? item.name : 'Rantai Makanan AR';
+  const presets = loadEcosystemPresets();
+  let targetPreset = presets.find(p => p.id === id || p.id === `preset-${id}` || (item && (p.id === item.presetId || p.id === `preset-${item.presetId}`)));
+  if (!targetPreset) {
+    targetPreset = presets.find(p => (p.name || '').toLowerCase().includes(id.toLowerCase())) || presets[0];
+  }
+
+  const name = item ? item.name : (targetPreset ? targetPreset.name : 'Rantai Makanan AR');
 
   html = html
     .replace(/{{ECOSYSTEM_NAME}}/g, escapeHtml(name))
     .replace(/{{ECOSYSTEM_GLB_URL}}/g, fullGlbUrl);
+
+  const slots = (targetPreset && targetPreset.slots) ? targetPreset.slots : [];
+  for (let idx = 0; idx < 6; idx++) {
+    const s = slots[idx] || {};
+    const roleMap = {
+      'produsen': 'PRODUSEN',
+      'konsumen_primer': 'KONSUMEN I',
+      'konsumen_sekunder': 'KONSUMEN II',
+      'konsumen_tersier': 'KONSUMEN III',
+      'konsumen_final': 'KONSUMEN IV',
+      'decomposer': 'PENGURAI'
+    };
+    const roleLabel = roleMap[s.role] || (s.role || 'PERAN').toUpperCase();
+    const labelStr = s.label || `Spesies ${idx + 1}`;
+    
+    html = html
+      .replace(new RegExp(`{{SLOT_${idx}_LABEL}}`, 'g'), escapeHtml(labelStr))
+      .replace(new RegExp(`{{SLOT_${idx}_ROLE}}`, 'g'), escapeHtml(roleLabel));
+  }
 
   res.send(html);
 });
