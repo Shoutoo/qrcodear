@@ -6,358 +6,225 @@
   <title>{{ECOSYSTEM_NAME}} — AlamVerse AR</title>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700;900&display=swap" rel="stylesheet"/>
 
-  <!-- A-Frame 1.4.2 + MindAR 1.2.5 (A-Frame version) — proven to work on all mobile browsers -->
+  <!-- A-Frame 1.4.2 + MindAR 1.2.5 (A-Frame version) -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <!-- model-viewer for 3D mode (no importmap conflict here) -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; overflow: hidden; font-family: 'Quicksand', sans-serif; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#000;overflow:hidden;font-family:'Quicksand',sans-serif;}
+    .a-loader-title,.a-enter-vr-button{display:none!important;}
 
-    /* Hide A-Frame loading UI since we have our own */
-    .a-loader-title { display: none !important; }
-
-    /* model-viewer for 3D mode */
-    model-viewer {
-      width: 100vw; height: 100vh;
-      position: fixed; inset: 0;
-      background: radial-gradient(circle at center, #e0f2fe, #dbeafe);
-      display: block;
-      z-index: 1;
+    model-viewer{
+      width:100vw;height:100vh;position:fixed;inset:0;
+      background:radial-gradient(circle at center,#e0f2fe,#dbeafe);
+      display:block;z-index:1;
     }
 
-    /* A-Frame scene covers full screen */
-    a-scene {
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      z-index: 5 !important;
-      display: none;
+    a-scene{
+      position:fixed!important;inset:0!important;
+      width:100vw!important;height:100vh!important;
+      z-index:5!important;display:none;
     }
-    a-scene.ar-active { display: block !important; }
+    a-scene.active{display:block!important;}
 
-    /* ── HUD on top of A-Frame ── */
-    #ar-hud {
-      display: none;
-      position: fixed; inset: 0;
-      pointer-events: none;
-      z-index: 20;
-    }
-    #ar-hud.active { display: block; }
+    #top-nav{position:fixed;top:10px;left:10px;right:10px;z-index:30;pointer-events:auto;}
+    .nav-card{background:rgba(255,255,255,.95);backdrop-filter:blur(14px);border:1.5px solid #e2e8f0;border-radius:16px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;max-width:850px;margin:auto;box-shadow:0 4px 20px rgba(0,0,0,.12);gap:8px;}
+    .nav-title{font-weight:900;font-size:13px;color:#0f172a;}
+    .nav-sub{font-size:10px;color:#64748b;font-weight:700;}
+    .mode-sw{display:flex;gap:3px;background:#f1f5f9;padding:3px;border-radius:12px;border:1px solid #e2e8f0;}
+    .mbtn{padding:6px 10px;font-size:11px;font-weight:700;border:none;border-radius:9px;cursor:pointer;background:transparent;color:#475569;display:flex;align-items:center;gap:4px;transition:all .18s;}
+    .mbtn.on{background:#7c3aed;color:#fff;font-weight:900;box-shadow:0 2px 8px rgba(109,40,217,.35);}
 
-    /* Top nav */
-    #top-nav {
-      position: fixed; top: 10px; left: 10px; right: 10px;
-      z-index: 30; pointer-events: auto;
-    }
-    .nav-card {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(14px);
-      border: 1.5px solid #e2e8f0; border-radius: 16px;
-      padding: 6px 10px;
-      display: flex; align-items: center; justify-content: space-between;
-      max-width: 850px; margin: auto;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-      gap: 8px;
-    }
-    .nav-title { font-weight: 900; font-size: 13px; color: #0f172a; }
-    .nav-sub { font-size: 10px; color: #64748b; font-weight: 700; }
-    .mode-switcher { display: flex; gap: 3px; background: #f1f5f9; padding: 3px; border-radius: 12px; border: 1px solid #e2e8f0; }
-    .mode-btn { padding: 6px 10px; font-size: 11px; font-weight: 700; border: none; border-radius: 9px; cursor: pointer; background: transparent; color: #475569; display: flex; align-items: center; gap: 4px; transition: all .18s; }
-    .mode-btn.active { background: #7c3aed; color: #fff; font-weight: 900; box-shadow: 0 2px 8px rgba(109,40,217,.35); }
+    #ar-pill{display:none;position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.88);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;z-index:30;pointer-events:none;white-space:nowrap;max-width:90vw;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+    #ar-dot{width:8px;height:8px;border-radius:50%;background:#fbbf24;flex-shrink:0;}
 
-    /* AR status pill */
-    #ar-status-pill {
-      position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
-      background: rgba(15,23,42,.88); backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,.18); color: #fff;
-      font-size: 12px; font-weight: 800;
-      padding: 6px 16px; border-radius: 999px;
-      display: flex; align-items: center; gap: 8px;
-      z-index: 30; pointer-events: none;
-      white-space: nowrap; max-width: 90vw;
-      box-shadow: 0 4px 16px rgba(0,0,0,.3);
-      transition: background 0.3s;
-    }
-    #ar-dot { width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; flex-shrink: 0; }
+    #scan-frame{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(200px,56vw);height:min(200px,56vw);border:2.5px dashed rgba(251,191,36,.8);border-radius:20px;z-index:25;pointer-events:none;}
+    #scan-frame::before,#scan-frame::after{content:'';position:absolute;width:22px;height:22px;border-color:#fbbf24;border-style:solid;}
+    #scan-frame::before{top:-3px;left:-3px;border-width:4px 0 0 4px;border-radius:7px 0 0 0;}
+    #scan-frame::after{bottom:-3px;right:-3px;border-width:0 4px 4px 0;border-radius:0 0 7px 0;}
 
-    /* Scan frame */
-    #scan-frame {
-      position: fixed; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(200px, 56vw); height: min(200px, 56vw);
-      border: 2.5px dashed rgba(251,191,36,.8);
-      border-radius: 20px; z-index: 25; pointer-events: none;
-    }
-    #scan-frame::before, #scan-frame::after {
-      content: ''; position: absolute;
-      width: 22px; height: 22px;
-      border-color: #fbbf24; border-style: solid;
-    }
-    #scan-frame::before { top:-3px; left:-3px; border-width: 4px 0 0 4px; border-radius: 7px 0 0 0; }
-    #scan-frame::after { bottom:-3px; right:-3px; border-width: 0 4px 4px 0; border-radius: 0 0 7px 0; }
+    #ar-hint{display:none;position:fixed;bottom:max(28px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:30;flex-direction:column;align-items:center;gap:8px;pointer-events:auto;}
+    #ar-hint.active{display:flex;}
+    .hint-pill{background:rgba(15,23,42,.85);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:800;padding:7px 16px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.3);}
 
-    /* Bottom hint */
-    #ar-hint {
-      position: fixed;
-      bottom: max(28px, env(safe-area-inset-bottom));
-      left: 50%; transform: translateX(-50%);
-      z-index: 30; pointer-events: auto;
-      display: none;
-      flex-direction: column; align-items: center; gap: 8px;
-    }
-    #ar-hint.active { display: flex; }
-    .hint-pill {
-      background: rgba(15,23,42,.85); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.2);
-      color: #fff; font-size: 11px; font-weight: 800;
-      padding: 7px 16px; border-radius: 999px;
-      box-shadow: 0 4px 12px rgba(0,0,0,.3);
-    }
+    #wrong-alert{display:none;position:fixed;top:120px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,.96);border:2px solid #f87171;color:#fff;padding:12px 18px;border-radius:18px;width:min(300px,88vw);text-align:center;z-index:30;pointer-events:auto;box-shadow:0 8px 28px rgba(220,38,38,.4);}
+    #wrong-alert.show{display:block;}
+    .wt{font-size:13px;font-weight:900;margin-bottom:4px;}
+    .wb{font-size:11px;font-weight:700;margin-bottom:8px;}
+    .wsb{background:#fff;color:#dc2626;font-size:11px;font-weight:900;padding:6px 14px;border-radius:10px;border:none;cursor:pointer;}
 
-    /* Wrong card alert */
-    #wrong-alert {
-      display: none;
-      position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
-      background: rgba(220,38,38,.96);
-      border: 2px solid #f87171; color: #fff;
-      padding: 12px 18px; border-radius: 18px;
-      width: min(300px, 88vw); text-align: center;
-      z-index: 30; pointer-events: auto;
-      box-shadow: 0 8px 28px rgba(220,38,38,.4);
-    }
-    #wrong-alert.show { display: block; }
-    .wrong-title { font-size: 13px; font-weight: 900; margin-bottom: 4px; }
-    .wrong-body { font-size: 11px; font-weight: 700; margin-bottom: 8px; }
-    .switch-btn { background: #fff; color: #dc2626; font-size: 11px; font-weight: 900; padding: 6px 14px; border-radius: 10px; border: none; cursor: pointer; }
-
-    /* 3D Controls */
-    #ctrl-bar {
-      position: fixed; bottom: max(12px, env(safe-area-inset-bottom));
-      left: 50%; transform: translateX(-50%);
-      z-index: 30; pointer-events: auto;
-      width: calc(100% - 20px); max-width: 420px;
-    }
-    .ctrl-card {
-      background: rgba(255,255,255,.95); backdrop-filter: blur(14px);
-      border: 1.5px solid #e2e8f0; border-radius: 16px;
-      padding: 8px 12px;
-      display: flex; align-items: center; gap: 6px;
-      box-shadow: 0 4px 20px rgba(0,0,0,.1);
-    }
-    .ctrl-btn {
-      padding: 7px 10px; font-size: 11px; font-weight: 900;
-      border: none; border-radius: 10px; cursor: pointer;
-      display: flex; align-items: center; gap: 4px;
-      background: #ede9fe; color: #7c3aed; flex: 1; justify-content: center;
-      transition: transform .15s;
-    }
-    .ctrl-btn:active { transform: scale(.94); }
-    .ctrl-btn.sec { background: #f1f5f9; color: #0f172a; flex: none; }
+    #ctrl-bar{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:30;pointer-events:auto;width:calc(100% - 20px);max-width:420px;}
+    .cc{background:rgba(255,255,255,.95);backdrop-filter:blur(14px);border:1.5px solid #e2e8f0;border-radius:16px;padding:8px 12px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.1);}
+    .cb{padding:7px 10px;font-size:11px;font-weight:900;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:4px;background:#ede9fe;color:#7c3aed;flex:1;justify-content:center;transition:transform .15s;}
+    .cb:active{transform:scale(.94);}
+    .cb.s{background:#f1f5f9;color:#0f172a;flex:none;}
   </style>
 </head>
 <body>
 
-  <!-- ── 3D MODEL VIEWER ── -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-  <model-viewer id="eco-mv"
-    src="{{ECOSYSTEM_GLB_URL}}"
-    alt="{{ECOSYSTEM_NAME}}"
-    camera-controls auto-rotate auto-rotate-delay="0"
-    rotation-per-second="20deg"
-    camera-orbit="30deg 65deg 8m"
-    shadow-intensity="1.5" loading="eager">
-  </model-viewer>
+<!-- ── 3D MODEL VIEWER ── -->
+<model-viewer id="eco-mv"
+  src="{{ECOSYSTEM_GLB_URL}}"
+  alt="{{ECOSYSTEM_NAME}}"
+  camera-controls auto-rotate auto-rotate-delay="0"
+  rotation-per-second="20deg"
+  camera-orbit="30deg 65deg 8m"
+  shadow-intensity="1.5" loading="eager">
+</model-viewer>
 
-  <!-- ── A-FRAME AR SCENE ── -->
-  <a-scene id="ar-scene"
-    mindar-image="imageTargetSrc: /assets/markers/all-presets.mind; maxTrack: 1; warmupTolerance: 2; missTolerance: 15; filterMinCF: 0.0001; filterBeta: 0.001; uiLoading: no; uiScanning: no; uiError: no;"
-    color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-    embedded>
+<!-- ── A-FRAME AR SCENE ── -->
+<a-scene id="ar-scene"
+  mindar-image="imageTargetSrc: /assets/markers/all-presets.mind; maxTrack: 1; warmupTolerance: 2; missTolerance: 15; filterMinCF: 0.0001; filterBeta: 0.001; uiLoading: no; uiScanning: no; uiError: no;"
+  color-space="sRGB"
+  renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false"
+  embedded>
 
-    <a-assets>
-      <a-asset-item id="eco-model" src="{{ECOSYSTEM_GLB_URL}}"></a-asset-item>
-    </a-assets>
+  <a-assets>
+    <a-asset-item id="eco-glb" src="{{ECOSYSTEM_GLB_URL}}"></a-asset-item>
+  </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- ── Anchor 0: LAUT ── -->
-    <a-entity mindar-image-target="targetIndex: 0" id="anchor-laut">
-      <!-- GLB model shown when laut QR detected -->
-      <a-gltf-model id="model-laut"
-        src="#eco-model"
-        position="0 0.1 0"
-        rotation="-90 0 0"
-        scale="0 0 0"
-        animation__appear="property: scale; from: 0 0 0; to: 0.12 0.12 0.12; dur: 500; easing: easeOutBack; startEvents: targetFound"
-        animation__hide="property: scale; to: 0 0 0; dur: 300; startEvents: targetLost"
-        animation__rot="property: rotation; from: -90 0 0; to: -90 360 0; dur: 6000; loop: true; easing: linear">
+  <!-- Anchor 0: LAUT — model + green ring -->
+  <a-entity mindar-image-target="targetIndex: 0" id="anc-laut">
+    <a-entity id="eco-group-laut" scale="0 0 0"
+      animation__in="property:scale; from:0 0 0; to:1 1 1; dur:500; easing:easeOutBack; startEvents:targetFound"
+      animation__out="property:scale; to:0 0 0; dur:300; startEvents:targetLost">
+      <a-gltf-model src="#eco-glb" position="0 0.05 0" rotation="0 0 0"
+        animation__spin="property:rotation; from:0 0 0; to:0 360 0; dur:8000; loop:true; easing:linear">
       </a-gltf-model>
-      <!-- Green ring when correct -->
-      <a-torus id="ring-laut" position="0 0 0" radius="0.5" radius-tubular="0.03"
-        color="#10b981" opacity="0.85" rotation="-90 0 0"
-        scale="0 0 0"
-        animation__appear="property: scale; from: 0 0 0; to: 1 1 1; dur: 400; startEvents: targetFound"
-        animation__hide="property: scale; to: 0 0 0; dur: 300; startEvents: targetLost">
-      </a-torus>
+      <a-torus radius="0.65" radius-tubular="0.02" color="#10b981" rotation="90 0 0" position="0 0 0" opacity="0.7"
+        animation__spin="property:rotation; from:90 0 0; to:90 360 0; dur:3000; loop:true; easing:linear"></a-torus>
     </a-entity>
+  </a-entity>
 
-    <!-- ── Anchor 1: SAWAH ── -->
-    <a-entity mindar-image-target="targetIndex: 1" id="anchor-sawah">
-      <a-torus position="0 0 0" radius="0.5" radius-tubular="0.03"
-        color="#ef4444" opacity="0.85" rotation="-90 0 0"
-        scale="0 0 0"
-        animation__appear="property: scale; from: 0 0 0; to: 1 1 1; dur: 400; startEvents: targetFound"
-        animation__hide="property: scale; to: 0 0 0; dur: 300; startEvents: targetLost">
-      </a-torus>
-      <a-text value="KARTU SAWAH\nBukan untuk halaman ini" align="center" color="#ffffff"
-        position="0 0.3 0" rotation="-90 0 0" scale="0.3 0.3 0.3"
-        visible="false" id="txt-sawah">
-      </a-text>
+  <!-- Anchor 1: SAWAH — wrong marker (red ring + text) -->
+  <a-entity mindar-image-target="targetIndex: 1" id="anc-sawah">
+    <a-entity scale="0 0 0"
+      animation__in="property:scale; from:0 0 0; to:1 1 1; dur:500; easing:easeOutBack; startEvents:targetFound"
+      animation__out="property:scale; to:0 0 0; dur:300; startEvents:targetLost">
+      <a-torus radius="0.65" radius-tubular="0.02" color="#ef4444" rotation="90 0 0" position="0 0 0" opacity="0.85"></a-torus>
+      <a-text value="KARTU SAWAH\n⚠️ Tidak Sesuai" align="center" color="#ffffff" position="0 0.2 0" scale="0.25 0.25 0.25"></a-text>
     </a-entity>
+  </a-entity>
 
-    <!-- ── Anchor 2: DARAT ── -->
-    <a-entity mindar-image-target="targetIndex: 2" id="anchor-darat">
-      <a-torus position="0 0 0" radius="0.5" radius-tubular="0.03"
-        color="#ef4444" opacity="0.85" rotation="-90 0 0"
-        scale="0 0 0"
-        animation__appear="property: scale; from: 0 0 0; to: 1 1 1; dur: 400; startEvents: targetFound"
-        animation__hide="property: scale; to: 0 0 0; dur: 300; startEvents: targetLost">
-      </a-torus>
+  <!-- Anchor 2: DARAT — wrong marker -->
+  <a-entity mindar-image-target="targetIndex: 2" id="anc-darat">
+    <a-entity scale="0 0 0"
+      animation__in="property:scale; from:0 0 0; to:1 1 1; dur:500; easing:easeOutBack; startEvents:targetFound"
+      animation__out="property:scale; to:0 0 0; dur:300; startEvents:targetLost">
+      <a-torus radius="0.65" radius-tubular="0.02" color="#ef4444" rotation="90 0 0" position="0 0 0" opacity="0.85"></a-torus>
+      <a-text value="KARTU DARAT\n⚠️ Tidak Sesuai" align="center" color="#ffffff" position="0 0.2 0" scale="0.25 0.25 0.25"></a-text>
     </a-entity>
+  </a-entity>
 
-    <!-- ── Anchor 3: HUTAN ── -->
-    <a-entity mindar-image-target="targetIndex: 3" id="anchor-hutan">
-      <a-torus position="0 0 0" radius="0.5" radius-tubular="0.03"
-        color="#ef4444" opacity="0.85" rotation="-90 0 0"
-        scale="0 0 0"
-        animation__appear="property: scale; from: 0 0 0; to: 1 1 1; dur: 400; startEvents: targetFound"
-        animation__hide="property: scale; to: 0 0 0; dur: 300; startEvents: targetLost">
-      </a-torus>
+  <!-- Anchor 3: HUTAN — wrong marker -->
+  <a-entity mindar-image-target="targetIndex: 3" id="anc-hutan">
+    <a-entity scale="0 0 0"
+      animation__in="property:scale; from:0 0 0; to:1 1 1; dur:500; easing:easeOutBack; startEvents:targetFound"
+      animation__out="property:scale; to:0 0 0; dur:300; startEvents:targetLost">
+      <a-torus radius="0.65" radius-tubular="0.02" color="#ef4444" rotation="90 0 0" position="0 0 0" opacity="0.85"></a-torus>
+      <a-text value="KARTU HUTAN\n⚠️ Tidak Sesuai" align="center" color="#ffffff" position="0 0.2 0" scale="0.25 0.25 0.25"></a-text>
     </a-entity>
+  </a-entity>
 
-  </a-scene>
+</a-scene>
 
-  <!-- ── HUD ── -->
-  <div id="top-nav">
-    <div class="nav-card">
-      <div>
-        <div class="nav-title">{{ECOSYSTEM_NAME}}</div>
-        <div class="nav-sub">AlamVerse · Edu AR</div>
-      </div>
-      <div class="mode-switcher">
-        <button id="btn-3d" class="mode-btn active" onclick="switchMode('3d')">
-          <span>⚪</span> 3D View
-        </button>
-        <button id="btn-ar" class="mode-btn" onclick="switchMode('ar')">
-          <span>📷</span> Mode AR
-        </button>
-      </div>
+<!-- ── HUD ── -->
+<div id="top-nav">
+  <div class="nav-card">
+    <div>
+      <div class="nav-title">{{ECOSYSTEM_NAME}}</div>
+      <div class="nav-sub">AlamVerse · Edu AR</div>
+    </div>
+    <div class="mode-sw">
+      <button id="btn-3d" class="mbtn on" onclick="switchMode('3d')">⚪ 3D View</button>
+      <button id="btn-ar" class="mbtn" onclick="switchMode('ar')">📷 Mode AR</button>
     </div>
   </div>
+</div>
 
-  <div id="ar-status-pill" style="display:none;">
-    <span id="ar-dot"></span>
-    <span id="ar-text">Memulai AR...</span>
+<div id="ar-pill" style="display:none;">
+  <span id="ar-dot"></span>
+  <span id="ar-text">Memulai AR...</span>
+</div>
+
+<div id="scan-frame"></div>
+
+<div id="ar-hint">
+  <div class="hint-pill">📷 Arahkan ke QR Code Kartu {{ECOSYSTEM_NAME}}</div>
+</div>
+
+<div id="wrong-alert">
+  <div class="wt">⚠️ KARTU TIDAK SESUAI!</div>
+  <p id="wrong-body" class="wb">Bukan kartu untuk ekosistem ini.</p>
+  <button class="wsb" onclick="goToDetected()">🔀 Pindah ke Ekosistem Terdeteksi</button>
+</div>
+
+<div id="ctrl-bar">
+  <div class="cc">
+    <button class="cb" onclick="toggleRot()" id="rot-btn">⏸ Hentikan</button>
+    <button class="cb s" onclick="reverseRot()">🔄 Balik</button>
   </div>
+</div>
 
-  <div id="scan-frame" style="display:none;"></div>
+<script>
+  // ── Config ──────────────────────────────────────────────
+  const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
+  const cleanId = ECOSYSTEM_ID.replace(/^preset-/, '');
 
-  <div id="ar-hint">
-    <div class="hint-pill">📷 Arahkan ke QR Code Kartu {{ECOSYSTEM_NAME}}</div>
-  </div>
+  // Preset map: index matches compile-mind.js order
+  const PRESETS = [
+    { id:'laut',  name:'Laut',  idx:0 },
+    { id:'sawah', name:'Sawah', idx:1 },
+    { id:'darat', name:'Darat', idx:2 },
+    { id:'hutan', name:'Hutan', idx:3 },
+  ];
 
-  <div id="wrong-alert">
-    <div class="wrong-title">⚠️ KARTU TIDAK SESUAI!</div>
-    <p id="wrong-body" class="wrong-body">Bukan kartu untuk ekosistem ini.</p>
-    <button class="switch-btn" onclick="goToDetected()">🔀 Pindah ke Ekosistem Terdeteksi</button>
-  </div>
+  // For non-laut ecosystems, we need to remap which anchor shows the model
+  // The model is always on the anchor matching the current ecosystem
+  // But the anchors in A-Frame HTML are fixed (laut=0, sawah=1, etc.)
+  // So we need to ensure the model appears on the RIGHT anchor
+  const myPreset = PRESETS.find(p => p.id === cleanId) || PRESETS[0];
 
-  <div id="ctrl-bar">
-    <div class="ctrl-card">
-      <button class="ctrl-btn" onclick="toggleRot()" id="rot-btn">⏸ Hentikan</button>
-      <button class="ctrl-btn sec" onclick="reverseRot()">🔄 Balik</button>
-    </div>
-  </div>
+  // Remap: move the eco-group from anchor-laut to the correct anchor
+  document.addEventListener('DOMContentLoaded', () => {
+    const scene = document.getElementById('ar-scene');
 
-  <!-- ── SCRIPTS ── -->
-  <script>
-    const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
-    const cleanId = ECOSYSTEM_ID.replace(/^preset-/, '');
+    scene.addEventListener('loaded', () => {
+      // Move eco-group-laut to the correct anchor
+      const ecoGroup = document.getElementById('eco-group-laut');
+      const correctAnchor = document.getElementById(`anc-${cleanId}`);
+      const lautAnchor = document.getElementById('anc-laut');
 
-    const PRESET_MAP = [
-      { id: 'laut',  name: 'Laut' },
-      { id: 'sawah', name: 'Sawah' },
-      { id: 'darat', name: 'Darat' },
-      { id: 'hutan', name: 'Hutan' },
-    ];
-
-    let wrongEcoId = null;
-
-    // ── 3D Controller ──
-    const mv = document.getElementById('eco-mv');
-    let rotating = true, reversed = false;
-    function applyRot() {
-      if (!mv) return;
-      if (!rotating) { mv.removeAttribute('auto-rotate'); return; }
-      mv.setAttribute('auto-rotate',''); mv.setAttribute('auto-rotate-delay','0');
-      mv.setAttribute('rotation-per-second', (reversed ? '-' : '') + '20deg');
-    }
-    function toggleRot() {
-      rotating = !rotating;
-      document.getElementById('rot-btn').textContent = rotating ? '⏸ Hentikan' : '▶ Putar';
-      applyRot();
-    }
-    function reverseRot() { reversed = !reversed; applyRot(); }
-    mv?.addEventListener('load', applyRot);
-
-    // ── AR event listeners (set after scene loads) ──
-    function setStatus(text, color='#10b981', alertMode=false) {
-      const dot = document.getElementById('ar-dot');
-      const txt = document.getElementById('ar-text');
-      const pill = document.getElementById('ar-status-pill');
-      if (dot) dot.style.background = color;
-      if (txt) txt.textContent = text;
-      if (pill) {
-        pill.style.background = alertMode
-          ? 'rgba(220,38,38,.95)' : 'rgba(15,23,42,.88)';
+      if (ecoGroup && correctAnchor && cleanId !== 'laut') {
+        correctAnchor.appendChild(ecoGroup);
+        // Change laut anchor to show wrong ring instead
+        const wrongEl = document.createElement('a-entity');
+        wrongEl.setAttribute('scale', '0 0 0');
+        wrongEl.setAttribute('animation__in', 'property:scale; from:0 0 0; to:1 1 1; dur:500; easing:easeOutBack; startEvents:targetFound');
+        wrongEl.setAttribute('animation__out', 'property:scale; to:0 0 0; dur:300; startEvents:targetLost');
+        wrongEl.innerHTML = `<a-torus radius="0.65" radius-tubular="0.02" color="#ef4444" rotation="90 0 0" position="0 0 0" opacity="0.85"></a-torus><a-text value="KARTU LAUT\n⚠️ Tidak Sesuai" align="center" color="#ffffff" position="0 0.2 0" scale="0.25 0.25 0.25"></a-text>`;
+        lautAnchor.appendChild(wrongEl);
       }
-    }
 
-    function showWrong(preset) {
-      wrongEcoId = preset.id;
-      document.getElementById('wrong-body').textContent =
-        `Kamera mendeteksi QR Code Ekosistem ${preset.name}. Bukan untuk halaman ini.`;
-      document.getElementById('wrong-alert').classList.add('show');
-      setStatus(`⚠️ QR Tidak Sesuai: Ekosistem ${preset.name}`, '#ef4444', true);
-    }
+      // Set status
+      setStatus('✨ AR Siap — arahkan ke QR Code kartu {{ECOSYSTEM_NAME}}');
 
-    function hideWrong() {
-      wrongEcoId = null;
-      document.getElementById('wrong-alert').classList.remove('show');
-    }
-
-    window.goToDetected = function() {
-      if (wrongEcoId) window.location.href = `/ecosystem/view/${wrongEcoId}`;
-    };
-
-    // Wait for A-Frame scene to be ready
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      console.log('[AR] A-Frame scene loaded');
-
-      PRESET_MAP.forEach((preset, idx) => {
-        const anchor = document.getElementById(`anchor-${preset.id}`);
+      // Setup anchor event listeners
+      PRESETS.forEach(preset => {
+        const anchor = document.getElementById(`anc-${preset.id}`);
         if (!anchor) return;
 
         anchor.addEventListener('targetFound', () => {
-          console.log(`[AR] Target found: ${preset.id} (idx ${idx})`);
           if (preset.id === cleanId) {
             hideWrong();
-            setStatus(`✅ QR ${preset.name} Terkunci! Model 3D Tampil`, '#10b981');
+            setStatus(`✅ QR ${preset.name} Terkunci — Model 3D Tampil!`, '#10b981');
           } else {
             showWrong(preset);
           }
@@ -365,51 +232,92 @@
 
         anchor.addEventListener('targetLost', () => {
           hideWrong();
-          setStatus('✨ Model 3D AR — arahkan ke QR Code kartu');
+          setStatus('✨ AR Siap — arahkan ke QR Code kartu');
         });
       });
-
-      setStatus('✨ AR Siap — arahkan ke QR Code kartu');
     });
+  });
 
-    // ── Mode switch ──
-    window.switchMode = function(mode) {
-      const scene   = document.getElementById('ar-scene');
-      const viewer  = document.getElementById('eco-mv');
-      const ctrlBar = document.getElementById('ctrl-bar');
-      const hint    = document.getElementById('ar-hint');
-      const pill    = document.getElementById('ar-status-pill');
-      const frame   = document.getElementById('scan-frame');
-      const btn3d   = document.getElementById('btn-3d');
-      const btnAr   = document.getElementById('btn-ar');
+  // ── Status helpers ──────────────────────────────────────
+  function setStatus(text, color='#10b981') {
+    const dot = document.getElementById('ar-dot');
+    const txt = document.getElementById('ar-text');
+    const pill = document.getElementById('ar-pill');
+    if (dot) dot.style.background = color;
+    if (txt) txt.textContent = text;
+    if (pill && pill.style.display !== 'none') {
+      pill.style.background = color === '#ef4444'
+        ? 'rgba(220,38,38,.95)' : 'rgba(15,23,42,.88)';
+    }
+  }
 
-      if (mode === 'ar') {
-        btn3d.classList.remove('active'); btnAr.classList.add('active');
-        viewer.style.display = 'none';
-        ctrlBar.style.display = 'none';
-        scene.classList.add('ar-active');
-        pill.style.display = 'flex';
-        frame.style.display = 'block';
-        hint.classList.add('active');
-        setStatus('Memulai kamera AR...', '#fbbf24');
+  let wrongEcoId = null;
+  function showWrong(preset) {
+    wrongEcoId = preset.id;
+    document.getElementById('wrong-body').textContent =
+      `Kamera mendeteksi QR Code Ekosistem ${preset.name}. Bukan untuk halaman ini.`;
+    document.getElementById('wrong-alert').classList.add('show');
+    setStatus(`⚠️ QR Tidak Sesuai: ${preset.name}`, '#ef4444');
+  }
+  function hideWrong() {
+    wrongEcoId = null;
+    document.getElementById('wrong-alert').classList.remove('show');
+  }
+  window.goToDetected = function() {
+    if (wrongEcoId) window.location.href = `/ecosystem/view/${wrongEcoId}`;
+  };
 
-        // Force A-Frame to play if paused
-        if (scene.systems['mindar-image-system']) {
-          try { scene.systems['mindar-image-system'].start(); } catch(e) {}
-        }
-      } else {
-        btn3d.classList.add('active'); btnAr.classList.remove('active');
-        viewer.style.display = 'block';
-        ctrlBar.style.display = '';
-        scene.classList.remove('ar-active');
-        pill.style.display = 'none';
-        frame.style.display = 'none';
-        hint.classList.remove('active');
-        hideWrong();
-        applyRot();
-      }
-    };
-  </script>
+  // ── 3D rotation controller ──────────────────────────────
+  const mv = document.getElementById('eco-mv');
+  let rotating = true, reversed = false;
+  function applyRot() {
+    if (!mv) return;
+    if (!rotating) { mv.removeAttribute('auto-rotate'); return; }
+    mv.setAttribute('auto-rotate','');
+    mv.setAttribute('auto-rotate-delay','0');
+    mv.setAttribute('rotation-per-second', (reversed?'-':'') + '20deg');
+  }
+  window.toggleRot = function() {
+    rotating = !rotating;
+    document.getElementById('rot-btn').textContent = rotating ? '⏸ Hentikan' : '▶ Putar';
+    applyRot();
+  };
+  window.reverseRot = function() { reversed = !reversed; applyRot(); };
+  mv?.addEventListener('load', applyRot);
+
+  // ── Mode switcher ───────────────────────────────────────
+  window.switchMode = function(mode) {
+    const scene   = document.getElementById('ar-scene');
+    const viewer  = document.getElementById('eco-mv');
+    const ctrlBar = document.getElementById('ctrl-bar');
+    const hint    = document.getElementById('ar-hint');
+    const pill    = document.getElementById('ar-pill');
+    const frame   = document.getElementById('scan-frame');
+    const btn3d   = document.getElementById('btn-3d');
+    const btnAr   = document.getElementById('btn-ar');
+
+    if (mode === 'ar') {
+      btn3d.classList.remove('on'); btnAr.classList.add('on');
+      viewer.style.display = 'none';
+      ctrlBar.style.display = 'none';
+      scene.classList.add('active');
+      pill.style.display = 'flex';
+      frame.style.display = 'block';
+      hint.classList.add('active');
+      setStatus('Memulai kamera AR...', '#fbbf24');
+    } else {
+      btn3d.classList.add('on'); btnAr.classList.remove('on');
+      viewer.style.display = 'block';
+      ctrlBar.style.display = '';
+      scene.classList.remove('active');
+      pill.style.display = 'none';
+      frame.style.display = 'none';
+      hint.classList.remove('active');
+      hideWrong();
+      applyRot();
+    }
+  };
+</script>
 
 </body>
 </html>
