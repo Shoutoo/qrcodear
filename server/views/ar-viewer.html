@@ -189,8 +189,8 @@
   <div id="mindar-container">
     <div id="ar-status-bar">
       <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
-        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
-        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Memulai kamera AR...</span>
+        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">✨ Model 3D AR Aktif (Tampilan Kamera)</span>
       </div>
     </div>
 
@@ -198,14 +198,8 @@
 
     <div id="ar-scan-hint">
       <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
-        <span>📷 Arahkan kamera ke Kartu Print AR</span>
+        <span>📷 Arahkan ke Kartu AR untuk Mengunci Posisi</span>
       </div>
-
-      <!-- Instant AR Fallback Trigger Button -->
-      <button onclick="forceShowArModel()" class="chunky-btn" style="background:linear-gradient(135deg,#632ce5,#7c4dff);color:#fff;font-size:11px;font-weight:900;padding:8px 18px;border-radius:999px;border:none;box-shadow:0 6px 16px rgba(99,44,229,0.5);display:flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:15px;color:#ffe170;">auto_awesome</span>
-        <span>✨ Tampilkan Model 3D Langsung</span>
-      </button>
     </div>
 
     <div id="ar-error-overlay">
@@ -273,19 +267,6 @@
       if (overlay) overlay.classList.remove('show');
     }
 
-    function forceShowArModel() {
-      if (!mindarThree || !arModelObj) return;
-      try {
-        if (arModelObj.parent) arModelObj.parent.remove(arModelObj);
-        arModelObj.position.set(0, -0.2, -1.8);
-        arModelObj.scale.set(0.3, 0.3, 0.3);
-        mindarThree.scene.add(arModelObj);
-        setArStatus('✅ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
-      } catch (e) {
-        console.warn('forceShowArModel error:', e);
-      }
-    }
-
     async function startMindAR() {
       if (arStarted) return;
       const container = document.getElementById('mindar-container');
@@ -316,9 +297,9 @@
         const anchor = mindarThree.addAnchor(0);
         arAnchorGroup = anchor.group;
 
-        const ambLight = new THREE.AmbientLight(0xffffff, 1.6);
+        const ambLight = new THREE.AmbientLight(0xffffff, 1.8);
         scene.add(ambLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
         dirLight.position.set(2, 6, 4);
         scene.add(dirLight);
 
@@ -327,39 +308,38 @@
           loader.load('{{MODEL_URL}}', (gltf) => {
             arModelObj = gltf.scene;
             arModelObj.scale.set(0.35, 0.35, 0.35);
-            arModelObj.position.set(0, 0, 0);
-            arAnchorGroup.add(arModelObj);
+            arModelObj.position.set(0, -0.2, -1.8);
+            scene.add(arModelObj);
+            setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
           }, undefined, (err) => {
             console.warn('GLB load error:', err);
           });
         }
 
         anchor.onTargetFound = () => {
-          if (arModelObj && arModelObj.parent !== arAnchorGroup) {
+          if (arModelObj) {
             arModelObj.position.set(0, 0, 0);
             arModelObj.scale.set(0.35, 0.35, 0.35);
             arAnchorGroup.add(arModelObj);
           }
-          setArStatus('✅ Marker Ditemukan! Model 3D AR Aktif', '#10b981');
+          setArStatus('✅ Terkunci pada Kartu Print AR!', '#10b981');
         };
 
         anchor.onTargetLost = () => {
-          setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
+          if (arModelObj && arModelObj.parent === arAnchorGroup) {
+            arModelObj.position.set(0, -0.2, -1.8);
+            arModelObj.scale.set(0.35, 0.35, 0.35);
+            scene.add(arModelObj);
+          }
+          setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
         };
 
         await mindarThree.start();
         arStarted = true;
-        setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
-
-        setTimeout(() => {
-          if (arStarted && arModelObj && (!arModelObj.parent || arModelObj.parent !== arAnchorGroup || !arModelObj.visible)) {
-            forceShowArModel();
-          }
-        }, 4500);
 
         renderer.setAnimationLoop(() => {
           if (arModelObj) {
-            arModelObj.rotation.y += 0.005;
+            arModelObj.rotation.y += 0.006;
           }
           renderer.render(scene, camera);
         });
