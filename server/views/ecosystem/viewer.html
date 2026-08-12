@@ -173,6 +173,28 @@
     .wb { font-size: 11px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
     .wsb { background: #fff; color: #dc2626; font-size: 11px; font-weight: 900; padding: 6px 14px; border-radius: 10px; border: none; cursor: pointer; }
 
+    /* Floating AR Zoom & Orientation Control Bar */
+    #ar-zoom-bar {
+      display: none;
+      position: fixed;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      right: 16px;
+      z-index: 250;
+      pointer-events: auto;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #ar-zoom-bar.active { display: flex; }
+    .ar-zoom-btn {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      transition: transform 0.15s, background 0.15s;
+    }
+    .ar-zoom-btn:active { transform: scale(0.92); background: rgba(124, 58, 237, 0.9); }
+
     /* ── 3D Controls ─────────────────────────────────────── */
     #ctrl-bar {
       position: fixed; bottom: max(12px, env(safe-area-inset-bottom));
@@ -263,6 +285,19 @@
     <button class="wsb" onclick="goToDetected()">🔀 Pindah ke Ekosistem</button>
   </div>
 
+  <!-- Floating AR Zoom & Inspection Controller Bar -->
+  <div id="ar-zoom-bar">
+    <button class="ar-zoom-btn" onclick="zoomInAR()" title="Perbesar Model 3D">
+      <span class="material-symbols-outlined" style="font-size:22px;">add</span>
+    </button>
+    <button class="ar-zoom-btn" onclick="zoomOutAR()" title="Perkecil Model 3D">
+      <span class="material-symbols-outlined" style="font-size:22px;">remove</span>
+    </button>
+    <button class="ar-zoom-btn" onclick="resetZoomAR()" title="Reset Posisi & Skala">
+      <span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span>
+    </button>
+  </div>
+
   <!-- ── 3D BOTTOM CONTROLS ────────────────────────────────────── -->
   <div id="ctrl-bar">
     <div class="ctrl-card">
@@ -307,7 +342,7 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Auto-Centering + 3D AR Billboard Badges) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Pinch-to-Zoom & Auto-Fit Scaling) ── -->
   <script>
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -323,7 +358,7 @@
         });
       }
 
-      // 2. Center-Model Component (CRITICAL FIX: auto-centers GLB meshes to (0,0,0) so model is NEVER off-screen!)
+      // 2. Center-Model Component (Auto-centers GLB mesh & sets optimal compact default scale)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
@@ -342,11 +377,11 @@
               obj.position.y -= center.y;
               obj.position.z -= center.z;
 
-              // Normalize scale to fit nicely in 3D AR viewport
-              const desiredScale = 0.55 / maxDim;
+              // Ideal responsive scale: 0.24m across so full model fits comfortably in mobile view!
+              const desiredScale = 0.24 / maxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
-              console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
+              console.log('[AR Engine] Responsive Auto-Fit! Center:', center, 'Size:', size, 'Scale:', desiredScale);
             });
           }
         });
@@ -378,12 +413,51 @@
     let qrScanInterval = null;
     let isLockedCleanMode = false;
 
-    // Touch gesture variables for 360° interactive model inspection
+    // Interactive 360° Drag & Touch Pinch Zoom Variables
     let isTouchDragging = false;
     let previousTouchX = 0;
     let previousTouchY = 0;
     let customRotX = 0;
     let customRotY = 0;
+
+    let userScale = 1.0;
+    let initialPinchDist = 0;
+    let initialUserScale = 1.0;
+
+    // ── Apply User Scale (Enlarge / Shrink) ──
+    function applyModelUserScale() {
+      const camGlbGroup = document.getElementById('cam-glb-group');
+      const anchorGlbGroup = document.getElementById('anchor-glb-group');
+
+      const rotStr = `${customRotX} ${customRotY} 0`;
+      const scaleStr = `${userScale} ${userScale} ${userScale}`;
+
+      if (camGlbGroup) {
+        camGlbGroup.setAttribute('rotation', rotStr);
+        camGlbGroup.setAttribute('scale', scaleStr);
+      }
+      if (anchorGlbGroup) {
+        anchorGlbGroup.setAttribute('rotation', rotStr);
+        anchorGlbGroup.setAttribute('scale', scaleStr);
+      }
+    }
+
+    window.zoomInAR = () => {
+      userScale = Math.min(userScale * 1.25, 3.5);
+      applyModelUserScale();
+    };
+
+    window.zoomOutAR = () => {
+      userScale = Math.max(userScale / 1.25, 0.25);
+      applyModelUserScale();
+    };
+
+    window.resetZoomAR = () => {
+      userScale = 1.0;
+      customRotX = 0;
+      customRotY = 0;
+      applyModelUserScale();
+    };
 
     // ── Generate Canvas Texture for Rounded Species Badges ──
     function createSlotBadgeDataUrl(label, role) {
@@ -456,8 +530,9 @@
       document.getElementById('scan-frame').classList.add('hidden');
       document.getElementById('ar-hint').classList.add('hidden');
       document.getElementById('top-nav').classList.add('dimmed');
+      document.getElementById('ar-zoom-bar').classList.add('active');
 
-      setStatus(`✨ ${presetName.toUpperCase()} TERKUNCI — Geser Layar untuk Memutar 360°`, '#10b981');
+      setStatus(`✨ ${presetName.toUpperCase()} TERKUNCI — Geser / Cubit untuk Memutar & Memperbesar`, '#10b981');
     }
 
     function resetCleanScanView() {
@@ -467,6 +542,7 @@
       document.getElementById('scan-frame').classList.remove('hidden');
       document.getElementById('ar-hint').classList.remove('hidden');
       document.getElementById('top-nav').classList.remove('dimmed');
+      document.getElementById('ar-zoom-bar').classList.remove('active');
 
       setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
     }
@@ -528,9 +604,9 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
+            <a-entity id="camera-space-model" position="0 -0.02 -0.85" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
                 ${badgeEntities}
               </a-entity>
@@ -546,7 +622,7 @@
           <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
             <a-entity id="anchor-glb-group"
-              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
               <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
               ${badgeEntities}
             </a-entity>
@@ -557,7 +633,7 @@
         </a-scene>`;
     }
 
-    // ── Touch Gesture Setup for 360° Interactive Model Inspection ──
+    // ── Touch Gesture Setup for 360° Drag & 2-Finger Pinch-to-Zoom ──
     function setupTouchGestureRotation() {
       const container = document.getElementById('ar-container');
       if (!container) return;
@@ -567,31 +643,42 @@
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2) {
+          isTouchDragging = false;
+          initialPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          initialUserScale = userScale;
         }
       }, { passive: true });
 
       container.addEventListener('touchmove', (e) => {
-        if (!isTouchDragging || e.touches.length !== 1) return;
+        if (e.touches.length === 1 && isTouchDragging) {
+          const deltaX = e.touches[0].clientX - previousTouchX;
+          const deltaY = e.touches[0].clientY - previousTouchY;
 
-        const deltaX = e.touches[0].clientX - previousTouchX;
-        const deltaY = e.touches[0].clientY - previousTouchY;
+          customRotY += deltaX * 0.6;
+          customRotX += deltaY * 0.4;
 
-        customRotY += deltaX * 0.6;
-        customRotX += deltaY * 0.4;
+          applyModelUserScale();
 
-        const camGlbGroup = document.getElementById('cam-glb-group');
-        const anchorGlbGroup = document.getElementById('anchor-glb-group');
-
-        const rotStr = `${customRotX} ${customRotY} 0`;
-        if (camGlbGroup) camGlbGroup.setAttribute('rotation', rotStr);
-        if (anchorGlbGroup) anchorGlbGroup.setAttribute('rotation', rotStr);
-
-        previousTouchX = e.touches[0].clientX;
-        previousTouchY = e.touches[0].clientY;
+          previousTouchX = e.touches[0].clientX;
+          previousTouchY = e.touches[0].clientY;
+        } else if (e.touches.length === 2 && initialPinchDist > 0) {
+          const currentDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const scaleFactor = currentDist / initialPinchDist;
+          userScale = Math.min(Math.max(initialUserScale * scaleFactor, 0.25), 3.5);
+          applyModelUserScale();
+        }
       }, { passive: true });
 
-      container.addEventListener('touchend', () => {
-        isTouchDragging = false;
+      container.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) initialPinchDist = 0;
+        if (e.touches.length === 0) isTouchDragging = false;
       }, { passive: true });
     }
 
@@ -728,6 +815,7 @@
       document.getElementById('ar-status-pill').style.display = 'none';
       document.getElementById('scan-frame').style.display = 'none';
       document.getElementById('ar-hint').classList.remove('active');
+      document.getElementById('ar-zoom-bar').classList.remove('active');
     }
 
     // ── Switch Mode (3D View <-> Mode AR) ──
