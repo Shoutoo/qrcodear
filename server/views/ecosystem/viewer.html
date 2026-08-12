@@ -296,7 +296,7 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (MindAR + jsQR Fallback) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (MindAR + jsQR Fallback + Ambient Lighting) ── -->
   <script>
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
     const GLB_URL = '{{ECOSYSTEM_GLB_URL}}';
@@ -338,9 +338,25 @@
       if (wrongEcoId) window.location.href = `/ecosystem/view/${wrongEcoId}`;
     };
 
+    // Reveal 3D model in camera space when QR is decoded via jsQR
+    function revealCameraSpaceModel() {
+      const modelEl = document.getElementById('camera-space-model');
+      if (modelEl) {
+        modelEl.setAttribute('visible', 'true');
+        modelEl.setAttribute('scale', '1 1 1');
+      }
+    }
+
+    function hideCameraSpaceModel() {
+      const modelEl = document.getElementById('camera-space-model');
+      if (modelEl) {
+        modelEl.setAttribute('visible', 'false');
+        modelEl.setAttribute('scale', '0 0 0');
+      }
+    }
+
     // ── Build HTML for A-Frame Scene ──
     function buildArSceneHTML() {
-      // 1. Single target .mind file for 4x faster detection speed
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
       return `
@@ -350,14 +366,28 @@
           renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true;"
           vr-mode-ui="enabled: false"
           device-orientation-permission-ui="enabled: false">
-          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
           
+          <a-camera position="0 0 0" look-controls="enabled: false">
+            <!-- Camera-Space Fallback 3D Model (visible when QR decoded by jsQR) -->
+            <a-entity id="camera-space-model" position="0 -0.15 -0.85" scale="0 0 0" visible="false"
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
+              <a-gltf-model src="${GLB_URL}" scale="0.25 0.25 0.25"></a-gltf-model>
+              <a-torus radius="0.45" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
+            </a-entity>
+          </a-camera>
+          
+          <!-- HIGH-INTENSITY AMBIENT & DIRECTIONAL LIGHTS (CRITICAL FOR GLTF PBR MATERIALS!) -->
+          <a-light type="ambient" intensity="3.5"></a-light>
+          <a-light type="directional" position="2 5 3" intensity="3.0"></a-light>
+          <a-light type="directional" position="-2 -3 2" intensity="1.5"></a-light>
+
+          <!-- MindAR Anchor 0 (locks 3D model on physical card when marker tracked) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
             <!-- 3D Ecosystem GLB Model -->
             <a-gltf-model src="${GLB_URL}"
               position="0 0.05 0"
               rotation="0 0 0"
-              scale="0.15 0.15 0.15"
+              scale="0.25 0.25 0.25"
               animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true; easing: linear">
             </a-gltf-model>
             <!-- Glowing Emerald Green Ring -->
@@ -402,8 +432,10 @@
             if (matchedPreset) {
               if (matchedPreset.id === cleanId) {
                 hideWrong();
+                revealCameraSpaceModel(); // Reveal 3D model immediately!
                 setStatus(`✅ QR Code ${matchedPreset.name} Terkunci (100% Decoded) — Model 3D Tampil!`, '#10b981');
               } else {
+                hideCameraSpaceModel();
                 showWrong(matchedPreset);
               }
             }
@@ -453,6 +485,7 @@
         if (anchorEl) {
           anchorEl.addEventListener('targetFound', () => {
             hideWrong();
+            revealCameraSpaceModel();
             setStatus(`✅ QR Code ${cleanId.toUpperCase()} Terkunci (MindAR Anchor) — Model 3D Tampil!`, '#10b981');
           });
 
