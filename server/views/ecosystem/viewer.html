@@ -417,7 +417,7 @@
     }
 
     // ══════════════════════════════════════════════════════
-    // MODE AR CONTROLLER (Dual Monitor & Print Image Tracking)
+    // MODE AR CONTROLLER (Robust Dual Monitor Screen & Print AR)
     // ══════════════════════════════════════════════════════
     let mindarThree = null;
     let arModelObj = null;
@@ -466,8 +466,8 @@
           container: container,
           imageTargetSrc: mindPath,
           maxTrack: 1,
-          warmupTolerance: 3,
-          missTolerance: 15,
+          warmupTolerance: 2,
+          missTolerance: 20,
           filterMinCF: 0.0001,
           filterBeta: 0.001,
           uiLoading: 'no',
@@ -479,23 +479,43 @@
         const anchor = mindarThree.addAnchor(0);
         arAnchorGroup = anchor.group;
 
-        // Lighting
-        const ambLight = new THREE.AmbientLight(0xffffff, 1.8);
+        // Ambient & Directional Lighting
+        const ambLight = new THREE.AmbientLight(0xffffff, 2.2);
         scene.add(ambLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
-        dirLight.position.set(2, 6, 4);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        dirLight.position.set(3, 8, 5);
         scene.add(dirLight);
 
-        // Load exact GLB 3D model
-        if (window.THREE && window.THREE.GLTFLoader) {
-          const loader = new THREE.GLTFLoader();
+        // Load exact GLB 3D model with automatic Box3 auto-scaling
+        const GLTFLoaderClass = (window.THREE && window.THREE.GLTFLoader) || window.GLTFLoader;
+
+        if (GLTFLoaderClass) {
+          const loader = new GLTFLoaderClass();
           loader.load('{{ECOSYSTEM_GLB_URL}}', (gltf) => {
             arModelObj = gltf.scene;
-            arModelObj.scale.set(0.32, 0.32, 0.32);
-            
-            // Show model spinning immediately in camera view space!
-            arModelObj.position.set(0, -0.2, -1.8);
-            scene.add(arModelObj);
+
+            // Auto-scale GLB model using Box3 bounding box so it fits cleanly on target card
+            const box = new THREE.Box3().setFromObject(arModelObj);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const fitScale = 1.0 / maxDim; // Normalize to 1.0 unit (exact target card width)
+
+            arModelObj.scale.set(fitScale, fitScale, fitScale);
+
+            // Center model pivot
+            const center = box.getCenter(new THREE.Vector3());
+            arModelObj.position.sub(center.multiplyScalar(fitScale));
+
+            // Add to anchor group so MindAR locks and moves it directly on the card
+            arAnchorGroup.add(arModelObj);
+
+            // Also attach to scene for instant display if target scanning takes time
+            const fallbackGroup = arModelObj.clone();
+            fallbackGroup.position.set(0, -0.2, -1.8);
+            fallbackGroup.scale.set(0.35, 0.35, 0.35);
+            fallbackGroup.name = 'fallbackModel';
+            scene.add(fallbackGroup);
+
             setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
           }, undefined, (err) => {
             console.warn('GLB load error in AR:', err);
@@ -503,20 +523,18 @@
         }
 
         anchor.onTargetFound = () => {
-          if (arModelObj) {
-            arModelObj.position.set(0, 0, 0);
-            arModelObj.scale.set(0.32, 0.32, 0.32);
-            arAnchorGroup.add(arModelObj);
-          }
-          setArStatus('✅ Terkunci pada Kartu Print/Layar AR!', '#10b981');
+          // Hide fallback camera model when card target is locked
+          const fallback = scene.getObjectByName('fallbackModel');
+          if (fallback) fallback.visible = false;
+
+          setArStatus('✅ Terkunci pada Kartu AR!', '#10b981');
         };
 
         anchor.onTargetLost = () => {
-          if (arModelObj && arModelObj.parent === arAnchorGroup) {
-            arModelObj.position.set(0, -0.2, -1.8);
-            arModelObj.scale.set(0.32, 0.32, 0.32);
-            scene.add(arModelObj);
-          }
+          // Re-enable fallback camera model if card target is moved away
+          const fallback = scene.getObjectByName('fallbackModel');
+          if (fallback) fallback.visible = true;
+
           setArStatus('✨ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
         };
 
@@ -526,6 +544,10 @@
         renderer.setAnimationLoop(() => {
           if (arModelObj) {
             arModelObj.rotation.y += 0.006;
+          }
+          const fallback = scene.getObjectByName('fallbackModel');
+          if (fallback) {
+            fallback.rotation.y += 0.006;
           }
           renderer.render(scene, camera);
         });
