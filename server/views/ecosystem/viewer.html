@@ -186,14 +186,14 @@
     }
     #ar-zoom-bar.active { display: flex; }
     .ar-zoom-btn {
-      width: 42px; height: 42px; border-radius: 14px;
-      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      width: 44px; height: 44px; border-radius: 14px;
+      background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
       color: #ffffff; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      cursor: pointer; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
       transition: transform 0.15s, background 0.15s;
     }
-    .ar-zoom-btn:active { transform: scale(0.92); background: rgba(124, 58, 237, 0.9); }
+    .ar-zoom-btn:active { transform: scale(0.9); background: rgba(124, 58, 237, 0.95); }
 
     /* ── 3D Controls ─────────────────────────────────────── */
     #ctrl-bar {
@@ -288,13 +288,13 @@
   <!-- Floating AR Zoom & Inspection Controller Bar -->
   <div id="ar-zoom-bar">
     <button class="ar-zoom-btn" onclick="zoomInAR()" title="Perbesar Model 3D">
-      <span class="material-symbols-outlined" style="font-size:22px;">add</span>
+      <span class="material-symbols-outlined" style="font-size:24px;">add</span>
     </button>
     <button class="ar-zoom-btn" onclick="zoomOutAR()" title="Perkecil Model 3D">
-      <span class="material-symbols-outlined" style="font-size:22px;">remove</span>
+      <span class="material-symbols-outlined" style="font-size:24px;">remove</span>
     </button>
     <button class="ar-zoom-btn" onclick="resetZoomAR()" title="Reset Posisi & Skala">
-      <span class="material-symbols-outlined" style="font-size:20px;">restart_alt</span>
+      <span class="material-symbols-outlined" style="font-size:22px;">restart_alt</span>
     </button>
   </div>
 
@@ -342,7 +342,7 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Pinch-to-Zoom & Auto-Fit Scaling) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Compact Auto-Fit & Unbound User Scaling/Rotation) ── -->
   <script>
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -358,7 +358,7 @@
         });
       }
 
-      // 2. Center-Model Component (Auto-centers GLB mesh & sets optimal compact default scale)
+      // 2. Center-Model Component (Auto-centers GLB mesh & sets compact default scale: 0.12m)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
@@ -377,11 +377,11 @@
               obj.position.y -= center.y;
               obj.position.z -= center.z;
 
-              // Ideal responsive scale: 0.24m across so full model fits comfortably in mobile view!
-              const desiredScale = 0.24 / maxDim;
+              // PERFECT COMPACT MOBILE SCALE: 0.12m across so full model fits neatly in center!
+              const desiredScale = 0.12 / maxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
-              console.log('[AR Engine] Responsive Auto-Fit! Center:', center, 'Size:', size, 'Scale:', desiredScale);
+              console.log('[AR Engine] Compact Responsive Scale! Center:', center, 'Size:', size, 'Scale:', desiredScale);
             });
           }
         });
@@ -400,12 +400,12 @@
     ];
 
     const SLOT_BADGES = [
-      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.45 0.24 0' },
-      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.22 0.24 0.39' },
-      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.22 0.24 0.39' },
-      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.45 0.24 0' },
-      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.22 0.24 -0.39' },
-      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.22 0.24 -0.39' },
+      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.22 0.12 0' },
+      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.11 0.12 0.19' },
+      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.11 0.12 0.19' },
+      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.22 0.12 0' },
+      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.11 0.12 -0.19' },
+      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.11 0.12 -0.19' },
     ];
 
     let arActive = false;
@@ -424,35 +424,35 @@
     let initialPinchDist = 0;
     let initialUserScale = 1.0;
 
-    // ── Apply User Scale (Enlarge / Shrink) ──
+    // ── Apply User Scale & Touch Rotation to Unanimated Parent Group ──
     function applyModelUserScale() {
-      const camGlbGroup = document.getElementById('cam-glb-group');
-      const anchorGlbGroup = document.getElementById('anchor-glb-group');
+      const camUserGroup = document.getElementById('cam-user-group');
+      const anchorUserGroup = document.getElementById('anchor-user-group');
 
       const rotStr = `${customRotX} ${customRotY} 0`;
       const scaleStr = `${userScale} ${userScale} ${userScale}`;
 
-      if (camGlbGroup) {
-        camGlbGroup.setAttribute('rotation', rotStr);
-        camGlbGroup.setAttribute('scale', scaleStr);
+      if (camUserGroup) {
+        camUserGroup.setAttribute('rotation', rotStr);
+        camUserGroup.setAttribute('scale', scaleStr);
       }
-      if (anchorGlbGroup) {
-        anchorGlbGroup.setAttribute('rotation', rotStr);
-        anchorGlbGroup.setAttribute('scale', scaleStr);
+      if (anchorUserGroup) {
+        anchorUserGroup.setAttribute('rotation', rotStr);
+        anchorUserGroup.setAttribute('scale', scaleStr);
       }
     }
 
-    window.zoomInAR = () => {
-      userScale = Math.min(userScale * 1.25, 3.5);
+    window.zoomInAR = function() {
+      userScale = Math.min(userScale * 1.3, 4.0);
       applyModelUserScale();
     };
 
-    window.zoomOutAR = () => {
-      userScale = Math.max(userScale / 1.25, 0.25);
+    window.zoomOutAR = function() {
+      userScale = Math.max(userScale / 1.3, 0.15);
       applyModelUserScale();
     };
 
-    window.resetZoomAR = () => {
+    window.resetZoomAR = function() {
       userScale = 1.0;
       customRotX = 0;
       customRotY = 0;
@@ -580,7 +580,7 @@
       }
     }
 
-    // ── Build HTML for A-Frame Scene (With Auto-Centering + 3D AR Billboard Badges) ──
+    // ── Build HTML for A-Frame Scene (With Separate Unanimated User Group & Auto-Centering) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
@@ -590,7 +590,7 @@
         const badgeDataUrl = createSlotBadgeDataUrl(slot.label, slot.role);
         badgeEntities += `
           <a-entity position="${slot.pos}" billboard>
-            <a-plane src="${badgeDataUrl}" width="0.36" height="0.09" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
+            <a-plane src="${badgeDataUrl}" width="0.18" height="0.045" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
           </a-entity>`;
       });
 
@@ -604,13 +604,17 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.02 -0.85" scale="0 0 0" visible="false">
-              <a-entity id="cam-glb-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
-                ${badgeEntities}
+            <a-entity id="camera-space-model" position="0 -0.05 -1.2" scale="0 0 0" visible="false">
+              <!-- Separate Unanimated User Group for Touch Drag & Scale -->
+              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+                <!-- Inner Auto-Spin Group -->
+                <a-entity id="cam-spin-group"
+                  animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
+                  <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
+                  ${badgeEntities}
+                </a-entity>
+                <a-torus radius="0.28" radius-tubular="0.008" color="#10b981" rotation="90 0 0" position="0 -0.05 0" opacity="0.85"></a-torus>
               </a-entity>
-              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
@@ -621,24 +625,24 @@
 
           <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-entity id="anchor-glb-group"
-              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
-              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
-              ${badgeEntities}
+            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+              <a-entity id="anchor-spin-group"
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
+                <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
+                ${badgeEntities}
+              </a-entity>
+              <a-torus radius="0.28" radius-tubular="0.008" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
+                animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
+              </a-torus>
             </a-entity>
-            <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
-              animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
-            </a-torus>
           </a-entity>
         </a-scene>`;
     }
 
-    // ── Touch Gesture Setup for 360° Drag & 2-Finger Pinch-to-Zoom ──
+    // ── Touch Gesture Setup for Unbound 360° Drag & 2-Finger Pinch Zoom ──
     function setupTouchGestureRotation() {
-      const container = document.getElementById('ar-container');
-      if (!container) return;
-
-      container.addEventListener('touchstart', (e) => {
+      const handleTouchStart = (e) => {
+        if (!arActive) return;
         if (e.touches.length === 1) {
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
@@ -651,9 +655,10 @@
           );
           initialUserScale = userScale;
         }
-      }, { passive: true });
+      };
 
-      container.addEventListener('touchmove', (e) => {
+      const handleTouchMove = (e) => {
+        if (!arActive) return;
         if (e.touches.length === 1 && isTouchDragging) {
           const deltaX = e.touches[0].clientX - previousTouchX;
           const deltaY = e.touches[0].clientY - previousTouchY;
@@ -671,15 +676,20 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const scaleFactor = currentDist / initialPinchDist;
-          userScale = Math.min(Math.max(initialUserScale * scaleFactor, 0.25), 3.5);
+          userScale = Math.min(Math.max(initialUserScale * scaleFactor, 0.15), 4.0);
           applyModelUserScale();
         }
-      }, { passive: true });
+      };
 
-      container.addEventListener('touchend', (e) => {
+      const handleTouchEnd = (e) => {
+        if (!arActive) return;
         if (e.touches.length < 2) initialPinchDist = 0;
         if (e.touches.length === 0) isTouchDragging = false;
-      }, { passive: true });
+      };
+
+      window.addEventListener('touchstart', handleTouchStart, { passive: true });
+      window.addEventListener('touchmove', handleTouchMove, { passive: true });
+      window.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
 
     // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
