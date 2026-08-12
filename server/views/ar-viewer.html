@@ -13,6 +13,11 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
+  <!-- Local Vendor Scripts for MindAR & Three.js (Served from /assets/vendor/) with CDN Fallbacks -->
+  <script src="/assets/vendor/three.min.js" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'"></script>
+  <script src="/assets/vendor/GLTFLoader.js" onerror="this.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js'"></script>
+  <script src="/assets/vendor/mindar-image-three.prod.js" onerror="this.src='https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js'"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -216,7 +221,6 @@
     let mindarThree = null;
     let arModelObj = null;
     let arStarted = false;
-    let mindarScriptLoaded = false;
 
     function setArStatus(text, color) {
       const dot = document.getElementById('mindar-dot');
@@ -237,50 +241,17 @@
       if (overlay) overlay.classList.remove('show');
     }
 
-    function loadMindarScripts() {
-      if (mindarScriptLoaded || window.MINDAR) {
-        mindarScriptLoaded = true;
-        return Promise.resolve(true);
-      }
-
-      return new Promise((resolve) => {
-        const sThree = document.createElement('script');
-        sThree.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-        sThree.onload = () => {
-          const sGLTF = document.createElement('script');
-          sGLTF.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
-          sGLTF.onload = () => {
-            const sMind = document.createElement('script');
-            sMind.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
-            sMind.onload = () => {
-              mindarScriptLoaded = true;
-              resolve(true);
-            };
-            sMind.onerror = () => resolve(false);
-            document.head.appendChild(sMind);
-          };
-          sGLTF.onerror = () => resolve(false);
-          document.head.appendChild(sGLTF);
-        };
-        sThree.onerror = () => resolve(false);
-        document.head.appendChild(sThree);
-      });
-    }
-
     async function startMindAR() {
       if (arStarted) return;
       const container = document.getElementById('mindar-container');
       container.classList.add('active');
       hideArError();
-      setArStatus('Memuat engine AR...', '#fbbf24');
+      setArStatus('Memulai kamera...', '#fbbf24');
 
-      const loaded = await loadMindarScripts();
-      if (!loaded || !window.MINDAR) {
-        showArError('Gagal memuat library MindAR. Periksa koneksi internet Anda.');
+      if (!window.MINDAR || !window.MINDAR.IMAGE) {
+        showArError('Library MindAR belum siap. Pastikan koneksi internet aktif.');
         return;
       }
-
-      setArStatus('Meminta akses kamera...', '#fbbf24');
 
       try {
         const assetId = '{{ASSET_ID}}' || 'default-card';

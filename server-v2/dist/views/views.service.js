@@ -386,6 +386,7 @@ let ViewsService = class ViewsService {
         }
         html = html
             .replace(/{{ECOSYSTEM_NAME}}/g, this.escapeHtml(name))
+            .replace(/{{ECOSYSTEM_ID}}/g, this.escapeHtml(targetId))
             .replace(/{{ECOSYSTEM_GLB_URL}}/g, fullGlbUrl);
         return html;
     }
