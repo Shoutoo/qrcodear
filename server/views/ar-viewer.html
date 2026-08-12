@@ -1,627 +1,383 @@
 <!DOCTYPE html>
-<html class="light" lang="id">
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="AR Viewer — {{MODEL_NAME}}" />
-  <title>{{MODEL_NAME}} — Magic AR Edu</title>
+  <title>{{MODEL_TITLE}} — AlamVerse 3D & AR Studio</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <!-- Material Symbols -->
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <!-- Quicksand Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet"/>
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          "colors": {
-            "secondary": "#705d00",
-            "surface-bright": "#f4faff",
-            "primary-fixed-dim": "#cdbdff",
-            "secondary-fixed": "#ffe170",
-            "on-primary-fixed-variant": "#4f00d0",
-            "surface-container-low": "#e7f6ff",
-            "surface-tint": "#6833ea",
-            "on-primary-fixed": "#20005f",
-            "on-secondary-container": "#6f5c00",
-            "primary": "#632ce5",
-            "on-background": "#0d1e25",
-            "outline": "#7a7487",
-            "error-container": "#ffdad6",
-            "on-error-container": "#93000a",
-            "surface-variant": "#d4e5ef",
-            "primary-container": "#7c4dff",
-            "secondary-container": "#fdd400",
-            "on-tertiary": "#ffffff",
-            "background": "#f4faff",
-            "surface-dim": "#cbdde7",
-            "on-secondary-fixed": "#221b00",
-            "on-surface": "#0d1e25",
-            "on-error": "#ffffff",
-            "inverse-on-surface": "#e2f3fd",
-            "tertiary-fixed-dim": "#00daf3",
-            "inverse-primary": "#cdbdff",
-            "tertiary-fixed": "#9cf0ff",
-            "surface-container-lowest": "#ffffff",
-            "on-surface-variant": "#494455",
-            "on-primary": "#ffffff",
-            "on-secondary": "#ffffff",
-            "primary-fixed": "#e8deff",
-            "surface": "#f4faff",
-            "surface-container-highest": "#d4e5ef",
-            "on-tertiary-container": "#ebfcff",
-            "on-tertiary-fixed": "#001f24",
-            "on-secondary-fixed-variant": "#544600",
-            "outline-variant": "#cac3d8",
-            "tertiary-container": "#007e8d",
-            "secondary-fixed-dim": "#e9c400",
-            "on-primary-container": "#fcf6ff",
-            "tertiary": "#00636f",
-            "surface-container": "#dff1fb",
-            "error": "#ba1a1a",
-            "on-tertiary-fixed-variant": "#004f58",
-            "inverse-surface": "#23333a",
-            "surface-container-high": "#d9ebf5"
-          },
-          "fontFamily": {
-            "button-text": ["Quicksand"],
-            "display-lg": ["Quicksand"],
-            "body-md": ["Quicksand"],
-            "label-bold": ["Quicksand"],
-            "headline-md": ["Quicksand"]
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Three.js Engine & MindAR.js Image Tracking for Cross-Device AR -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
-
-  <!-- Google <model-viewer> (3D View Engine) -->
+  <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
       font-family: 'Quicksand', sans-serif;
-      background: #f4faff;
+      background: #0d131f;
+      color: #f8fafc;
     }
 
-    /* ── Model Viewer Container ────────────────────────────── */
     model-viewer {
+      width: 100vw; height: 100vh;
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      display: block;
+    }
+
+    .hud-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.4);
+      color: #f8fafc;
+    }
+
+    .mode-btn-active {
+      background: #632ce5 !important;
+      color: #ffffff !important;
+      font-weight: 900 !important;
+      box-shadow: 0 2px 10px rgba(99,44,229,0.4) !important;
+    }
+    .mode-btn-inactive {
+      color: #94a3b8 !important;
+      font-weight: 700 !important;
+      background: transparent !important;
+    }
+    .mode-btn-inactive:hover {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+    }
+
+    #mindar-container {
+      display: none;
+      position: fixed;
+      inset: 0;
       width: 100vw;
       height: 100vh;
-      background-color: #f4faff;
-      --poster-color: transparent;
-      z-index: 1;
+      z-index: 10;
+      background: #000;
+      overflow: hidden;
     }
+    #mindar-container.active { display: block; }
 
-    /* ── Custom Floating AR Button ─────────────────────────── */
-    .ar-custom-button {
+    #ar-status-bar {
       position: absolute;
-      bottom: 24px;
+      top: 80px;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, #632ce5 0%, #7c4dff 100%);
-      color: #ffffff;
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      padding: 14px 28px;
-      border-radius: 50px;
-      border: 2px solid #ffffff;
-      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      z-index: 20;
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .ar-custom-button:hover {
-      transform: translateX(-50%) scale(1.05);
-      box-shadow: 0 12px 30px rgba(99, 44, 229, 0.5);
-    }
-    /* ── Native <model-viewer> Hotspots ──────────────────────── */
-    .view-hotspot {
-      background: #fdd400; /* yellow pill */
-      color: #6f5c00;
-      border: 2px solid #ffffff;
-      border-radius: 50px;
-      padding: 6px 14px;
-      font-family: 'Quicksand', sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 16px rgba(111, 92, 0, 0.25);
-      cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+      z-index: 50;
       white-space: nowrap;
-      user-select: none;
-      z-index: 10;
-    }
-    .view-hotspot:hover {
-      transform: scale(1.08);
-      box-shadow: 0 6px 20px rgba(111, 92, 0, 0.35);
-    }
-    .view-hotspot:active {
-      transform: scale(0.95);
-    }
-    .view-hotspot .hotspot-icon {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #6f5c00;
-      color: #fdd400;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .view-hotspot[data-normal] {
-      pointer-events: auto;
-    }
-    .view-hotspot.not-normal {
-      opacity: 0.3;
       pointer-events: none;
     }
-
-    /* ── Info Popup Modal ──────────────────────────────── */
-    #info-popup {
-      position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
-      width: min(340px, 90vw); background: #ffffff; border: 2px solid #e7f6ff;
-      border-radius: 24px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.15);
-      display: none; pointer-events: auto; animation: popupSlide 0.3s cubic-bezier(0.4,0,0.2,1);
-      z-index: 30;
-    }
-    #info-popup.show { display: block; transform: translateX(-50%) translateY(0); }
-    @keyframes popupSlide { from { transform: translateX(-50%) translateY(30px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-
-    /* ── Header Bar ────────────────────────────────────── */
-    #header {
-      position: absolute; top: 0; left: 0; right: 0;
-      padding: 16px 20px 32px;
-      background: linear-gradient(to bottom, rgba(244,250,255,0.95) 0%, rgba(244,250,255,0) 100%);
-      display: flex; align-items: center; gap: 12px;
-      z-index: 10;
-      pointer-events: auto;
+    #ar-scan-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      pointer-events: none;
+      text-align: center;
     }
 
-    /* ── Loading Screen ────────────────────────────────── */
-    #loading-screen {
-      position: fixed; inset: 0; z-index: 50; background: #f4faff;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-      transition: opacity 0.6s ease; font-family: 'Quicksand', sans-serif;
+    #ar-scan-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(260px, 70vw);
+      height: min(360px, 50vh);
+      border: 3px dashed rgba(251, 191, 36, 0.85);
+      border-radius: 24px;
+      z-index: 40;
+      pointer-events: none;
     }
-    #loading-screen.fade { opacity: 0; pointer-events: none; }
-    #loading-screen.hidden { display: none; }
+    #ar-scan-frame::before,
+    #ar-scan-frame::after {
+      content: '';
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-color: #fbbf24;
+      border-style: solid;
+    }
+    #ar-scan-frame::before {
+      top: -3px; left: -3px;
+      border-width: 4px 0 0 4px;
+      border-radius: 8px 0 0 0;
+    }
+    #ar-scan-frame::after {
+      bottom: -3px; right: -3px;
+      border-width: 0 4px 4px 0;
+      border-radius: 0 0 8px 0;
+    }
+
+    #ar-error-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      background: rgba(15, 23, 42, 0.95);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px;
+      text-align: center;
+    }
+    #ar-error-overlay.show { display: flex; }
+
+    .chunky-btn {
+      transition: all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .chunky-btn:active { transform: scale(0.94); }
   </style>
 </head>
 <body>
 
-<!-- ── Loading Screen ──────────────────────────────────────── -->
-<div id="loading-screen">
-  <div class="bg-primary-container p-4 rounded-2xl mb-2 animate-bounce">
-    <span class="material-symbols-outlined text-white text-4xl" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-  </div>
-  <div class="font-display-lg text-2xl text-primary font-bold">Magic AR Edu</div>
-  <div class="text-on-surface-variant font-medium">{{MODEL_NAME}}</div>
-  <div class="w-48 h-2 bg-surface-container-high rounded-full overflow-hidden mt-4">
-    <div class="h-full bg-primary rounded-full transition-all duration-300" id="ld-bar" style="width: 0%"></div>
-  </div>
-  <div class="text-sm font-bold text-outline mt-2" id="ld-status">Memuat model 3D ajaib...</div>
-</div>
+  <!-- LAYER 1: 3D VIEWER -->
+  <model-viewer
+    id="viewer"
+    src="{{MODEL_URL}}"
+    alt="{{MODEL_TITLE}}"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    loading="eager"
+  >
+  </model-viewer>
 
-<!-- ── Google <model-viewer> (Markerless AR Engine) ────────── -->
-<model-viewer
-  id="viewer"
-  src="{{MODEL_URL}}"
-  ios-src="{{MODEL_USDZ_URL}}"
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  camera-controls
-  shadow-intensity="1"
-  ar-placement="floor"
-  alt="{{MODEL_NAME}}"
-  loading="eager"
-  auto-rotate
-  rotation-per-second="15deg"
->
-  <button slot="ar-button" id="ar-button" class="ar-custom-button">
-    <span class="material-symbols-outlined">view_in_ar</span> Lihat dalam AR Dunia Nyata
-  </button>
-</model-viewer>
-
-<!-- ── Mode 2: MindAR.js Fullscreen Camera Tracking Container ── -->
-<div id="mindar-container" class="hidden fixed inset-0 z-10 w-full h-full bg-slate-950 overflow-hidden">
-  <div class="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-    <div class="bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full flex items-center gap-3 shadow-2xl text-xs font-bold text-slate-900 border border-slate-200">
-      <span id="mindar-status-dot" class="w-3 h-3 rounded-full bg-amber-400"></span>
-      <span id="mindar-status-text">Arahkan kamera ke Kartu Print AR...</span>
-    </div>
-  </div>
-  <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-    <div class="w-72 h-96 border-4 border-dashed border-amber-400/80 rounded-3xl flex flex-col items-center justify-between p-6 animate-pulse">
-      <span class="text-xs font-extrabold text-white bg-purple-700/90 px-3.5 py-1 rounded-full shadow">Scan Kartu Print AR</span>
-      <span class="material-symbols-outlined text-5xl text-amber-300">qr_code_scanner</span>
-      <span class="text-[11px] text-white/90 font-bold bg-slate-900/80 px-2.5 py-1 rounded-lg">MindAR Cross-Device Engine</span>
-    </div>
-  </div>
-</div>
-
-<!-- ── UI Overlay ────────────────────────────────────────── -->
-<div id="overlay">
-
-  <!-- Header -->
-  <div id="header">
-    <div class="bg-primary-container p-2 rounded-lg flex-shrink-0">
-      <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">auto_fix_high</span>
-    </div>
-    <div>
-      <h1 class="font-bold text-on-surface text-lg leading-tight">{{MODEL_NAME}}</h1>
-      <p class="text-xs text-on-surface-variant font-medium">Magic AR Edu • {{UPLOAD_DATE}}</p>
-    </div>
-
-    <!-- 2 Mode Selector Buttons (3D View vs Mode AR) -->
-    <div class="flex items-center gap-1.5 bg-[#e7f6ff] p-1 rounded-2xl border border-[#cac3d8] ml-3">
-      <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm">
-        <span class="material-symbols-outlined text-sm">3d_rotation</span> 3D View
-      </button>
-      <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm">view_in_ar</span> Mode AR (Marker)
-      </button>
-    </div>
-
-    <div class="ml-auto pointer-events-auto flex items-center gap-2">
-      <button id="btn-snapshot" class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-primary-container hover:text-white transition-all" title="Ambil Tangkapan Layar 3D">
-        <span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto
-      </button>
-      <button id="btn-share" class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-primary-container hover:text-white transition-all" title="Bagikan Tautan AR">
-        <span class="material-symbols-outlined text-sm">share</span> Bagikan
-      </button>
-      <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/editor/{{ASSET_ID}}" target="_blank">
-        <span class="material-symbols-outlined text-sm">edit_location_alt</span> Edit 3D
-      </a>
-      <a class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-surface-dim transition-colors" href="/print/{{ASSET_ID}}" target="_blank">
-        <span class="material-symbols-outlined text-sm">print</span> Cetak
-      </a>
-    </div>
-  </div>
-
-  <!-- SVG Line overlay -->
-  <svg id="lines-svg" xmlns="http://www.w3.org/2000/svg"></svg>
-
-  <!-- Annotation labels -->
-  <div id="ann-wrap"></div>
-
-  <!-- Marker found ring -->
-  <div id="found-ring"></div>
-
-  <!-- Instructions -->
-  <div id="instructions" class="flex items-center gap-2">
-    <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
-    Arahkan kamera ke <strong class="text-primary">Marker AR</strong>
-  </div>
-
-  <!-- Info Popup -->
-  <div id="info-popup">
-    <div class="flex items-center justify-between mb-4 border-b-2 border-surface-container-high pb-3">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">sell</span>
-        <h2 id="popup-title" class="font-bold text-on-surface text-lg">Label</h2>
+  <!-- LAYER 2: MINDAR CONTAINER -->
+  <div id="mindar-container">
+    <div id="ar-status-bar">
+      <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:8px 20px;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.3);">
+        <span id="mindar-dot" style="width:10px;height:10px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
+        <span id="mindar-text">Memulai kamera...</span>
       </div>
-      <button class="text-outline-variant hover:text-error hover:bg-error-container p-1 rounded transition-colors" onclick="closePopup()">
-        <span class="material-symbols-outlined">close</span>
+    </div>
+
+    <div id="ar-scan-frame"></div>
+
+    <div id="ar-scan-hint">
+      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:12px;font-weight:800;padding:8px 20px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+        📷 Arahkan kamera ke Kartu Print AR
+      </span>
+    </div>
+
+    <div id="ar-error-overlay">
+      <span class="material-symbols-outlined" style="font-size:48px;color:#fbbf24;">videocam_off</span>
+      <p id="ar-error-text" style="color:#fff;font-size:14px;font-weight:700;max-width:300px;line-height:1.5;"></p>
+      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:10px 24px;border-radius:12px;border:none;font-size:13px;cursor:pointer;margin-top:8px;">
+        ← Kembali ke 3D View
       </button>
     </div>
-    <p id="popup-desc" class="text-on-surface-variant text-sm leading-relaxed font-medium mb-4">Deskripsi...</p>
-    <p class="text-xs text-center text-outline font-bold">Tap di luar untuk menutup</p>
   </div>
 
-  <!-- Large Magenta Title Overlay -->
-  <div id="ar-title-banner" class="ar-title-text">
-    {{MODEL_NAME}}
-  </div>
+  <!-- LAYER 3: TOP NAVIGATION HUD -->
+  <header style="position:absolute;top:14px;left:14px;right:14px;z-index:30;pointer-events:auto;">
+    <div class="hud-card" style="border-radius:20px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:850px;margin:auto;">
+      
+      <!-- Left Info -->
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1;">
+        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(99,44,229,0.4);">
+          <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">view_in_ar</span>
+        </div>
+        <div style="min-width:0;">
+          <h1 style="font-weight:900;font-size:14px;line-height:1.2;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{MODEL_TITLE}}</h1>
+          <p style="font-size:11px;color:#94a3b8;font-weight:700;margin-top:2px;">AlamVerse Studio 3D</p>
+        </div>
+      </div>
 
-  <!-- Footer bar -->
-  <div id="footer-bar">
-    <div class="status-indicator">
-      <div class="status-dot" id="status-dot"></div>
-      <span id="status-text">Mencari marker...</span>
+      <!-- Right 2 Mode Selector -->
+      <div id="mode-switcher" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);flex-shrink:0;">
+        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:16px;">3d_rotation</span>
+          <span>3D View</span>
+        </button>
+        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
+          <span>Mode AR</span>
+        </button>
+      </div>
+
     </div>
-  </div>
+  </header>
 
-</div>
+  <script>
+    const viewer = document.getElementById('viewer');
+    let mindarThree = null;
+    let arModelObj = null;
+    let arStarted = false;
+    let mindarScriptLoaded = false;
 
-<script type="application/json" id="annotations-data">
-{{ANNOTATIONS_JSON}}
-</script>
-
-<script>
-// ─── Data injected from server ──────────────────────────────
-const ANNOTATIONS = JSON.parse(document.getElementById('annotations-data').textContent || '[]');
-
-// ─── DOM References ─────────────────────────────────────────
-const viewer    = document.getElementById('viewer');
-const ldBar     = document.getElementById('ld-bar');
-const ldStatus  = document.getElementById('ld-status');
-const loadingLs = document.getElementById('loading-screen');
-const infoPopup = document.getElementById('info-popup');
-
-// ─── Position Presets for Legacy Annotations ─────────────────
-const POS_PRESETS = {
-  'top':          '0m 0.55m 0m',
-  'top-left':     '-0.25m 0.45m 0m',
-  'top-right':    '0.25m 0.45m 0m',
-  'left':         '-0.32m 0.22m 0m',
-  'right':        '0.32m 0.22m 0m',
-  'center-left':  '-0.28m 0.10m 0m',
-  'center-right': '0.28m 0.10m 0m',
-  'bottom-left':  '-0.22m -0.02m 0m',
-  'bottom-right': '0.22m -0.02m 0m',
-  'bottom':       '0m -0.08m 0m',
-};
-
-// ─── Render Native <model-viewer> Hotspots ───────────────────
-function renderHotspots() {
-  if (!viewer || !ANNOTATIONS.length) return;
-
-  ANNOTATIONS.forEach((ann, index) => {
-    let posStr = '0m 0.25m 0m';
-
-    if (ann.dataPosition) {
-      posStr = ann.dataPosition;
-    } else if (ann.position && POS_PRESETS[ann.position]) {
-      posStr = POS_PRESETS[ann.position];
-    } else if (ann.position && typeof ann.position === 'string' && (ann.position.includes('m') || ann.position.includes(' '))) {
-      posStr = ann.position;
+    function setArStatus(text, color) {
+      const dot = document.getElementById('mindar-dot');
+      const txt = document.getElementById('mindar-text');
+      if (dot) dot.style.background = color || '#fbbf24';
+      if (txt) txt.innerText = text;
     }
 
-    // Default normal vector to "0 1 0" for legacy data without normal vector
-    const normalStr = ann.dataNormal || ann.normal || '0 1 0';
-
-    const btn = document.createElement('button');
-    btn.className = 'view-hotspot';
-    btn.setAttribute('slot', `hotspot-${index + 1}`);
-    btn.setAttribute('data-position', posStr);
-    btn.setAttribute('data-normal', normalStr);
-    btn.setAttribute('data-visibility-attribute', 'visible');
-
-    btn.innerHTML = `
-      <span>${escHtml(ann.name || 'Label')}</span>
-      ${ann.description ? `<span class="hotspot-icon"><span class="material-symbols-outlined text-[14px]">info</span></span>` : ''}
-    `;
-
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      showInfo(ann);
-    });
-
-    viewer.appendChild(btn);
-  });
-}
-
-function showInfo(ann) {
-  if (!infoPopup) return;
-  document.getElementById('popup-title').textContent = ann.name || 'Label Anotasi';
-  document.getElementById('popup-desc').textContent = ann.description || 'Tidak ada deskripsi.';
-  infoPopup.classList.add('show');
-}
-
-function closePopup() {
-  if (infoPopup) infoPopup.classList.remove('show');
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-// ─── Loading Progress for <model-viewer> ────────────────────
-if (viewer && ldBar && loadingLs) {
-  viewer.addEventListener('progress', (e) => {
-    const progress = Math.round(e.detail.totalProgress * 100);
-    ldBar.style.width = progress + '%';
-    if (ldStatus) ldStatus.textContent = `Memuat model 3D (${progress}%)...`;
-  });
-
-  const finishLoading = () => {
-    ldBar.style.width = '100%';
-    if (ldStatus) ldStatus.textContent = 'Siap!';
-    setTimeout(() => {
-      loadingLs.classList.add('fade');
-      setTimeout(() => loadingLs.classList.add('hidden'), 600);
-    }, 300);
-  };
-
-  viewer.addEventListener('load', () => {
-    finishLoading();
-    renderHotspots();
-  });
-
-  // Fallback timeout in case load event already fired
-  setTimeout(() => {
-    if (!loadingLs.classList.contains('hidden')) {
-      finishLoading();
-      renderHotspots();
+    function showArError(msg) {
+      const overlay = document.getElementById('ar-error-overlay');
+      const errTxt = document.getElementById('ar-error-text');
+      if (overlay) overlay.classList.add('show');
+      if (errTxt) errTxt.innerText = msg;
     }
-  }, 3500);
-}
 
-document.getElementById('overlay')?.addEventListener('click', (e) => {
-  if (infoPopup && infoPopup.classList.contains('show') && !infoPopup.contains(e.target) && !e.target.closest('.Hotspot')) {
-    closePopup();
-  }
-});
-
-// ─── Snapshot Capture Feature ───────────────────────────────
-const btnSnapshot = document.getElementById('btn-snapshot');
-if (btnSnapshot && viewer) {
-  btnSnapshot.addEventListener('click', async () => {
-    try {
-      btnSnapshot.disabled = true;
-      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Mengambil...`;
-      const blob = await viewer.toBlob({ idealAspect: true, mimeType: 'image/png' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `{{MODEL_NAME}}_AR_Snapshot_${Date.now()}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm text-green-500">check_circle</span> Berhasil!`;
-      setTimeout(() => {
-        btnSnapshot.disabled = false;
-        btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto`;
-      }, 2000);
-    } catch (err) {
-      console.error('Snapshot failed:', err);
-      alert('Gagal mengambil tangkapan layar 3D.');
-      btnSnapshot.disabled = false;
-      btnSnapshot.innerHTML = `<span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto`;
+    function hideArError() {
+      const overlay = document.getElementById('ar-error-overlay');
+      if (overlay) overlay.classList.remove('show');
     }
-  });
-}
 
-// ─── Share Link Feature ─────────────────────────────────────
-const btnShare = document.getElementById('btn-share');
-if (btnShare) {
-  btnShare.addEventListener('click', async () => {
-    const shareData = {
-      title: '{{MODEL_NAME}} — Magic AR Edu',
-      text: 'Lihat model 3D interaktif ini dalam AR!',
-      url: window.location.href,
-    };
-    if (navigator.share) {
+    function loadMindarScripts() {
+      if (mindarScriptLoaded || window.MINDAR) {
+        mindarScriptLoaded = true;
+        return Promise.resolve(true);
+      }
+
+      return new Promise((resolve) => {
+        const sThree = document.createElement('script');
+        sThree.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+        sThree.onload = () => {
+          const sGLTF = document.createElement('script');
+          sGLTF.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+          sGLTF.onload = () => {
+            const sMind = document.createElement('script');
+            sMind.src = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
+            sMind.onload = () => {
+              mindarScriptLoaded = true;
+              resolve(true);
+            };
+            sMind.onerror = () => resolve(false);
+            document.head.appendChild(sMind);
+          };
+          sGLTF.onerror = () => resolve(false);
+          document.head.appendChild(sGLTF);
+        };
+        sThree.onerror = () => resolve(false);
+        document.head.appendChild(sThree);
+      });
+    }
+
+    async function startMindAR() {
+      if (arStarted) return;
+      const container = document.getElementById('mindar-container');
+      container.classList.add('active');
+      hideArError();
+      setArStatus('Memuat engine AR...', '#fbbf24');
+
+      const loaded = await loadMindarScripts();
+      if (!loaded || !window.MINDAR) {
+        showArError('Gagal memuat library MindAR. Periksa koneksi internet Anda.');
+        return;
+      }
+
+      setArStatus('Meminta akses kamera...', '#fbbf24');
+
       try {
-        await navigator.share(shareData);
+        const assetId = '{{ASSET_ID}}' || 'default-card';
+        const mindPath = `/assets/markers/${assetId}.mind`;
+
+        mindarThree = new window.MINDAR.IMAGE.MindARThree({
+          container: container,
+          imageTargetSrc: mindPath,
+          uiLoading: 'no',
+          uiScanning: 'no',
+          uiError: 'no'
+        });
+
+        const { renderer, scene, camera } = mindarThree;
+        const anchor = mindarThree.addAnchor(0);
+
+        const ambLight = new THREE.AmbientLight(0xffffff, 1.6);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        dirLight.position.set(2, 6, 4);
+        scene.add(dirLight);
+
+        if (window.THREE && window.THREE.GLTFLoader) {
+          const loader = new THREE.GLTFLoader();
+          loader.load('{{MODEL_URL}}', (gltf) => {
+            arModelObj = gltf.scene;
+            arModelObj.scale.set(0.35, 0.35, 0.35);
+            arModelObj.position.set(0, 0, 0);
+            anchor.group.add(arModelObj);
+          }, undefined, (err) => {
+            console.warn('GLB load error:', err);
+          });
+        }
+
+        anchor.onTargetFound = () => {
+          setArStatus('✅ Marker Ditemukan! Model 3D Aktif', '#10b981');
+        };
+        anchor.onTargetLost = () => {
+          setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
+        };
+
+        await mindarThree.start();
+        arStarted = true;
+        setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
+
+        renderer.setAnimationLoop(() => {
+          if (arModelObj) {
+            arModelObj.rotation.y += 0.005;
+          }
+          renderer.render(scene, camera);
+        });
+
       } catch (err) {
-        copyToClipboard(window.location.href);
+        console.error('MindAR start failed:', err);
+        const msg = String(err && err.message ? err.message : err);
+        if (msg.toLowerCase().includes('camera') || msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('notallowed')) {
+          showArError('Akses kamera ditolak. Silakan izinkan izin kamera pada browser Anda dan coba lagi.');
+        } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          showArError('Mode AR kamera membutuhkan protokol HTTPS pada perangkat seluler. Akses via HTTP diblokir oleh browser.');
+        } else {
+          showArError('Gagal menjalankan AR Kamera: ' + msg);
+        }
       }
-    } else {
-      copyToClipboard(window.location.href);
     }
-  });
-}
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    btnShare.innerHTML = `<span class="material-symbols-outlined text-sm text-green-500">check_circle</span> Tautan Disalin!`;
-    setTimeout(() => {
-      btnShare.innerHTML = `<span class="material-symbols-outlined text-sm">share</span> Bagikan`;
-    }, 2000);
-  }).catch(() => {
-    prompt('Salin tautan ini:', text);
-  });
-}
-
-// ─── MindAR.js Cross-Device Marker Tracking Controller ───────
-let mindarThree = null;
-let arModelObj = null;
-
-async function startMindAR() {
-  const container = document.getElementById('mindar-container');
-  if (!container) return;
-  container.classList.remove('hidden');
-
-  const modelViewer = document.getElementById('viewer');
-  if (modelViewer) modelViewer.style.display = 'none';
-
-  const statusText = document.getElementById('mindar-status-text');
-  const statusDot = document.getElementById('mindar-status-dot');
-
-  if (statusText) statusText.innerText = 'Memulai Kamera AR (MindAR)...';
-
-  try {
-    const assetId = '{{ASSET_ID}}' || 'default-card';
-    const targetMindPath = `/assets/markers/${assetId}.mind`;
-
-    mindarThree = new window.MINDAR.IMAGE.MindARThree({
-      container: container,
-      imageTargetSrc: targetMindPath,
-      uiLoading: "no",
-      uiScanning: "no",
-      uiError: "no"
-    });
-
-    const { renderer, scene, camera } = mindarThree;
-    const anchor = mindarThree.addAnchor(0);
-
-    // Lights
-    const ambLight = new THREE.AmbientLight(0xffffff, 1.4);
-    scene.add(ambLight);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
-    dirLight.position.set(2, 6, 4);
-    scene.add(dirLight);
-
-    // Load EXACT SAME GLB 3D MODEL
-    const gltfUrl = '{{MODEL_URL}}';
-    const gltfLoader = new THREE.GLTFLoader();
-    gltfLoader.load(gltfUrl, (gltf) => {
-      arModelObj = gltf.scene;
-      arModelObj.scale.set(0.35, 0.35, 0.35);
-      arModelObj.position.set(0, 0, 0);
-      anchor.group.add(arModelObj);
-    });
-
-    anchor.onTargetFound = () => {
-      if (statusText) statusText.innerText = '● Marker Terdeteksi! Objek AR Aktif';
-      if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse';
-    };
-
-    anchor.onTargetLost = () => {
-      if (statusText) statusText.innerText = '○ Arahkan kamera ke Kartu Print AR...';
-      if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-amber-400';
-    };
-
-    await mindarThree.start();
-    renderer.setAnimationLoop(() => {
-      if (arModelObj) {
-        arModelObj.rotation.y += 0.005;
+    function stopMindAR() {
+      if (mindarThree) {
+        try {
+          if (mindarThree.renderer) mindarThree.renderer.setAnimationLoop(null);
+          mindarThree.stop();
+        } catch (e) {}
+        mindarThree = null;
       }
-      renderer.render(scene, camera);
-    });
+      arModelObj = null;
+      arStarted = false;
+      hideArError();
 
-  } catch (err) {
-    console.error("MindAR Error:", err);
-    if (statusText) statusText.innerText = 'Gagal mengakses kamera. Izinkan akses kamera pada browser.';
-  }
-}
+      const container = document.getElementById('mindar-container');
+      container.classList.remove('active');
+    }
 
-function stopMindAR() {
-  if (mindarThree) {
-    try { mindarThree.stop(); } catch(e) {}
-    mindarThree = null;
-  }
-  const container = document.getElementById('mindar-container');
-  if (container) container.classList.add('hidden');
+    function switchViewMode(mode) {
+      const btn3D = document.getElementById('btn-mode-3d');
+      const btnAR = document.getElementById('btn-mode-ar');
 
-  const modelViewer = document.getElementById('viewer');
-  if (modelViewer) modelViewer.style.display = 'block';
-}
-
-function switchViewMode(mode) {
-  const btn3D = document.getElementById('btn-mode-3d');
-  const btnAR = document.getElementById('btn-mode-ar');
-
-  if (mode === 'ar') {
-    if (btn3D) btn3D.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1";
-    if (btnAR) btnAR.className = "px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
-    startMindAR();
-  } else {
-    if (btn3D) btn3D.className = "px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
-    if (btnAR) btnAR.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1";
-    stopMindAR();
-  }
-}
-</script>
+      if (mode === 'ar') {
+        if (btn3D) btn3D.className = 'mode-btn-inactive chunky-btn';
+        if (btnAR) btnAR.className = 'mode-btn-active chunky-btn';
+        if (viewer) viewer.style.display = 'none';
+        startMindAR();
+      } else {
+        if (btn3D) btn3D.className = 'mode-btn-active chunky-btn';
+        if (btnAR) btnAR.className = 'mode-btn-inactive chunky-btn';
+        if (viewer) viewer.style.display = 'block';
+        stopMindAR();
+      }
+    }
+  </script>
 </body>
 </html>
