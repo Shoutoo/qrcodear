@@ -140,15 +140,20 @@
       pointer-events: none;
       max-width: 90vw;
     }
+
     #ar-scan-hint {
       position: absolute;
       bottom: max(24px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
-      pointer-events: none;
+      pointer-events: auto;
       text-align: center;
       white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
 
     /* Scan crosshair frame overlay */
@@ -278,9 +283,15 @@
     <div id="ar-scan-frame"></div>
 
     <div id="ar-scan-hint">
-      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-        📷 Arahkan kamera ke Kartu Print AR
-      </span>
+      <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+        <span>📷 Arahkan kamera ke Kartu Print AR</span>
+      </div>
+
+      <!-- Instant AR Fallback Trigger Button -->
+      <button onclick="forceShowArModel()" class="chunky-btn" style="background:linear-gradient(135deg,#632ce5,#7c4dff);color:#fff;font-size:11px;font-weight:900;padding:8px 18px;border-radius:999px;border:none;box-shadow:0 6px 16px rgba(99,44,229,0.5);display:flex;align-items:center;gap:6px;">
+        <span class="material-symbols-outlined" style="font-size:15px;color:#ffe170;">auto_awesome</span>
+        <span>✨ Tampilkan Model 3D Langsung</span>
+      </button>
     </div>
 
     <div id="ar-error-overlay">
@@ -420,11 +431,12 @@
     }
 
     // ══════════════════════════════════════════════════════
-    // MODE AR CONTROLLER (MindAR.js UMD)
+    // MODE AR CONTROLLER (MindAR.js UMD + Fallback)
     // ══════════════════════════════════════════════════════
     let mindarThree = null;
     let arModelObj = null;
     let arStarted = false;
+    let arAnchorGroup = null;
 
     function setArStatus(text, color) {
       const dot = document.getElementById('mindar-dot');
@@ -443,6 +455,20 @@
     function hideArError() {
       const overlay = document.getElementById('ar-error-overlay');
       if (overlay) overlay.classList.remove('show');
+    }
+
+    function forceShowArModel() {
+      if (!mindarThree || !arModelObj) return;
+      try {
+        if (arModelObj.parent) arModelObj.parent.remove(arModelObj);
+        // Position directly in front of camera view in 3D AR space
+        arModelObj.position.set(0, -0.2, -1.8);
+        arModelObj.scale.set(0.28, 0.28, 0.28);
+        mindarThree.scene.add(arModelObj);
+        setArStatus('✅ Model 3D AR Aktif (Tampilan Kamera)', '#10b981');
+      } catch (e) {
+        console.warn('forceShowArModel error:', e);
+      }
     }
 
     async function startMindAR() {
@@ -474,6 +500,7 @@
 
         const { renderer, scene, camera } = mindarThree;
         const anchor = mindarThree.addAnchor(0);
+        arAnchorGroup = anchor.group;
 
         // Lighting
         const ambLight = new THREE.AmbientLight(0xffffff, 1.6);
@@ -489,15 +516,21 @@
             arModelObj = gltf.scene;
             arModelObj.scale.set(0.32, 0.32, 0.32);
             arModelObj.position.set(0, 0, 0);
-            anchor.group.add(arModelObj);
+            arAnchorGroup.add(arModelObj);
           }, undefined, (err) => {
             console.warn('GLB load error in AR:', err);
           });
         }
 
         anchor.onTargetFound = () => {
+          if (arModelObj && arModelObj.parent !== arAnchorGroup) {
+            arModelObj.position.set(0, 0, 0);
+            arModelObj.scale.set(0.32, 0.32, 0.32);
+            arAnchorGroup.add(arModelObj);
+          }
           setArStatus('✅ Marker Ditemukan! Model 3D AR Aktif', '#10b981');
         };
+
         anchor.onTargetLost = () => {
           setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
         };
@@ -505,6 +538,13 @@
         await mindarThree.start();
         arStarted = true;
         setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
+
+        // Auto-fallback: If target scanning takes > 4 seconds, show model live in camera view
+        setTimeout(() => {
+          if (arStarted && arModelObj && (!arModelObj.parent || arModelObj.parent !== arAnchorGroup || !arModelObj.visible)) {
+            forceShowArModel();
+          }
+        }, 4500);
 
         renderer.setAnimationLoop(() => {
           if (arModelObj) {
@@ -536,6 +576,7 @@
       }
       arModelObj = null;
       arStarted = false;
+      arAnchorGroup = null;
       hideArError();
 
       const container = document.getElementById('mindar-container');

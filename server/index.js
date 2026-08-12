@@ -87,6 +87,21 @@ app.get('/assets/markers/:filename', (req, res) => {
   res.status(404).send('Marker asset not found');
 });
 
+// Endpoint to save compiled .mind target binary files
+app.post('/api/save-marker-mind', express.raw({ type: 'application/octet-stream', limit: '50mb' }), (req, res) => {
+  if (!req.body || !req.body.length) return res.status(400).json({ error: 'Empty buffer' });
+  const targetFiles = ['preset-darat.mind', 'preset-hutan.mind', 'preset-laut.mind', 'preset-sawah.mind', 'default-card.mind'];
+  targetFiles.forEach(name => {
+    fs.writeFileSync(path.join(MARKERS_DIR, name), req.body);
+  });
+  console.log(`✅ Compiled .mind target saved to all marker files (${req.body.length} bytes)!`);
+  res.json({ success: true, bytes: req.body.length });
+});
+
+app.get('/compiler', (req, res) => {
+  res.sendFile(path.join(VIEWS_DIR, 'compiler.html'));
+});
+
 // ─── Data helpers ──────────────────────────────────────────────────────────────
 function loadAssets() {
   if (!fs.existsSync(DATA_FILE)) return [];

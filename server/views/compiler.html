@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>AlamVerse — Automatic MindAR Marker Compiler</title>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image.prod.js"></script>
+</head>
+<body style="font-family: system-ui, sans-serif; padding: 40px; background: #0f172a; color: #f8fafc;">
+  <div style="max-width: 600px; margin: auto; background: #1e293b; padding: 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+    <h2 style="margin-top:0; color:#fbbf24;">AlamVerse Auto-Compiler Target</h2>
+    <p id="status" style="font-weight: bold; color: #94a3b8;">Memuat gambar kartu print...</p>
+
+    <img id="target-img" src="/assets/kartu-background-jungle-A6-1500x2235.jpg" style="max-width:100%; border-radius: 12px; margin: 16px 0; border: 2px solid #334155;" />
+
+    <div id="progress-bar-bg" style="width: 100%; height: 10px; background: #334155; border-radius: 5px; overflow: hidden; margin-top: 16px;">
+      <div id="progress-bar" style="width: 0%; height: 100%; background: #632ce5; transition: width 0.2s;"></div>
+    </div>
+  </div>
+
+  <script>
+    async function compile() {
+      const status = document.getElementById('status');
+      const progressBar = document.getElementById('progress-bar');
+      const img = document.getElementById('target-img');
+
+      await new Promise(r => { if (img.complete) r(); else img.onload = r; });
+
+      status.innerText = 'Mengoptimalkan ukuran gambar...';
+
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight));
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      status.innerText = 'Ekstraksi poin fitur MindAR...';
+
+      const MINDARCompiler = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.Compiler) || window.Compiler;
+
+      if (!MINDARCompiler) {
+        status.innerHTML = '<b style="color:#ef4444;">Error: Library Compiler MindAR tidak tersedia</b>';
+        return;
+      }
+
+      const compiler = new MINDARCompiler();
+      await compiler.compileImageTargets([canvas], (p) => {
+        status.innerText = `Proses ekstraksi fitur target: ${p.toFixed(1)}%`;
+        progressBar.style.width = `${p}%`;
+      });
+
+      status.innerText = 'Menyimpan file binary .mind ke server...';
+      const buffer = compiler.exportData();
+
+      const res = await fetch('/api/save-marker-mind', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: buffer
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        status.innerHTML = `<b style="color:#10b981; font-size: 16px;">✅ BERHASIL! Marker .mind telah diekstraksi dan disimpan (${json.bytes} bytes). SELURUH PRESET AR TELAH DIPERBARUI!</b>`;
+        progressBar.style.background = '#10b981';
+      } else {
+        status.innerHTML = '<b style="color:#ef4444;">Gagal menyimpan marker ke server</b>';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', compile);
+  </script>
+</body>
+</html>
