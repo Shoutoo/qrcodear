@@ -8,6 +8,8 @@ dist/
 scratch/
 server/uploads/*
 !server/uploads/.gitkeep
+!server/uploads/vendor/
+!server/uploads/vendor/**
 !server/uploads/markers/
 !server/uploads/markers/**
 !server/uploads/ecosystem-models/

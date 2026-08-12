@@ -13,10 +13,10 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <!-- Local Vendor Scripts for MindAR & Three.js (Served from /assets/vendor/) with CDN Fallbacks -->
-  <script src="/assets/vendor/three.min.js" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'"></script>
-  <script src="/assets/vendor/GLTFLoader.js" onerror="this.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js'"></script>
-  <script src="/assets/vendor/mindar-image-three.prod.js" onerror="this.src='https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js'"></script>
+  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js (Loads window.MINDAR.IMAGE.MindARThree) -->
+  <script src="/assets/vendor/three.min.js"></script>
+  <script src="/assets/vendor/GLTFLoader.js"></script>
+  <script src="/assets/vendor/mindar-1.1.5.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -246,10 +246,12 @@
       const container = document.getElementById('mindar-container');
       container.classList.add('active');
       hideArError();
-      setArStatus('Memulai kamera...', '#fbbf24');
+      setArStatus('Memulai kamera AR...', '#fbbf24');
 
-      if (!window.MINDAR || !window.MINDAR.IMAGE) {
-        showArError('Library MindAR belum siap. Pastikan koneksi internet aktif.');
+      const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
+
+      if (!MINDARThreeClass) {
+        showArError('Library MindAR 3D belum siap. Pastikan script /assets/vendor/mindar-1.1.5.js dimuat.');
         return;
       }
 
@@ -257,7 +259,7 @@
         const assetId = '{{ASSET_ID}}' || 'default-card';
         const mindPath = `/assets/markers/${assetId}.mind`;
 
-        mindarThree = new window.MINDAR.IMAGE.MindARThree({
+        mindarThree = new MINDARThreeClass({
           container: container,
           imageTargetSrc: mindPath,
           uiLoading: 'no',

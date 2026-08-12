@@ -13,10 +13,10 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
-  <!-- Local Vendor Scripts for MindAR & Three.js (Served from /assets/vendor/) with CDN Fallbacks -->
-  <script src="/assets/vendor/three.min.js" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'"></script>
-  <script src="/assets/vendor/GLTFLoader.js" onerror="this.src='https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js'"></script>
-  <script src="/assets/vendor/mindar-image-three.prod.js" onerror="this.src='https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js'"></script>
+  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js (Loads window.MINDAR.IMAGE.MindARThree) -->
+  <script src="/assets/vendor/three.min.js"></script>
+  <script src="/assets/vendor/GLTFLoader.js"></script>
+  <script src="/assets/vendor/mindar-1.1.5.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -401,7 +401,7 @@
     }
 
     // ══════════════════════════════════════════════════════
-    // MODE AR CONTROLLER (MindAR.js)
+    // MODE AR CONTROLLER (MindAR.js UMD)
     // ══════════════════════════════════════════════════════
     let mindarThree = null;
     let arModelObj = null;
@@ -431,10 +431,13 @@
       const container = document.getElementById('mindar-container');
       container.classList.add('active');
       hideArError();
-      setArStatus('Memulai kamera...', '#fbbf24');
+      setArStatus('Memulai kamera AR...', '#fbbf24');
 
-      if (!window.MINDAR || !window.MINDAR.IMAGE) {
-        showArError('Library MindAR belum siap. Pastikan koneksi internet aktif.');
+      // MindAR 1.1.5 UMD bundle exports window.MINDAR.IMAGE.MindARThree
+      const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
+
+      if (!MINDARThreeClass) {
+        showArError('Library MindAR 3D belum siap. Pastikan script /assets/vendor/mindar-1.1.5.js dimuat.');
         return;
       }
 
@@ -443,7 +446,7 @@
         const assetId = rawId.startsWith('preset-') ? rawId : `preset-${rawId}`;
         const mindPath = `/assets/markers/${assetId}.mind`;
 
-        mindarThree = new window.MINDAR.IMAGE.MindARThree({
+        mindarThree = new MINDARThreeClass({
           container: container,
           imageTargetSrc: mindPath,
           uiLoading: 'no',
@@ -470,12 +473,12 @@
             arModelObj.position.set(0, 0, 0);
             anchor.group.add(arModelObj);
           }, undefined, (err) => {
-            console.warn('GLB load error:', err);
+            console.warn('GLB load error in AR:', err);
           });
         }
 
         anchor.onTargetFound = () => {
-          setArStatus('✅ Marker Ditemukan! Model 3D Aktif', '#10b981');
+          setArStatus('✅ Marker Ditemukan! Model 3D AR Aktif', '#10b981');
         };
         anchor.onTargetLost = () => {
           setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
