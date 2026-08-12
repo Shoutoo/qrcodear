@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"/>
+  <title>AR Diagnostik — AlamVerse</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:monospace;background:#0f172a;color:#e2e8f0;padding:12px;min-height:100vh;}
+    h1{font-size:16px;color:#fbbf24;margin-bottom:12px;}
+    .log{background:#1e293b;border-radius:8px;padding:10px;font-size:12px;line-height:1.6;max-height:60vh;overflow-y:auto;border:1px solid #334155;}
+    .ok{color:#4ade80;} .err{color:#f87171;} .warn{color:#fbbf24;} .info{color:#93c5fd;}
+    .btn{background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;margin:4px 2px;display:inline-block;}
+    .btn.red{background:#ef4444;} .btn.green{background:#10b981;} .btn.orange{background:#f59e0b;}
+    h2{font-size:13px;color:#94a3b8;margin:12px 0 6px;}
+    .result{background:#0f172a;border:1px solid #334155;border-radius:6px;padding:8px;font-size:11px;margin-top:6px;word-break:break-all;}
+  </style>
+</head>
+<body>
+  <h1>🔬 AR Diagnostik — AlamVerse</h1>
+
+  <h2>Step 1: Test Script Import</h2>
+  <button class="btn" onclick="testImport()">Test importmap + MindAR 1.2.5</button>
+  <div id="import-result" class="result">—</div>
+
+  <h2>Step 2: Test Kamera</h2>
+  <button class="btn green" onclick="testCamera()">Buka Kamera</button>
+  <button class="btn red" onclick="stopCamera()">Stop Kamera</button>
+  <video id="cam-video" autoplay muted playsinline style="width:100%;max-height:180px;border-radius:8px;margin-top:6px;background:#000;display:none;"></video>
+  <div id="camera-result" class="result">—</div>
+
+  <h2>Step 3: Test .mind File</h2>
+  <button class="btn orange" onclick="testMind()">Download all-presets.mind</button>
+  <div id="mind-result" class="result">—</div>
+
+  <h2>Step 4: Test MindAR Full Start</h2>
+  <button class="btn" onclick="testMindAR()">Start MindAR (kamera + tracking)</button>
+  <button class="btn red" onclick="stopMindAR()">Stop MindAR</button>
+  <div id="ar-container" style="width:100%;height:240px;background:#000;border-radius:8px;margin-top:6px;position:relative;overflow:hidden;display:none;"></div>
+  <div id="mindar-result" class="result">—</div>
+
+  <h2>Log Output</h2>
+  <button class="btn red" onclick="clearLog()">Bersihkan Log</button>
+  <div id="log-area" class="log"><span class="info">Log kosong. Jalankan test di atas.</span></div>
+
+  <script>
+    const logEl = document.getElementById('log-area');
+    function log(msg, cls='info') {
+      const t = new Date().toLocaleTimeString('id',{hour12:false});
+      logEl.innerHTML += `<div class="${cls}">[${t}] ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function clearLog() { logEl.innerHTML = ''; }
+
+    // ── Test 1: importmap ──────────────────────────────────
+    async function testImport() {
+      const el = document.getElementById('import-result');
+      el.innerHTML = '⏳ Loading...';
+      log('Testing importmap support...');
+      try {
+        // Dynamic import test
+        const three = await import('three');
+        log('✅ Three.js loaded: ' + (three.REVISION || 'unknown revision'), 'ok');
+        const mindar = await import('mindar-image-three');
+        log('✅ MindAR loaded: MindARThree = ' + typeof mindar.MindARThree, 'ok');
+        el.innerHTML = `<span style="color:#4ade80">✅ OK — Three.js r${three.REVISION}, MindARThree: ${typeof mindar.MindARThree}</span>`;
+      } catch(e) {
+        log('❌ Import error: ' + e.message, 'err');
+        el.innerHTML = `<span style="color:#f87171">❌ ERROR: ${e.message}</span>`;
+      }
+    }
+
+    // ── Test 2: Camera ─────────────────────────────────────
+    let camStream = null;
+    async function testCamera() {
+      const el = document.getElementById('camera-result');
+      const vid = document.getElementById('cam-video');
+      el.innerHTML = '⏳ Meminta akses kamera...';
+      log('Requesting camera access...');
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+        vid.srcObject = camStream;
+        vid.style.display = 'block';
+        log('✅ Kamera berhasil dibuka!', 'ok');
+        log('Track: ' + camStream.getVideoTracks()[0].label, 'ok');
+        el.innerHTML = `<span style="color:#4ade80">✅ Kamera OK — ${camStream.getVideoTracks()[0].label}</span>`;
+      } catch(e) {
+        log('❌ Kamera error: ' + e.name + ' — ' + e.message, 'err');
+        el.innerHTML = `<span style="color:#f87171">❌ ERROR: ${e.name} — ${e.message}</span>`;
+      }
+    }
+    function stopCamera() {
+      if (camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
+      document.getElementById('cam-video').style.display = 'none';
+      log('Kamera dihentikan', 'warn');
+    }
+
+    // ── Test 3: .mind file ─────────────────────────────────
+    async function testMind() {
+      const el = document.getElementById('mind-result');
+      el.innerHTML = '⏳ Mendownload all-presets.mind...';
+      log('Fetching /assets/markers/all-presets.mind...');
+      try {
+        const resp = await fetch('/assets/markers/all-presets.mind');
+        log('Response status: ' + resp.status + ' ' + resp.statusText, resp.ok ? 'ok' : 'err');
+        const ct = resp.headers.get('content-type');
+        log('Content-Type: ' + ct);
+        const buf = await resp.arrayBuffer();
+        const size = buf.byteLength;
+        log(`✅ .mind file size: ${size.toLocaleString()} bytes (${(size/1024).toFixed(1)} KB)`, 'ok');
+        // Check magic bytes
+        const view = new Uint8Array(buf, 0, 4);
+        const magic = Array.from(view).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+        log(`Magic bytes: ${magic}`);
+        if (size > 100000) {
+          el.innerHTML = `<span style="color:#4ade80">✅ OK — ${(size/1024).toFixed(1)} KB</span>`;
+          log('File size looks valid (>100KB)', 'ok');
+        } else {
+          el.innerHTML = `<span style="color:#fbbf24">⚠️ File kecil: ${size} bytes — mungkin invalid</span>`;
+          log('⚠️ File size too small!', 'warn');
+        }
+      } catch(e) {
+        log('❌ .mind file error: ' + e.message, 'err');
+        el.innerHTML = `<span style="color:#f87171">❌ ERROR: ${e.message}</span>`;
+      }
+    }
+
+    // ── Test 4: Full MindAR ────────────────────────────────
+    let mindARInst = null;
+    async function testMindAR() {
+      const el = document.getElementById('mindar-result');
+      const container = document.getElementById('ar-container');
+      container.style.display = 'block';
+      el.innerHTML = '⏳ Loading MindAR...';
+      log('Starting full MindAR test...');
+
+      try {
+        log('Importing three + mindar-image-three...');
+        const { MindARThree } = await import('mindar-image-three');
+        const THREE = await import('three');
+        const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
+        log('✅ Imports OK', 'ok');
+
+        mindARInst = new MindARThree({
+          container,
+          imageTargetSrc: '/assets/markers/all-presets.mind',
+          maxTrack: 1,
+          uiLoading: 'yes',
+          uiScanning: 'yes',
+          uiError: 'yes',
+        });
+
+        const { renderer, scene, camera } = mindARInst;
+        renderer.setClearColor(0x000000, 0);
+        scene.add(new THREE.AmbientLight(0xffffff, 2));
+        log('✅ MindARThree instance created', 'ok');
+
+        // Add anchor for index 0 (Laut)
+        const anchor = mindARInst.addAnchor(0);
+        anchor.onTargetFound = () => {
+          log('🎯 TARGET FOUND! Index 0 (Laut)', 'ok');
+          el.innerHTML = '<span style="color:#4ade80">🎯 TARGET DITEMUKAN!</span>';
+        };
+        anchor.onTargetLost = () => {
+          log('Target lost', 'warn');
+        };
+
+        // Add test cube
+        const cube = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.2, 0.2),
+          new THREE.MeshStandardMaterial({color: 0x00ff00})
+        );
+        anchor.group.add(cube);
+        log('✅ Anchor + cube added', 'ok');
+
+        log('Calling mindARInst.start()...');
+        el.innerHTML = '⏳ Starting MindAR (camera + .mind loading)...';
+        await mindARInst.start();
+        log('✅ MindAR started successfully!', 'ok');
+        el.innerHTML = '<span style="color:#4ade80">✅ MindAR berjalan — arahkan ke QR Code!</span>';
+
+        renderer.setAnimationLoop(() => {
+          cube.rotation.y += 0.01;
+          renderer.render(scene, camera);
+        });
+
+      } catch(e) {
+        log('❌ MindAR error: ' + e.message, 'err');
+        log('Stack: ' + (e.stack || 'no stack'), 'err');
+        el.innerHTML = `<span style="color:#f87171">❌ ERROR: ${e.message}</span>`;
+      }
+    }
+
+    function stopMindAR() {
+      if (mindARInst) {
+        try { mindARInst.renderer?.setAnimationLoop(null); mindARInst.stop(); } catch(e){}
+        mindARInst = null;
+      }
+      document.getElementById('ar-container').style.display = 'none';
+      log('MindAR dihentikan', 'warn');
+    }
+
+    // ── Intercept console errors ───────────────────────────
+    const origErr = console.error;
+    console.error = function(...args) {
+      origErr.apply(console, args);
+      log('console.error: ' + args.join(' '), 'err');
+    };
+    const origWarn = console.warn;
+    console.warn = function(...args) {
+      origWarn.apply(console, args);
+      log('console.warn: ' + args.join(' '), 'warn');
+    };
+
+    window.onerror = function(msg, src, line, col, err) {
+      log(`window.onerror: ${msg} @ ${src}:${line}`, 'err');
+    };
+    window.onunhandledrejection = function(e) {
+      log(`Unhandled rejection: ${e.reason?.message || e.reason}`, 'err');
+    };
+
+    log('Diagnostik siap. Device: ' + navigator.userAgent.substring(0,80));
+    log('Protocol: ' + location.protocol + ' | Host: ' + location.hostname);
+  </script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+      "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+    }
+  }
+  </script>
+</body>
+</html>

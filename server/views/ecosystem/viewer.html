@@ -8,10 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Google model-viewer for 3D mode -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-
-  <!-- ImportMap for MindAR 1.2.5 ES Module + Three.js r160 -->
+  <!-- CRITICAL: importmap MUST be the FIRST script element before any type="module" scripts -->
   <script type="importmap">
   {
     "imports": {
@@ -21,6 +18,9 @@
     }
   }
   </script>
+
+  <!-- Google model-viewer for 3D mode (AFTER importmap) -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -324,8 +324,19 @@
     <div id="ar-error">
       <span class="material-symbols-outlined" style="font-size:48px;color:#fbbf24;">videocam_off</span>
       <p id="ar-error-msg">Gagal menjalankan AR.</p>
-      <button onclick="switchMode('3d')" style="background:#7c3aed;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;">← Kembali ke 3D View</button>
+      <button onclick="switchMode('3d')" style="background:#7c3aed;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-bottom:8px;">← Kembali ke 3D View</button>
+      <a href="/ar-debug" target="_blank" style="color:#93c5fd;font-size:11px;font-weight:700;">🔬 Buka Diagnostik AR</a>
     </div>
+
+    <!-- On-screen debug log (collapsible) -->
+    <div id="ar-debug-panel" style="position:absolute;bottom:0;left:0;right:0;z-index:60;background:rgba(0,0,0,0.9);border-top:1px solid #334155;max-height:0;overflow:hidden;transition:max-height 0.3s;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-bottom:1px solid #334155;">
+        <span style="color:#fbbf24;font-size:10px;font-weight:800;">📟 AR Debug Log</span>
+        <button onclick="document.getElementById('ar-debug-panel').style.maxHeight='0'" style="background:none;border:none;color:#94a3b8;font-size:11px;cursor:pointer;">✕</button>
+      </div>
+      <div id="ar-debug-log" style="padding:6px 8px;font-family:monospace;font-size:10px;color:#e2e8f0;max-height:130px;overflow-y:auto;line-height:1.5;"></div>
+    </div>
+    <button id="debug-toggle-btn" onclick="toggleDebugPanel()" style="position:absolute;bottom:5px;right:5px;z-index:61;background:rgba(30,41,59,0.9);border:1px solid #475569;color:#94a3b8;font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;cursor:pointer;">LOG</button>
 
   </div>
 
@@ -406,6 +417,23 @@
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { MindARThree } from 'mindar-image-three';
 
+    // ─── On-screen debug log ──────────────────────────────
+    window.toggleDebugPanel = function() {
+      const panel = document.getElementById('ar-debug-panel');
+      const isOpen = panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '0';
+      panel.style.maxHeight = isOpen ? '0' : '160px';
+    };
+    function arLog(msg, ok = true) {
+      const logEl = document.getElementById('ar-debug-log');
+      if (!logEl) return;
+      const t = new Date().toLocaleTimeString('id', {hour12:false});
+      const color = ok ? '#4ade80' : '#f87171';
+      logEl.innerHTML += `<div style="color:${color}">[${t}] ${msg}</div>`;
+      logEl.scrollTop = logEl.scrollHeight;
+      // Auto-open panel on error
+      if (!ok) document.getElementById('ar-debug-panel').style.maxHeight = '160px';
+    }
+
     const ECOSYSTEM_ID  = '{{ECOSYSTEM_ID}}';
     const GLB_URL       = '{{ECOSYSTEM_GLB_URL}}';
     const MIND_URL      = '/assets/markers/all-presets.mind';
@@ -475,6 +503,11 @@
 
       const container = document.getElementById('ar-container');
       setStatus('Memulai kamera AR...', '#fbbf24');
+      arLog('startAR() called');
+      arLog('Three.js revision: ' + THREE.REVISION);
+      arLog('MindARThree type: ' + typeof MindARThree);
+      arLog('MIND_URL: ' + MIND_URL);
+      arLog('GLB_URL: ' + GLB_URL.substring(0, 60));
 
       try {
         mindAR = new MindARThree({
@@ -489,6 +522,8 @@
           uiScanning: 'no',
           uiError: 'no',
         });
+        arLog('MindARThree instance created ✓');
+
 
         const { renderer, scene, camera } = mindAR;
         arScene = scene;
@@ -543,8 +578,10 @@
 
         // Load GLB model
         const loader = new GLTFLoader();
+        arLog('Loading GLB model...');
         loader.load(GLB_URL, (gltf) => {
           arModel = gltf.scene;
+          arLog('GLB model loaded ✓');
 
           arModel.traverse(child => {
             if (child.isMesh && child.material) {
@@ -565,14 +602,18 @@
 
           // Place immediately in camera space so it's always visible
           scene.add(arModel);
+          arLog('Model added to scene ✓');
           setStatus('✨ Model 3D AR aktif — arahkan ke QR Code kartu');
         }, undefined, (err) => {
+          arLog('GLB load error: ' + err.message, false);
           console.warn('[AR] GLB load error:', err);
           setStatus('Model 3D gagal dimuat', '#ef4444');
         });
 
+        arLog('Calling mindAR.start()...');
         await mindAR.start();
         arStarted = true;
+        arLog('mindAR.start() SUCCESS ✓');
 
         renderer.setAnimationLoop(() => {
           if (arModel) arModel.rotation.y += 0.006;
@@ -580,6 +621,7 @@
         });
 
       } catch (err) {
+        arLog('ERROR: ' + err.message, false);
         console.error('[AR] MindAR start error:', err);
         const msg = String(err?.message || err);
         if (/camera|permission|notallowed/i.test(msg)) {

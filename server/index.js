@@ -108,6 +108,11 @@ app.get('/compiler', (req, res) => {
   res.sendFile(path.join(VIEWS_DIR, 'compiler.html'));
 });
 
+// AR Debug diagnostics page
+app.get('/ar-debug', (req, res) => {
+  res.sendFile(path.join(VIEWS_DIR, 'ar-debug.html'));
+});
+
 // ─── Data helpers ──────────────────────────────────────────────────────────────
 function loadAssets() {
   if (!fs.existsSync(DATA_FILE)) return [];
