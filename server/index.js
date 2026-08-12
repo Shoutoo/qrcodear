@@ -61,6 +61,32 @@ const VIEWS_DIR   = path.join(__dirname, 'views');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
+// Serve uploads static assets & MindAR marker fallback
+app.use('/assets', express.static(ASSETS_DIR));
+
+app.get('/assets/markers/:filename', (req, res) => {
+  const { filename } = req.params;
+  const targetPath = path.join(MARKERS_DIR, filename);
+
+  if (fs.existsSync(targetPath)) {
+    return res.sendFile(targetPath);
+  }
+
+  if (filename.endsWith('.mind')) {
+    const presetName = filename.replace(/\.mind$/, '');
+    const presetPath = path.join(MARKERS_DIR, `preset-${presetName.replace(/^preset-/, '')}.mind`);
+    if (fs.existsSync(presetPath)) {
+      return res.sendFile(presetPath);
+    }
+    const defaultPath = path.join(MARKERS_DIR, 'default-card.mind');
+    if (fs.existsSync(defaultPath)) {
+      return res.sendFile(defaultPath);
+    }
+  }
+
+  res.status(404).send('Marker asset not found');
+});
+
 // ─── Data helpers ──────────────────────────────────────────────────────────────
 function loadAssets() {
   if (!fs.existsSync(DATA_FILE)) return [];
@@ -818,6 +844,7 @@ app.get('/ecosystem/view/:id', async (req, res) => {
 
   html = html
     .replace(/{{ECOSYSTEM_NAME}}/g, escapeHtml(name))
+    .replace(/{{ECOSYSTEM_ID}}/g, escapeHtml(id))
     .replace(/{{ECOSYSTEM_GLB_URL}}/g, fullGlbUrl);
 
   const slots = (targetPreset && targetPreset.slots) ? targetPreset.slots : [];

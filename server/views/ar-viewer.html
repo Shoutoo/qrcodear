@@ -78,7 +78,12 @@
     }
   </script>
 
-  <!-- Google <model-viewer> (Markerless AR Engine) -->
+  <!-- Three.js Engine & MindAR.js Image Tracking for Cross-Device AR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+
+  <!-- Google <model-viewer> (3D View Engine) -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
@@ -237,6 +242,23 @@
   </button>
 </model-viewer>
 
+<!-- ── Mode 2: MindAR.js Fullscreen Camera Tracking Container ── -->
+<div id="mindar-container" class="hidden fixed inset-0 z-10 w-full h-full bg-slate-950 overflow-hidden">
+  <div class="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+    <div class="bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full flex items-center gap-3 shadow-2xl text-xs font-bold text-slate-900 border border-slate-200">
+      <span id="mindar-status-dot" class="w-3 h-3 rounded-full bg-amber-400"></span>
+      <span id="mindar-status-text">Arahkan kamera ke Kartu Print AR...</span>
+    </div>
+  </div>
+  <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+    <div class="w-72 h-96 border-4 border-dashed border-amber-400/80 rounded-3xl flex flex-col items-center justify-between p-6 animate-pulse">
+      <span class="text-xs font-extrabold text-white bg-purple-700/90 px-3.5 py-1 rounded-full shadow">Scan Kartu Print AR</span>
+      <span class="material-symbols-outlined text-5xl text-amber-300">qr_code_scanner</span>
+      <span class="text-[11px] text-white/90 font-bold bg-slate-900/80 px-2.5 py-1 rounded-lg">MindAR Cross-Device Engine</span>
+    </div>
+  </div>
+</div>
+
 <!-- ── UI Overlay ────────────────────────────────────────── -->
 <div id="overlay">
 
@@ -249,6 +271,17 @@
       <h1 class="font-bold text-on-surface text-lg leading-tight">{{MODEL_NAME}}</h1>
       <p class="text-xs text-on-surface-variant font-medium">Magic AR Edu • {{UPLOAD_DATE}}</p>
     </div>
+
+    <!-- 2 Mode Selector Buttons (3D View vs Mode AR) -->
+    <div class="flex items-center gap-1.5 bg-[#e7f6ff] p-1 rounded-2xl border border-[#cac3d8] ml-3">
+      <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm">
+        <span class="material-symbols-outlined text-sm">3d_rotation</span> 3D View
+      </button>
+      <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">view_in_ar</span> Mode AR (Marker)
+      </button>
+    </div>
+
     <div class="ml-auto pointer-events-auto flex items-center gap-2">
       <button id="btn-snapshot" class="bg-surface-container-highest text-on-surface font-bold text-xs px-3.5 py-2 rounded-full flex items-center gap-1 shadow-sm hover:bg-primary-container hover:text-white transition-all" title="Ambil Tangkapan Layar 3D">
         <span class="material-symbols-outlined text-sm">photo_camera</span> Tangkap Foto
@@ -488,6 +521,106 @@ function copyToClipboard(text) {
   }).catch(() => {
     prompt('Salin tautan ini:', text);
   });
+}
+
+// ─── MindAR.js Cross-Device Marker Tracking Controller ───────
+let mindarThree = null;
+let arModelObj = null;
+
+async function startMindAR() {
+  const container = document.getElementById('mindar-container');
+  if (!container) return;
+  container.classList.remove('hidden');
+
+  const modelViewer = document.getElementById('viewer');
+  if (modelViewer) modelViewer.style.display = 'none';
+
+  const statusText = document.getElementById('mindar-status-text');
+  const statusDot = document.getElementById('mindar-status-dot');
+
+  if (statusText) statusText.innerText = 'Memulai Kamera AR (MindAR)...';
+
+  try {
+    const assetId = '{{ASSET_ID}}' || 'default-card';
+    const targetMindPath = `/assets/markers/${assetId}.mind`;
+
+    mindarThree = new window.MINDAR.IMAGE.MindARThree({
+      container: container,
+      imageTargetSrc: targetMindPath,
+      uiLoading: "no",
+      uiScanning: "no",
+      uiError: "no"
+    });
+
+    const { renderer, scene, camera } = mindarThree;
+    const anchor = mindarThree.addAnchor(0);
+
+    // Lights
+    const ambLight = new THREE.AmbientLight(0xffffff, 1.4);
+    scene.add(ambLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    dirLight.position.set(2, 6, 4);
+    scene.add(dirLight);
+
+    // Load EXACT SAME GLB 3D MODEL
+    const gltfUrl = '{{MODEL_URL}}';
+    const gltfLoader = new THREE.GLTFLoader();
+    gltfLoader.load(gltfUrl, (gltf) => {
+      arModelObj = gltf.scene;
+      arModelObj.scale.set(0.35, 0.35, 0.35);
+      arModelObj.position.set(0, 0, 0);
+      anchor.group.add(arModelObj);
+    });
+
+    anchor.onTargetFound = () => {
+      if (statusText) statusText.innerText = '● Marker Terdeteksi! Objek AR Aktif';
+      if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse';
+    };
+
+    anchor.onTargetLost = () => {
+      if (statusText) statusText.innerText = '○ Arahkan kamera ke Kartu Print AR...';
+      if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-amber-400';
+    };
+
+    await mindarThree.start();
+    renderer.setAnimationLoop(() => {
+      if (arModelObj) {
+        arModelObj.rotation.y += 0.005;
+      }
+      renderer.render(scene, camera);
+    });
+
+  } catch (err) {
+    console.error("MindAR Error:", err);
+    if (statusText) statusText.innerText = 'Gagal mengakses kamera. Izinkan akses kamera pada browser.';
+  }
+}
+
+function stopMindAR() {
+  if (mindarThree) {
+    try { mindarThree.stop(); } catch(e) {}
+    mindarThree = null;
+  }
+  const container = document.getElementById('mindar-container');
+  if (container) container.classList.add('hidden');
+
+  const modelViewer = document.getElementById('viewer');
+  if (modelViewer) modelViewer.style.display = 'block';
+}
+
+function switchViewMode(mode) {
+  const btn3D = document.getElementById('btn-mode-3d');
+  const btnAR = document.getElementById('btn-mode-ar');
+
+  if (mode === 'ar') {
+    if (btn3D) btn3D.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1";
+    if (btnAR) btnAR.className = "px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
+    startMindAR();
+  } else {
+    if (btn3D) btn3D.className = "px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
+    if (btnAR) btnAR.className = "px-3.5 py-1.5 rounded-xl text-xs font-bold text-on-surface-variant hover:text-primary hover:bg-white transition-all flex items-center gap-1";
+    stopMindAR();
+  }
 }
 </script>
 </body>

@@ -10,8 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Three.js Engine for WebAR Camera Marker Tracking & 360 Ring Canvas -->
+  <!-- Three.js Engine & MindAR.js Image Tracking for Cross-Device AR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
 
   <!-- Google <model-viewer> Library -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
@@ -78,7 +80,7 @@
 </head>
 <body class="w-screen h-screen relative select-none">
 
-  <!-- TOP NAVIGATION HEADER & MODE SWITCHER -->
+  <!-- TOP NAVIGATION HEADER & 2-MODE SWITCHER (3D View vs Mode AR) -->
   <header class="absolute top-4 left-4 right-4 z-30 pointer-events-auto">
     <div class="max-w-4xl mx-auto hud-card p-3 sm:p-3.5 rounded-3xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
       
@@ -98,23 +100,20 @@
         </div>
       </div>
 
-      <!-- Right Mode Viewing Selector Buttons -->
+      <!-- Right Mode Viewing Selector (2 Modes: 3D View vs AR) -->
       <div class="flex items-center gap-1.5 bg-[#f4f7fc] p-1.5 rounded-2xl border border-[#d4e5ef]">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm">
+        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="chunky-btn px-4 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm">
           <span class="material-symbols-outlined text-base">3d_rotation</span> 3D View
         </button>
-        <button id="btn-mode-webar" onclick="switchViewMode('webar')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-base">qr_code_scanner</span> Marker WebAR
-        </button>
-        <button id="btn-mode-world" onclick="switchViewMode('world')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-base">view_in_ar</span> AR World
+        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="chunky-btn px-4 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-base">view_in_ar</span> Mode AR (Marker Kartu)
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- SUB-HEADER: CRISP CONTRAST CIRCULAR TEXT BANNER -->
+  <!-- SUB-HEADER: CIRCULAR TEXT BANNER -->
   <div id="circular-text-hud" class="absolute top-24 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
     <div class="bg-amber-400 border-2 border-amber-300 text-slate-950 text-xs font-black px-5 py-2 rounded-full flex items-center gap-2 shadow-lg animate-pulse">
       <span class="material-symbols-outlined text-base text-slate-950">autorenew</span>
@@ -122,17 +121,14 @@
     </div>
   </div>
 
-  <!-- Google <model-viewer> 3D Engine with Instant Auto-Rotate -->
+  <!-- Mode 1: Google <model-viewer> 3D Engine with Instant Auto-Rotate -->
   <model-viewer
     id="eco-viewer"
     src="{{ECOSYSTEM_GLB_URL}}"
-    ar
-    ar-modes="scene-viewer webxr quick-look"
     camera-controls
     camera-orbit="30deg 60deg 7.5m"
     shadow-intensity="1.5"
     shadow-softness="0.8"
-    ar-placement="floor"
     alt="{{ECOSYSTEM_NAME}}"
     loading="eager"
     auto-rotate
@@ -182,11 +178,31 @@
     </button>
   </model-viewer>
 
-  <!-- BOTTOM FLOATING HUD: UNIFIED ROTATION CONTROLS & AR BUTTON -->
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-md px-4">
+  <!-- Mode 2: MindAR.js Fullscreen Camera Tracking Container -->
+  <div id="mindar-container" class="hidden fixed inset-0 z-10 w-full h-full bg-slate-950 overflow-hidden">
+    <!-- Top Status HUD -->
+    <div class="absolute top-24 sm:top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+      <div class="hud-card px-5 py-2.5 rounded-full flex items-center gap-3 shadow-2xl text-xs font-black">
+        <span id="mindar-status-dot" class="w-3 h-3 rounded-full bg-amber-400"></span>
+        <span id="mindar-status-text" class="text-on-surface">Arahkan kamera ke Kartu Print AR...</span>
+      </div>
+    </div>
+
+    <!-- Target Alignment Frame Overlay -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+      <div class="w-72 h-96 border-4 border-dashed border-amber-400/80 rounded-3xl flex flex-col items-center justify-between p-6 animate-pulse">
+        <span class="text-xs font-extrabold text-white bg-purple-700/90 px-3.5 py-1 rounded-full shadow">Scan Kartu Print AR</span>
+        <span class="material-symbols-outlined text-5xl text-amber-300">qr_code_scanner</span>
+        <span class="text-[11px] text-white/90 font-bold bg-slate-900/80 px-2.5 py-1 rounded-lg">MindAR Cross-Device Engine</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM FLOATING HUD: ROTATION CONTROLS -->
+  <div id="bottom-controls-hud" class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-md px-4">
     <div class="hud-card p-4 rounded-3xl space-y-3 shadow-2xl">
       
-      <!-- Top Row: Rotational Controls -->
+      <!-- Row: Rotational Controls -->
       <div class="flex items-center justify-between gap-2 text-xs font-bold text-on-surface">
         <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn px-4 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-primary font-extrabold flex items-center gap-1.5 transition-colors">
           <span id="rot-icon" class="material-symbols-outlined text-base">pause_circle</span>
@@ -207,52 +223,17 @@
         </div>
       </div>
 
-      <!-- Bottom Row: Solid Main AR Trigger Button -->
-      <button onclick="triggerArExperience()" id="ar-main-btn" class="chunky-btn w-full py-3.5 rounded-2xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white flex items-center justify-center gap-2 text-sm shadow-lg tracking-wide">
-        <span class="material-symbols-outlined text-xl">view_in_ar</span> Mulai AR Permukaan Dunia Nyata
-      </button>
-
     </div>
   </div>
 
-  <!-- WEBAR CAMERA MARKER MODAL -->
-  <div id="webar-camera-modal" class="hidden fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col justify-between p-4">
-    <!-- Camera Header -->
-    <div class="flex items-center justify-between text-white z-10">
-      <div class="flex items-center gap-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-        <span class="text-xs font-extrabold">WebAR Kamera Scan Marker</span>
-      </div>
-      <button onclick="closeWebarCamera()" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20">
-        <span class="material-symbols-outlined text-xl">close</span>
-      </button>
-    </div>
-
-    <!-- Live Video Feed -->
-    <div class="relative w-full h-full flex items-center justify-center overflow-hidden my-2 rounded-3xl border-2 border-primary/40 bg-black">
-      <video id="webar-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
-      
-      <!-- Target QR Frame Alignment Box -->
-      <div class="absolute w-64 h-64 border-4 border-dashed border-primary rounded-3xl pointer-events-none flex flex-col items-center justify-between p-4 bg-primary/10">
-        <span class="text-xs font-extrabold text-white bg-primary px-3 py-1 rounded-full shadow">Scan Kartu / QR Marker</span>
-        <span class="material-symbols-outlined text-4xl text-amber-300 animate-pulse">center_focus_weak</span>
-        <span class="text-[10px] text-white/90 font-bold bg-black/60 px-2 py-0.5 rounded">AlamVerse Universal WebAR</span>
-      </div>
-    </div>
-
-    <!-- Camera Instruction Bar -->
-    <div class="text-center text-xs text-white font-semibold p-2">
-      Arahkan kamera ke Kartu QR Ekosistem yang sudah dicetak. Objek 3D akan diproyeksikan langsung di layar HP Anda!
-    </div>
-  </div>
-
-  <!-- Clean Single Script Block with Instant Auto-Rotate Trigger -->
+  <!-- Clean Single Script Block with MindAR.js & Auto-Rotate Triggers -->
   <script>
     const viewer = document.getElementById('eco-viewer');
     let isRotating = true;
     let rotationSpeed = '20deg';
     let isReversed = false;
-    let cameraStream = null;
+    let mindarThree = null;
+    let arModelObj = null;
 
     // ─── Force Instant Auto-Rotate on Initial Page Load ──────────
     function forceStartAutoRotate() {
@@ -272,28 +253,6 @@
       viewer.addEventListener('load', forceStartAutoRotate);
       viewer.addEventListener('poster-dismissed', forceStartAutoRotate);
       viewer.addEventListener('load-error', (e) => console.warn('Model load warning:', e));
-    }
-
-    // ─── 3 Mode Viewing Switcher ───────────────────────────────
-    function switchViewMode(mode) {
-      const btn3d = document.getElementById('btn-mode-3d');
-      const btnWebar = document.getElementById('btn-mode-webar');
-      const btnWorld = document.getElementById('btn-mode-world');
-
-      [btn3d, btnWebar, btnWorld].forEach(btn => {
-        if (btn) btn.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5";
-      });
-
-      if (mode === '3d') {
-        if (btn3d) btn3d.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
-        closeWebarCamera();
-      } else if (mode === 'webar') {
-        if (btnWebar) btnWebar.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
-        openWebarCamera();
-      } else if (mode === 'world') {
-        if (btnWorld) btnWorld.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
-        triggerArExperience();
-      }
     }
 
     // ─── Rotation Control Handlers ────────────────────────────
@@ -325,40 +284,102 @@
       forceStartAutoRotate();
     }
 
-    // ─── WebAR Standalone Camera Launcher ─────────────────────
-    async function openWebarCamera() {
-      const modal = document.getElementById('webar-camera-modal');
-      const video = document.getElementById('webar-video');
-      if (modal) modal.classList.remove('hidden');
+    // ─── MindAR.js Cross-Device Marker Tracking Controller ───
+    async function startMindAR() {
+      const container = document.getElementById('mindar-container');
+      if (!container) return;
+      container.classList.remove('hidden');
+
+      if (viewer) viewer.style.display = 'none';
+
+      const statusText = document.getElementById('mindar-status-text');
+      const statusDot = document.getElementById('mindar-status-dot');
+
+      if (statusText) statusText.innerText = 'Memulai Kamera AR (MindAR)...';
 
       try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false
+        const assetId = '{{ECOSYSTEM_ID}}' || 'preset-darat';
+        const targetMindPath = `/assets/markers/${assetId}.mind`;
+
+        mindarThree = new window.MINDAR.IMAGE.MindARThree({
+          container: container,
+          imageTargetSrc: targetMindPath,
+          uiLoading: "no",
+          uiScanning: "no",
+          uiError: "no"
         });
-        if (video) video.srcObject = cameraStream;
+
+        const { renderer, scene, camera } = mindarThree;
+        const anchor = mindarThree.addAnchor(0);
+
+        // Ambient & Directional Lights for GLB rendering
+        const ambLight = new THREE.AmbientLight(0xffffff, 1.4);
+        scene.add(ambLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
+        dirLight.position.set(2, 6, 4);
+        scene.add(dirLight);
+
+        // Load EXACT SAME GLB 3D MODEL
+        const gltfUrl = '{{ECOSYSTEM_GLB_URL}}';
+        const gltfLoader = new THREE.GLTFLoader();
+        gltfLoader.load(gltfUrl, (gltf) => {
+          arModelObj = gltf.scene;
+          arModelObj.scale.set(0.32, 0.32, 0.32);
+          arModelObj.position.set(0, 0, 0);
+          anchor.group.add(arModelObj);
+        });
+
+        anchor.onTargetFound = () => {
+          if (statusText) statusText.innerText = '● Marker Terdeteksi! Objek AR Aktif';
+          if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-emerald-500 animate-pulse';
+        };
+
+        anchor.onTargetLost = () => {
+          if (statusText) statusText.innerText = '○ Arahkan kamera ke Kartu Print AR...';
+          if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-amber-400';
+        };
+
+        await mindarThree.start();
+        renderer.setAnimationLoop(() => {
+          if (arModelObj) {
+            arModelObj.rotation.y += 0.005; // Gentle rotation on card
+          }
+          renderer.render(scene, camera);
+        });
+
       } catch (err) {
-        alert('Gagal mengaktifkan kamera browser. Izinkan akses kamera pada browser Anda.');
-        closeWebarCamera();
+        console.error("MindAR Error:", err);
+        if (statusText) statusText.innerText = 'Gagal mengakses kamera. Izinkan akses kamera pada browser.';
       }
     }
 
-    function closeWebarCamera() {
-      const modal = document.getElementById('webar-camera-modal');
-      if (modal) modal.classList.add('hidden');
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
+    function stopMindAR() {
+      if (mindarThree) {
+        try { mindarThree.stop(); } catch(e) {}
+        mindarThree = null;
       }
+      const container = document.getElementById('mindar-container');
+      if (container) container.classList.add('hidden');
+
+      if (viewer) viewer.style.display = 'block';
     }
 
-    // ─── World Tracking AR Trigger with Fallback ──────────────
-    function triggerArExperience() {
-      if (viewer && viewer.canActivateAR) {
-        viewer.activateAR();
+    // ─── 2 Mode Selector (3D View vs Mode AR) ─────────────────
+    function switchViewMode(mode) {
+      const btn3D = document.getElementById('btn-mode-3d');
+      const btnAR = document.getElementById('btn-mode-ar');
+      const btmControls = document.getElementById('bottom-controls-hud');
+
+      if (mode === 'ar') {
+        if (btn3D) btn3D.className = "chunky-btn px-4 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5";
+        if (btnAR) btnAR.className = "chunky-btn px-4 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
+        if (btmControls) btmControls.classList.add('hidden');
+        startMindAR();
       } else {
-        alert('🌐 Perangkat Anda tidak memiliki Google Play Services for AR (ARCore).\n\nSistem otomatis mengaktifkan Mode 3D Interaktif & Marker Kamera agar dapat diakses di device ini!');
-        switchViewMode('webar');
+        if (btn3D) btn3D.className = "chunky-btn px-4 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
+        if (btnAR) btnAR.className = "chunky-btn px-4 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5";
+        if (btmControls) btmControls.classList.remove('hidden');
+        stopMindAR();
       }
     }
   </script>
