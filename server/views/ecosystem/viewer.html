@@ -342,10 +342,13 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (Exact Image Target Anchor Placement + Screen Box Scale) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (GOLDEN SCALING + 360° DRAG + PINCH ZOOM) ── -->
   <script>
-    // Fixed base scale (0.04m) perfectly sized to match the yellow scanning box in center of screen
-    const BASE_SCALE = 0.04;
+    // GOLDEN BASE SCALES:
+    // MindAR Anchor Scale: 0.35 (fits beautifully on physical card target)
+    // Camera-Space Fallback Scale: 0.22 (fits 100% inside yellow scan box)
+    const ANCHOR_BASE_SCALE = 0.35;
+    const CAMERA_BASE_SCALE = 0.22;
 
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -394,12 +397,12 @@
     ];
 
     const SLOT_BADGES = [
-      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.22 0.12 0' },
-      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.11 0.12 0.19' },
-      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.11 0.12 0.19' },
-      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.22 0.12 0' },
-      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.11 0.12 -0.19' },
-      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.11 0.12 -0.19' },
+      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.45 0.24 0' },
+      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.22 0.24 0.39' },
+      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.22 0.24 0.39' },
+      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.45 0.24 0' },
+      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.22 0.24 -0.39' },
+      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.22 0.24 -0.39' },
     ];
 
     let arActive = false;
@@ -423,27 +426,27 @@
       const camUserGroup = document.getElementById('cam-user-group');
       const anchorUserGroup = document.getElementById('anchor-user-group');
 
-      const finalScale = BASE_SCALE * userScaleFactor;
-      const scaleStr = `${finalScale} ${finalScale} ${finalScale}`;
+      const camScale = CAMERA_BASE_SCALE * userScaleFactor;
+      const anchorScale = ANCHOR_BASE_SCALE * userScaleFactor;
       const rotStr = `${customRotX} ${customRotY} 0`;
 
       if (camUserGroup) {
-        camUserGroup.setAttribute('scale', scaleStr);
+        camUserGroup.setAttribute('scale', `${camScale} ${camScale} ${camScale}`);
         camUserGroup.setAttribute('rotation', rotStr);
       }
       if (anchorUserGroup) {
-        anchorUserGroup.setAttribute('scale', scaleStr);
+        anchorUserGroup.setAttribute('scale', `${anchorScale} ${anchorScale} ${anchorScale}`);
         anchorUserGroup.setAttribute('rotation', rotStr);
       }
     }
 
     window.zoomInAR = function() {
-      userScaleFactor = Math.min(userScaleFactor * 1.35, 6.0);
+      userScaleFactor = Math.min(userScaleFactor * 1.3, 5.0);
       applyModelUserScale();
     };
 
     window.zoomOutAR = function() {
-      userScaleFactor = Math.max(userScaleFactor / 1.35, 0.1);
+      userScaleFactor = Math.max(userScaleFactor / 1.3, 0.15);
       applyModelUserScale();
     };
 
@@ -584,7 +587,7 @@
         const badgeDataUrl = createSlotBadgeDataUrl(slot.label, slot.role);
         badgeEntities += `
           <a-entity position="${slot.pos}" billboard>
-            <a-plane src="${badgeDataUrl}" width="0.18" height="0.045" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
+            <a-plane src="${badgeDataUrl}" width="0.36" height="0.09" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
           </a-entity>`;
       });
 
@@ -598,14 +601,14 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Fallback Camera-Space 3D Model -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" visible="false">
-              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04">
+            <a-entity id="camera-space-model" position="0 -0.05 -0.9" visible="false">
+              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="0.22 0.22 0.22">
                 <a-entity id="cam-spin-group"
                   animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
                   <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
                   ${badgeEntities}
                 </a-entity>
-                <a-torus radius="0.28" radius-tubular="0.008" color="#10b981" rotation="90 0 0" position="0 -0.05 0" opacity="0.85"></a-torus>
+                <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.05 0" opacity="0.85"></a-torus>
               </a-entity>
             </a-entity>
           </a-camera>
@@ -617,13 +620,13 @@
 
           <!-- MindAR Anchor 0 (PLACES 3D MODEL DIRECTLY ON TOP OF CARD ANCHOR IMAGE) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04">
+            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="0.35 0.35 0.35">
               <a-entity id="anchor-spin-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
                 ${badgeEntities}
               </a-entity>
-              <a-torus radius="0.28" radius-tubular="0.008" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
+              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
                 animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
               </a-torus>
             </a-entity>
@@ -668,7 +671,7 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const scaleFactor = currentDist / initialPinchDist;
-          userScaleFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.1), 6.0);
+          userScaleFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.15), 5.0);
           applyModelUserScale();
         }
       };
@@ -823,18 +826,19 @@
 
     // ── Switch Mode (3D View <-> Mode AR) ──
     window.switchMode = function(mode) {
-      const btn3d = document.getElementById('btn-3d');
+      const btn3d.classList = document.getElementById('btn-3d');
+      const btn3dEl = document.getElementById('btn-3d');
       const btnAr = document.getElementById('btn-ar');
       const ctrlBar = document.getElementById('ctrl-bar');
       const mvEl = document.getElementById('eco-mv');
 
       if (mode === 'ar') {
-        btn3d.classList.remove('active'); btnAr.classList.add('active');
+        btn3dEl.classList.remove('active'); btnAr.classList.add('active');
         mvEl.style.display = 'none';
         ctrlBar.style.display = 'none';
         startAR();
       } else {
-        btn3d.classList.add('active'); btnAr.classList.remove('active');
+        btn3dEl.classList.add('active'); btnAr.classList.remove('active');
         mvEl.style.display = 'block';
         ctrlBar.style.display = '';
         stopAR();
