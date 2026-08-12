@@ -342,9 +342,10 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Full Scene Bounding Box Responsive Fit) ── -->
+  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (Exact Image Target Anchor Placement + Screen Box Scale) ── -->
   <script>
-    let baseModelScale = 0.05;
+    // Fixed base scale (0.04m) perfectly sized to match the yellow scanning box in center of screen
+    const BASE_SCALE = 0.04;
 
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -360,36 +361,21 @@
         });
       }
 
-      // 2. Center-Model Component (COMPUTES FULL SCENE GRAPH BOUNDING BOX & RESPONSIVE PORTRAIT SCALE)
+      // 2. Center-Model Component (Auto-centers GLB mesh)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
             this.el.addEventListener('model-loaded', () => {
-              const fullObj = this.el.object3D;
-              if (!fullObj) return;
-
-              // Compute bounding box of entire GLTF scene graph
-              const box = new THREE.Box3().setFromObject(fullObj);
-              const center = box.getCenter(new THREE.Vector3());
-              const size = box.getSize(new THREE.Vector3());
-              const maxDim = Math.max(size.x, size.y, size.z) || 1;
-
-              // Reposition mesh children to origin (0, 0, 0)
               const meshObj = this.el.getObject3D('mesh');
-              if (meshObj) {
-                meshObj.position.set(-center.x, -center.y, -center.z);
-              }
+              if (!meshObj) return;
 
-              // Responsive aspect-ratio calculation for mobile screens
-              const screenAspect = window.innerWidth / Math.max(window.innerHeight, 1);
-              // Target visual diameter in meters: ~0.08m in portrait mobile view
-              const targetSizeMeters = Math.min(0.18 * screenAspect, 0.09);
-              baseModelScale = targetSizeMeters / maxDim;
+              const box = new THREE.Box3().setFromObject(meshObj);
+              const center = box.getCenter(new THREE.Vector3());
 
-              // Set scale directly on Three.js object3D
-              this.el.object3D.scale.set(baseModelScale, baseModelScale, baseModelScale);
+              // Auto-center GLB mesh origin to (0,0,0)
+              meshObj.position.set(-center.x, -center.y, -center.z);
 
-              console.log('[AR Engine] Responsive Auto-Fit Success! maxDim:', maxDim, 'baseScale:', baseModelScale);
+              console.log('[AR Engine] Auto-centered GLB model origin to (0,0,0)! Center:', center);
             });
           }
         });
@@ -432,26 +418,27 @@
     let initialPinchDist = 0;
     let initialUserScale = 1.0;
 
-    // ── Direct Three.js Scale & Rotation Mutation (Instant Responsiveness) ──
+    // ── Apply User Scale & Rotation to User Groups ──
     function applyModelUserScale() {
       const camUserGroup = document.getElementById('cam-user-group');
       const anchorUserGroup = document.getElementById('anchor-user-group');
 
-      const radX = THREE.MathUtils.degToRad(customRotX);
-      const radY = THREE.MathUtils.degToRad(customRotY);
+      const finalScale = BASE_SCALE * userScaleFactor;
+      const scaleStr = `${finalScale} ${finalScale} ${finalScale}`;
+      const rotStr = `${customRotX} ${customRotY} 0`;
 
-      if (camUserGroup && camUserGroup.object3D) {
-        camUserGroup.object3D.rotation.set(radX, radY, 0);
-        camUserGroup.object3D.scale.set(userScaleFactor, userScaleFactor, userScaleFactor);
+      if (camUserGroup) {
+        camUserGroup.setAttribute('scale', scaleStr);
+        camUserGroup.setAttribute('rotation', rotStr);
       }
-      if (anchorUserGroup && anchorUserGroup.object3D) {
-        anchorUserGroup.object3D.rotation.set(radX, radY, 0);
-        anchorUserGroup.object3D.scale.set(userScaleFactor, userScaleFactor, userScaleFactor);
+      if (anchorUserGroup) {
+        anchorUserGroup.setAttribute('scale', scaleStr);
+        anchorUserGroup.setAttribute('rotation', rotStr);
       }
     }
 
     window.zoomInAR = function() {
-      userScaleFactor = Math.min(userScaleFactor * 1.35, 5.0);
+      userScaleFactor = Math.min(userScaleFactor * 1.35, 6.0);
       applyModelUserScale();
     };
 
@@ -552,7 +539,7 @@
       document.getElementById('top-nav').classList.remove('dimmed');
       document.getElementById('ar-zoom-bar').classList.remove('active');
 
-      setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
+      setStatus('✨ AR Siap — arahkan kamera ke QR Code / Gambar Kartu');
     }
 
     function showWrong(preset) {
@@ -587,7 +574,7 @@
       }
     }
 
-    // ── Build HTML for A-Frame Scene (With Separate Unanimated User Group & Auto-Centering) ──
+    // ── Build HTML for A-Frame Scene (Placing 3D Model Directly on Card Image Anchor Target) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
@@ -610,11 +597,9 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -1.2" visible="false">
-              <!-- Separate Unanimated User Group for Touch Drag & Scale -->
-              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="1 1 1">
-                <!-- Inner Auto-Spin Group -->
+            <!-- Fallback Camera-Space 3D Model -->
+            <a-entity id="camera-space-model" position="0 -0.05 -0.85" visible="false">
+              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04">
                 <a-entity id="cam-spin-group"
                   animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
                   <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
@@ -630,9 +615,9 @@
           <a-light type="directional" position="2 5 3" intensity="3.0"></a-light>
           <a-light type="directional" position="-2 -3 2" intensity="1.5"></a-light>
 
-          <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
+          <!-- MindAR Anchor 0 (PLACES 3D MODEL DIRECTLY ON TOP OF CARD ANCHOR IMAGE) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04">
               <a-entity id="anchor-spin-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
@@ -683,7 +668,7 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const scaleFactor = currentDist / initialPinchDist;
-          userScaleFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.1), 5.0);
+          userScaleFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.1), 6.0);
           applyModelUserScale();
         }
       };
@@ -776,9 +761,10 @@
         document.getElementById('ar-status-pill').style.display = 'flex';
         document.getElementById('scan-frame').style.display = 'block';
         document.getElementById('ar-hint').classList.add('active');
-        setStatus('✨ AR Siap — arahkan kamera ke QR Code kartu');
+        setStatus('✨ AR Siap — arahkan kamera ke QR Code / Gambar Kartu');
 
         setupTouchGestureRotation();
+        applyModelUserScale();
 
         const anchorEl = sceneEl.querySelector('#anchor-match');
         if (anchorEl) {
