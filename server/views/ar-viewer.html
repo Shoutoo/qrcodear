@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>{{MODEL_TITLE}} — AlamVerse 3D & AR Studio</title>
 
   <!-- Tailwind CSS & Google Fonts -->
@@ -13,7 +13,7 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
-  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js (Loads window.MINDAR.IMAGE.MindARThree) -->
+  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js -->
   <script src="/assets/vendor/three.min.js"></script>
   <script src="/assets/vendor/GLTFLoader.js"></script>
   <script src="/assets/vendor/mindar-1.1.5.js"></script>
@@ -26,6 +26,7 @@
       font-family: 'Quicksand', sans-serif;
       background: #0d131f;
       color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
     }
 
     model-viewer {
@@ -36,11 +37,11 @@
     }
 
     .hud-card {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
       color: #f8fafc;
     }
 
@@ -60,35 +61,53 @@
       color: #ffffff !important;
     }
 
+    /* ── AR Camera Mode Container & Fullscreen Video Fix ───── */
     #mindar-container {
       display: none;
       position: fixed;
-      inset: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
       height: 100vh;
+      height: -webkit-fill-available;
       z-index: 10;
       background: #000;
       overflow: hidden;
     }
     #mindar-container.active { display: block; }
 
+    /* Force MindAR Video and Canvas to fill entire viewport cleanly */
+    #mindar-container video,
+    #mindar-container canvas {
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      min-width: 100% !important;
+      min-height: 100% !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
+    }
+
     #ar-status-bar {
       position: absolute;
-      top: 80px;
+      top: 66px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
       white-space: nowrap;
       pointer-events: none;
+      max-width: 90vw;
     }
     #ar-scan-hint {
       position: absolute;
-      bottom: 40px;
+      bottom: max(24px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
       pointer-events: none;
       text-align: center;
+      white-space: nowrap;
     }
 
     #ar-scan-frame {
@@ -96,19 +115,20 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: min(260px, 70vw);
-      height: min(360px, 50vh);
+      width: min(240px, 68vw);
+      height: min(320px, 46vh);
       border: 3px dashed rgba(251, 191, 36, 0.85);
-      border-radius: 24px;
+      border-radius: 20px;
       z-index: 40;
       pointer-events: none;
+      box-sizing: border-box;
     }
     #ar-scan-frame::before,
     #ar-scan-frame::after {
       content: '';
       position: absolute;
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-color: #fbbf24;
       border-style: solid;
     }
@@ -132,8 +152,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      padding: 32px;
+      gap: 14px;
+      padding: 24px;
       text-align: center;
     }
     #ar-error-overlay.show { display: flex; }
@@ -163,52 +183,52 @@
   <!-- LAYER 2: MINDAR CONTAINER -->
   <div id="mindar-container">
     <div id="ar-status-bar">
-      <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:8px 20px;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.3);">
-        <span id="mindar-dot" style="width:10px;height:10px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
-        <span id="mindar-text">Memulai kamera...</span>
+      <div style="background:rgba(15,23,42,0.9);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.35);">
+        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Memulai kamera AR...</span>
       </div>
     </div>
 
     <div id="ar-scan-frame"></div>
 
     <div id="ar-scan-hint">
-      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:12px;font-weight:800;padding:8px 20px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.4);">
         📷 Arahkan kamera ke Kartu Print AR
       </span>
     </div>
 
     <div id="ar-error-overlay">
-      <span class="material-symbols-outlined" style="font-size:48px;color:#fbbf24;">videocam_off</span>
-      <p id="ar-error-text" style="color:#fff;font-size:14px;font-weight:700;max-width:300px;line-height:1.5;"></p>
-      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:10px 24px;border-radius:12px;border:none;font-size:13px;cursor:pointer;margin-top:8px;">
+      <span class="material-symbols-outlined" style="font-size:42px;color:#fbbf24;">videocam_off</span>
+      <p id="ar-error-text" style="color:#fff;font-size:13px;font-weight:700;max-width:280px;line-height:1.4;"></p>
+      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-top:6px;">
         ← Kembali ke 3D View
       </button>
     </div>
   </div>
 
-  <!-- LAYER 3: TOP NAVIGATION HUD -->
-  <header style="position:absolute;top:14px;left:14px;right:14px;z-index:30;pointer-events:auto;">
-    <div class="hud-card" style="border-radius:20px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:850px;margin:auto;">
+  <!-- LAYER 3: TOP NAVIGATION HUD — Mobile Clean Compact Header -->
+  <header style="position:fixed;top:10px;left:10px;right:10px;z-index:30;pointer-events:auto;">
+    <div class="hud-card" style="border-radius:16px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:850px;margin:auto;">
       
       <!-- Left Info -->
-      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1;">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(99,44,229,0.4);">
-          <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">view_in_ar</span>
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+        <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(99,44,229,0.4);">
+          <span class="material-symbols-outlined" style="color:#fff;font-size:20px;">view_in_ar</span>
         </div>
-        <div style="min-width:0;">
-          <h1 style="font-weight:900;font-size:14px;line-height:1.2;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">{{MODEL_TITLE}}</h1>
-          <p style="font-size:11px;color:#94a3b8;font-weight:700;margin-top:2px;">AlamVerse Studio 3D</p>
+        <div style="min-width:0;flex:1;">
+          <h1 style="font-weight:900;font-size:13px;line-height:1.2;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{MODEL_TITLE}}</h1>
+          <p style="font-size:10px;color:#94a3b8;font-weight:700;margin-top:1px;">AlamVerse Studio 3D</p>
         </div>
       </div>
 
-      <!-- Right 2 Mode Selector -->
-      <div id="mode-switcher" style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.06);padding:4px;border-radius:14px;border:1px solid rgba(255,255,255,0.1);flex-shrink:0;">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:16px;">3d_rotation</span>
+      <!-- Right: 2 Mode Selector Buttons -->
+      <div id="mode-switcher" style="display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.06);padding:3px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);flex-shrink:0;">
+        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span>
           <span>3D View</span>
         </button>
-        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
+        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span>
           <span>Mode AR</span>
         </button>
       </div>
@@ -251,7 +271,7 @@
       const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
 
       if (!MINDARThreeClass) {
-        showArError('Library MindAR 3D belum siap. Pastikan script /assets/vendor/mindar-1.1.5.js dimuat.');
+        showArError('Library MindAR belum siap. Refresh halaman untuk mencoba kembali.');
         return;
       }
 
@@ -289,7 +309,7 @@
         }
 
         anchor.onTargetFound = () => {
-          setArStatus('✅ Marker Ditemukan! Model 3D Aktif', '#10b981');
+          setArStatus('✅ Marker Ditemukan! Model 3D AR Aktif', '#10b981');
         };
         anchor.onTargetLost = () => {
           setArStatus('📷 Arahkan kamera ke Kartu Print AR...', '#fbbf24');
@@ -310,9 +330,9 @@
         console.error('MindAR start failed:', err);
         const msg = String(err && err.message ? err.message : err);
         if (msg.toLowerCase().includes('camera') || msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('notallowed')) {
-          showArError('Akses kamera ditolak. Silakan izinkan izin kamera pada browser Anda dan coba lagi.');
+          showArError('Akses kamera ditolak. Izinkan akses kamera pada browser Anda dan coba lagi.');
         } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-          showArError('Mode AR kamera membutuhkan protokol HTTPS pada perangkat seluler. Akses via HTTP diblokir oleh browser.');
+          showArError('Mode AR kamera membutuhkan HTTPS pada HP. Akses via HTTP diblokir oleh browser HP.');
         } else {
           showArError('Gagal menjalankan AR Kamera: ' + msg);
         }

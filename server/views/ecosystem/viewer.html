@@ -2,10 +2,10 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>{{ECOSYSTEM_NAME}} — AlamVerse AR & 3D Viewer</title>
   
-  <!-- Tailwind CSS & Material Icons -->
+  <!-- Tailwind CSS & Google Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -13,7 +13,7 @@
   <!-- Google <model-viewer> Library for 3D View mode -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 
-  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js (Loads window.MINDAR.IMAGE.MindARThree) -->
+  <!-- Local MindAR 1.1.5 UMD Script Bundle & Three.js -->
   <script src="/assets/vendor/three.min.js"></script>
   <script src="/assets/vendor/GLTFLoader.js"></script>
   <script src="/assets/vendor/mindar-1.1.5.js"></script>
@@ -24,8 +24,9 @@
       width: 100%; height: 100%;
       overflow: hidden;
       font-family: 'Quicksand', sans-serif;
-      background: #f4faff;
+      background: #0f172a;
       color: #0d1e25;
+      -webkit-tap-highlight-color: transparent;
     }
 
     model-viewer {
@@ -39,45 +40,46 @@
     .species-hotspot {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 2px solid #632ce5;
-      border-radius: 18px;
-      padding: 6px 14px;
-      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.18);
+      border-radius: 14px;
+      padding: 4px 10px;
+      box-shadow: 0 6px 20px rgba(99, 44, 229, 0.2);
       font-family: 'Quicksand', sans-serif;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 800;
       color: #0d1e25;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
       white-space: nowrap;
       user-select: none;
     }
     .species-hotspot:hover {
-      transform: scale(1.1);
+      transform: scale(1.08);
       background: #632ce5;
       color: #ffffff;
     }
     .species-role-badge {
       background: #fdd400;
       color: #0d1e25;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
-      padding: 2.5px 8px;
-      border-radius: 8px;
+      padding: 2px 6px;
+      border-radius: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
     }
 
     /* Floating HUD Card */
     .hud-card {
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid #d4e5ef;
-      box-shadow: 0 12px 32px -4px rgba(99, 44, 229, 0.12);
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.2);
       color: #0d1e25;
     }
 
@@ -89,7 +91,7 @@
       box-shadow: 0 2px 8px rgba(99,44,229,0.35) !important;
     }
     .mode-btn-inactive {
-      color: #494455 !important;
+      color: #475569 !important;
       font-weight: 700 !important;
       background: transparent !important;
     }
@@ -98,13 +100,14 @@
       color: #632ce5 !important;
     }
 
-    /* ── AR Camera Mode Container ─────────────────────────── */
+    /* ── AR Camera Mode Container & Fullscreen Video Fix ───── */
     #mindar-container {
       display: none;
       position: fixed;
-      inset: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
       height: 100vh;
+      height: -webkit-fill-available;
       z-index: 10;
       background: #000;
       overflow: hidden;
@@ -113,23 +116,39 @@
       display: block;
     }
 
+    /* Force MindAR Video and Canvas to fill entire viewport cleanly */
+    #mindar-container video,
+    #mindar-container canvas {
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      min-width: 100% !important;
+      min-height: 100% !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      object-fit: cover !important;
+    }
+
     #ar-status-bar {
       position: absolute;
-      top: 80px;
+      top: 66px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
       white-space: nowrap;
       pointer-events: none;
+      max-width: 90vw;
     }
     #ar-scan-hint {
       position: absolute;
-      bottom: 40px;
+      bottom: max(24px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 50;
       pointer-events: none;
       text-align: center;
+      white-space: nowrap;
     }
 
     /* Scan crosshair frame overlay */
@@ -138,19 +157,20 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: min(260px, 70vw);
-      height: min(360px, 50vh);
+      width: min(240px, 68vw);
+      height: min(320px, 46vh);
       border: 3px dashed rgba(251, 191, 36, 0.85);
-      border-radius: 24px;
+      border-radius: 20px;
       z-index: 40;
       pointer-events: none;
+      box-sizing: border-box;
     }
     #ar-scan-frame::before,
     #ar-scan-frame::after {
       content: '';
       position: absolute;
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-color: #fbbf24;
       border-style: solid;
     }
@@ -171,12 +191,12 @@
       position: absolute;
       inset: 0;
       z-index: 60;
-      background: rgba(13, 30, 37, 0.95);
+      background: rgba(15, 23, 42, 0.95);
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      padding: 32px;
+      gap: 14px;
+      padding: 24px;
       text-align: center;
     }
     #ar-error-overlay.show { display: flex; }
@@ -239,7 +259,7 @@
     </button>
     <!-- Center Ring Badge -->
     <button slot="hotspot-center" class="species-hotspot" data-position="0 2.6 0" data-normal="0 1 0" style="border-color:#705d00;background:#ffe170;color:#0d1e25;">
-      <span class="material-symbols-outlined" style="font-size:16px;color:#705d00;">cyclone</span>
+      <span class="material-symbols-outlined" style="font-size:14px;color:#705d00;">cyclone</span>
       <span style="font-weight:900;">RANTAI MAKANAN 360°</span>
     </button>
   </model-viewer>
@@ -249,60 +269,59 @@
   ════════════════════════════════════════════════════════ -->
   <div id="mindar-container">
     <div id="ar-status-bar">
-      <div style="background:rgba(255,255,255,0.95);border:1.5px solid #d4e5ef;backdrop-filter:blur(16px);padding:8px 20px;border-radius:999px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#0d1e25;box-shadow:0 8px 24px rgba(0,0,0,0.2);">
-        <span id="mindar-dot" style="width:10px;height:10px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
-        <span id="mindar-text">Memulai kamera...</span>
+      <div style="background:rgba(255,255,255,0.95);border:1.5px solid #cbd5e1;backdrop-filter:blur(16px);padding:6px 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#0d1e25;box-shadow:0 6px 20px rgba(0,0,0,0.25);">
+        <span id="mindar-dot" style="width:8px;height:8px;border-radius:50%;background:#fbbf24;display:inline-block;flex-shrink:0;"></span>
+        <span id="mindar-text" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Memulai kamera AR...</span>
       </div>
     </div>
 
     <div id="ar-scan-frame"></div>
 
     <div id="ar-scan-hint">
-      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:12px;font-weight:800;padding:8px 20px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      <span style="background:rgba(99,44,229,0.9);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         📷 Arahkan kamera ke Kartu Print AR
       </span>
     </div>
 
     <div id="ar-error-overlay">
-      <span class="material-symbols-outlined" style="font-size:48px;color:#fbbf24;">videocam_off</span>
-      <p id="ar-error-text" style="color:#fff;font-size:14px;font-weight:700;max-width:300px;line-height:1.5;"></p>
-      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:10px 24px;border-radius:12px;border:none;font-size:13px;cursor:pointer;margin-top:8px;">
+      <span class="material-symbols-outlined" style="font-size:42px;color:#fbbf24;">videocam_off</span>
+      <p id="ar-error-text" style="color:#fff;font-size:13px;font-weight:700;max-width:280px;line-height:1.4;"></p>
+      <button onclick="switchViewMode('3d')" style="background:#632ce5;color:#fff;font-weight:800;padding:9px 22px;border-radius:12px;border:none;font-size:12px;cursor:pointer;margin-top:6px;">
         ← Kembali ke 3D View
       </button>
     </div>
   </div>
 
   <!-- ════════════════════════════════════════════════════════
-       LAYER 3: TOP NAVIGATION HUD — Header + 2 Mode Selector
+       LAYER 3: TOP NAVIGATION HUD — Mobile Clean Compact Header
   ════════════════════════════════════════════════════════ -->
-  <header style="position:absolute;top:14px;left:14px;right:14px;z-index:30;pointer-events:auto;">
-    <div class="hud-card" style="border-radius:20px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;max-width:850px;margin:auto;">
+  <header style="position:fixed;top:10px;left:10px;right:10px;z-index:30;pointer-events:auto;">
+    <div class="hud-card" style="border-radius:16px;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:850px;margin:auto;">
       
       <!-- Left: Logo & Ecosystem Name -->
-      <div style="display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:1;">
-        <div style="width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 10px rgba(99,44,229,0.3);">
-          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" style="width:24px;height:24px;object-fit:contain;" onerror="this.style.display='none'"/>
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+        <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#632ce5,#7c4dff);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(99,44,229,0.3);">
+          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" style="width:20px;height:20px;object-fit:contain;" onerror="this.style.display='none'"/>
         </div>
-        <div style="min-width:0;">
-          <div style="font-weight:900;font-size:14px;line-height:1.2;color:#0d1e25;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">{{ECOSYSTEM_NAME}}</span>
-            <span style="font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(99,44,229,0.1);color:#632ce5;font-weight:900;border:1px solid rgba(99,44,229,0.2);white-space:nowrap;">SD Edu</span>
+        <div style="min-width:0;flex:1;">
+          <div style="font-weight:900;font-size:13px;line-height:1.2;color:#0d1e25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ECOSYSTEM_NAME}}
           </div>
-          <div style="font-size:11px;color:#64748b;font-weight:700;display:flex;align-items:center;gap:5px;margin-top:2px;">
-            <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;"></span>
-            Siklus Rantai Makanan 360°
+          <div style="font-size:10px;color:#64748b;font-weight:700;display:flex;align-items:center;gap:4px;margin-top:1px;">
+            <span style="width:5px;height:5px;border-radius:50%;background:#10b981;display:inline-block;flex-shrink:0;"></span>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">SD Edu • Siklus 360°</span>
           </div>
         </div>
       </div>
 
       <!-- Right: 2 Mode Selector Buttons -->
-      <div id="mode-switcher" style="display:flex;align-items:center;gap:4px;background:#f1f5f9;padding:4px;border-radius:14px;border:1px solid #cbd5e1;flex-shrink:0;">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:16px;">3d_rotation</span>
+      <div id="mode-switcher" style="display:flex;align-items:center;gap:3px;background:#f1f5f9;padding:3px;border-radius:12px;border:1px solid #cbd5e1;flex-shrink:0;">
+        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="mode-btn-active chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span>
           <span>3D View</span>
         </button>
-        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:7px 12px;font-size:12px;display:flex;align-items:center;gap:4px;border:none;">
-          <span class="material-symbols-outlined" style="font-size:16px;">view_in_ar</span>
+        <button id="btn-mode-ar" onclick="switchViewMode('ar')" class="mode-btn-inactive chunky-btn" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;border:none;">
+          <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span>
           <span>Mode AR</span>
         </button>
       </div>
@@ -311,33 +330,33 @@
   </header>
 
   <!-- Sub-header circular text banner (only in 3D View mode) -->
-  <div id="circular-text-hud" style="position:absolute;top:74px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;white-space:nowrap;">
-    <div style="background:#fbbf24;border:1.5px solid #f59e0b;color:#0d1e25;font-size:11px;font-weight:900;padding:5px 16px;border-radius:999px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(251,191,36,0.3);">
-      <span class="material-symbols-outlined" style="font-size:14px;">autorenew</span>
-      <span>PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
+  <div id="circular-text-hud" style="position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:20;pointer-events:none;white-space:nowrap;max-width:92vw;overflow:hidden;">
+    <div style="background:#fbbf24;border:1.5px solid #f59e0b;color:#0d1e25;font-size:10px;font-weight:900;padding:4px 14px;border-radius:999px;display:flex;align-items:center;gap:5px;box-shadow:0 4px 10px rgba(251,191,36,0.3);overflow:hidden;text-overflow:ellipsis;">
+      <span class="material-symbols-outlined" style="font-size:13px;flex-shrink:0;">autorenew</span>
+      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ PENGURAI</span>
     </div>
   </div>
 
   <!-- ════════════════════════════════════════════════════════
        LAYER 4: BOTTOM ROTATION CONTROLS (3D View mode only)
   ════════════════════════════════════════════════════════ -->
-  <div id="bottom-controls-hud" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:30;pointer-events:auto;width:100%;max-width:420px;padding:0 14px;">
-    <div class="hud-card" style="padding:10px 14px;border-radius:20px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+  <div id="bottom-controls-hud" style="position:fixed;bottom:max(12px, env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:30;pointer-events:auto;width:100%;max-width:400px;padding:0 10px;">
+    <div class="hud-card" style="padding:8px 12px;border-radius:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
         
-        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn" style="padding:8px 12px;font-size:12px;font-weight:900;display:flex;align-items:center;gap:5px;background:#ede9fe;color:#632ce5;border:none;flex:1;">
-          <span id="rot-icon" class="material-symbols-outlined" style="font-size:16px;">pause_circle</span>
+        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn" style="padding:7px 10px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:4px;background:#ede9fe;color:#632ce5;border:none;flex:1;justify-content:center;">
+          <span id="rot-icon" class="material-symbols-outlined" style="font-size:15px;">pause_circle</span>
           <span id="rot-text">Hentikan</span>
         </button>
 
-        <button onclick="reverseRotation()" class="chunky-btn" style="padding:8px 12px;font-size:12px;font-weight:900;display:flex;align-items:center;gap:4px;background:#f1f5f9;color:#0d1e25;border:none;">
-          <span class="material-symbols-outlined" style="font-size:16px;">screen_rotation</span>
+        <button onclick="reverseRotation()" class="chunky-btn" style="padding:7px 10px;font-size:11px;font-weight:900;display:flex;align-items:center;gap:4px;background:#f1f5f9;color:#0d1e25;border:none;">
+          <span class="material-symbols-outlined" style="font-size:15px;">screen_rotation</span>
           Arah
         </button>
 
-        <div style="display:flex;align-items:center;gap:4px;background:#f1f5f9;padding:6px 10px;border-radius:10px;border:1px solid #cbd5e1;">
-          <span style="font-size:11px;color:#64748b;font-weight:700;">Kec:</span>
-          <select onchange="changeSpeed(this.value)" style="background:transparent;font-size:12px;font-weight:900;color:#632ce5;border:none;outline:none;cursor:pointer;">
+        <div style="display:flex;align-items:center;gap:3px;background:#f1f5f9;padding:5px 8px;border-radius:10px;border:1px solid #cbd5e1;">
+          <span style="font-size:10px;color:#64748b;font-weight:700;">Kec:</span>
+          <select onchange="changeSpeed(this.value)" style="background:transparent;font-size:11px;font-weight:900;color:#632ce5;border:none;outline:none;cursor:pointer;">
             <option value="10deg">🐢</option>
             <option value="20deg" selected>🚶</option>
             <option value="45deg">🚀</option>
@@ -433,11 +452,10 @@
       hideArError();
       setArStatus('Memulai kamera AR...', '#fbbf24');
 
-      // MindAR 1.1.5 UMD bundle exports window.MINDAR.IMAGE.MindARThree
       const MINDARThreeClass = (window.MINDAR && window.MINDAR.IMAGE && window.MINDAR.IMAGE.MindARThree) || window.MindARThree;
 
       if (!MINDARThreeClass) {
-        showArError('Library MindAR 3D belum siap. Pastikan script /assets/vendor/mindar-1.1.5.js dimuat.');
+        showArError('Library MindAR belum siap. Refresh halaman untuk mencoba kembali.');
         return;
       }
 
@@ -499,9 +517,9 @@
         console.error('MindAR start failed:', err);
         const msg = String(err && err.message ? err.message : err);
         if (msg.toLowerCase().includes('camera') || msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('notallowed')) {
-          showArError('Akses kamera ditolak. Silakan izinkan izin kamera pada browser Anda dan coba lagi.');
+          showArError('Akses kamera ditolak. Izinkan akses kamera pada browser Anda dan coba lagi.');
         } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-          showArError('Mode AR kamera membutuhkan protokol HTTPS pada perangkat seluler. Akses via HTTP diblokir oleh browser.');
+          showArError('Mode AR kamera membutuhkan HTTPS pada HP. Akses via HTTP diblokir oleh browser HP.');
         } else {
           showArError('Gagal menjalankan AR Kamera: ' + msg);
         }
