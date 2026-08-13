@@ -387,11 +387,11 @@
               obj.position.y -= center.y;
               obj.position.z -= center.z;
 
-              // Normalize scale to fit nicely in 3D AR viewport (Base scale 0.22 fits entire ecosystem inside mobile camera frame at 1.0x)
-              const desiredScale = 0.22 / rawMaxDim;
+              // Normalize scale to fit nicely in 3D AR viewport (Base scale 0.12 fits entire ecosystem inside mobile camera frame at 1.0x)
+              const desiredScale = 0.12 / rawMaxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
-              console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
+              console.log('[AR Runtime Scale Log] GLB Model Bounding Box Size:', size, 'center:', center, 'rawMaxDim:', rawMaxDim, 'Base desiredScale:', desiredScale);
             });
           }
         });
