@@ -567,18 +567,19 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom (Parent Entity Scaling) ──
+    // ── Update Model Scale for Pinch Zoom (Direct Three.js Matrix Scaling) ──
     function updateModelZoomScale() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
         return;
       }
-      const camGlbGroup = document.getElementById('cam-glb-group');
-      const anchorGlbGroup = document.getElementById('anchor-glb-group');
-      const scaleStr = `${userZoomFactor} ${userZoomFactor} ${userZoomFactor}`;
-
-      if (camGlbGroup) camGlbGroup.setAttribute('scale', scaleStr);
-      if (anchorGlbGroup) anchorGlbGroup.setAttribute('scale', scaleStr);
+      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+      const models = document.querySelectorAll('a-gltf-model[center-model]');
+      models.forEach(m => {
+        if (m.object3D) {
+          m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
+        }
+      });
     }
 
     // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
