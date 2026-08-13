@@ -62,7 +62,7 @@
     /* ── Top Nav ────────────────────────────────────────── */
     #top-nav {
       position: fixed; top: 10px; left: 10px; right: 10px;
-      z-index: 200; pointer-events: auto;
+      z-index: 99999 !important; pointer-events: auto !important;
       transition: opacity 0.4s ease;
     }
     #top-nav.dimmed { opacity: 0.35; }
@@ -76,6 +76,7 @@
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       max-width: 850px; margin: auto;
       box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      pointer-events: auto !important;
     }
     .nav-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
     .nav-logo {
@@ -92,12 +93,15 @@
       display: flex; align-items: center; gap: 3px;
       background: #f1f5f9; padding: 3px; border-radius: 12px;
       border: 1px solid #e2e8f0; flex-shrink: 0;
+      pointer-events: auto !important;
     }
     .mode-btn {
       padding: 6px 10px; font-size: 11px; font-weight: 700;
       border: none; border-radius: 99px; cursor: pointer;
       display: flex; align-items: center; gap: 4px;
       transition: all 0.18s; background: transparent; color: #475569;
+      pointer-events: auto !important;
+      touch-action: manipulation !important;
     }
     .mode-btn.active {
       background: #7c3aed !important; color: #fff !important;
@@ -833,6 +837,28 @@
         applyRot();
       }
     };
+
+    // Direct Dual Event Binding (click + touchend) for Mode Buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      const b3d = document.getElementById('btn-3d');
+      const bar = document.getElementById('btn-ar');
+
+      const triggerSwitch = (mode, e) => {
+        if (e) {
+          try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+        }
+        window.switchMode(mode);
+      };
+
+      if (b3d) {
+        b3d.addEventListener('click', (e) => triggerSwitch('3d', e));
+        b3d.addEventListener('touchend', (e) => triggerSwitch('3d', e));
+      }
+      if (bar) {
+        bar.addEventListener('click', (e) => triggerSwitch('ar', e));
+        bar.addEventListener('touchend', (e) => triggerSwitch('ar', e));
+      }
+    });
   </script>
 
 </body>
