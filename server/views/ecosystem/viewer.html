@@ -387,8 +387,8 @@
               obj.position.y -= center.y;
               obj.position.z -= center.z;
 
-              // Normalize scale to fit nicely in 3D AR viewport
-              const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+              // Normalize scale to fit nicely in 3D AR viewport (Default scale 0.38 fits entire ecosystem inside frame)
+              const desiredScale = 0.38 / rawMaxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
               console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
