@@ -575,7 +575,7 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom (Dedicated Scale Entity) ──
+    // ── Update Model Scale for Pinch Zoom (Dedicated Scale Entity + WebGL Matrix World Update) ──
     function updateModelZoomScale() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
@@ -587,11 +587,24 @@
       const camScaleEl = document.getElementById('cam-user-scale');
       const anchorScaleEl = document.getElementById('anchor-user-scale');
 
-      console.log('[Pinch Audit Log] updateModelZoomScale called! userZoomFactor:', userZoomFactor, 'Scale String:', sStr);
-      console.log('[Pinch Audit Log] camScaleEl found?', !!camScaleEl, 'anchorScaleEl found?', !!anchorScaleEl);
+      if (camScaleEl) {
+        camScaleEl.setAttribute('scale', sStr);
+        if (camScaleEl.object3D) camScaleEl.object3D.updateMatrixWorld(true);
+      }
+      if (anchorScaleEl) {
+        anchorScaleEl.setAttribute('scale', sStr);
+        if (anchorScaleEl.object3D) anchorScaleEl.object3D.updateMatrixWorld(true);
+      }
 
-      if (camScaleEl) camScaleEl.setAttribute('scale', sStr);
-      if (anchorScaleEl) anchorScaleEl.setAttribute('scale', sStr);
+      // Backup direct Three.js matrix update for GLTF models
+      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+      const models = document.querySelectorAll('a-gltf-model[center-model]');
+      models.forEach(m => {
+        if (m.object3D) {
+          m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
+          m.object3D.updateMatrixWorld(true);
+        }
+      });
     }
 
     // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
