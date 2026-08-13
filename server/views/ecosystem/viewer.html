@@ -553,13 +553,13 @@
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
-      // Build 6 Billboard Badge Entities
+      // Build 6 Billboard Badge Entities (Species Name + Role Tag)
       let badgeEntities = '';
       SLOT_BADGES.forEach((slot, idx) => {
         const badgeDataUrl = createSlotBadgeDataUrl(slot.label, slot.role);
         badgeEntities += `
           <a-entity position="${slot.pos}" billboard>
-            <a-plane src="${badgeDataUrl}" width="0.36" height="0.09" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
+            <a-plane src="${badgeDataUrl}" width="0.44" height="0.11" transparent="true" material="alphaTest: 0.1; shader: flat; side: double;"></a-plane>
           </a-entity>`;
       });
 
@@ -843,6 +843,8 @@
         btn3d.classList.remove('active'); btnAr.classList.add('active');
         mvEl.style.display = 'none';
         ctrlBar.style.display = 'none';
+        userZoomFactor = 1.0;
+        applyButtonZoom();
         if (zoomControls) zoomControls.classList.add('active');
         startAR();
       } else {
