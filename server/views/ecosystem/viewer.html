@@ -296,18 +296,21 @@
       const btnWebar = document.getElementById('btn-mode-webar');
       const btnWorld = document.getElementById('btn-mode-world');
 
+      const inactiveClass = "chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1";
+      const activeClass = "chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
+
       [btn3d, btnWebar, btnWorld].forEach(btn => {
-        if (btn) btn.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5";
+        if (btn) btn.className = inactiveClass;
       });
 
       if (mode === '3d') {
-        if (btn3d) btn3d.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
+        if (btn3d) btn3d.className = activeClass;
         closeWebarCamera();
       } else if (mode === 'webar') {
-        if (btnWebar) btnWebar.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
+        if (btnWebar) btnWebar.className = activeClass;
         openWebarCamera();
       } else if (mode === 'world') {
-        if (btnWorld) btnWorld.className = "chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm";
+        if (btnWorld) btnWorld.className = activeClass;
         triggerArExperience();
       }
     }
