@@ -550,6 +550,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
+        modelEl.setAttribute('scale', '1 1 1');
       }
     }
 
@@ -557,6 +558,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'false');
+        modelEl.setAttribute('scale', '0 0 0');
       }
     }
 
@@ -584,7 +586,7 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" visible="false">
+            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
