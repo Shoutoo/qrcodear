@@ -587,6 +587,9 @@
       const camScaleEl = document.getElementById('cam-user-scale');
       const anchorScaleEl = document.getElementById('anchor-user-scale');
 
+      console.log('[Pinch Audit Log] updateModelZoomScale called! userZoomFactor:', userZoomFactor, 'Scale String:', sStr);
+      console.log('[Pinch Audit Log] camScaleEl found?', !!camScaleEl, 'anchorScaleEl found?', !!anchorScaleEl);
+
       if (camScaleEl) camScaleEl.setAttribute('scale', sStr);
       if (anchorScaleEl) anchorScaleEl.setAttribute('scale', sStr);
     }
