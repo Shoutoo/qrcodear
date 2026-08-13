@@ -390,10 +390,13 @@
               const size = box.getSize(new THREE.Vector3());
               const localMaxDim = Math.max(size.x, size.y, size.z) || 2.0;
 
-              // Auto-center mesh at origin (0, 0, 0)
-              obj.position.x = -center.x;
-              obj.position.y = -center.y;
-              obj.position.z = -center.z;
+              const posBefore = obj.position.clone();
+
+              // Convert world-space center into parent's local coordinate space for true local auto-centering
+              const localCenter = obj.parent ? obj.parent.worldToLocal(center.clone()) : center.clone();
+              obj.position.x -= localCenter.x;
+              obj.position.y -= localCenter.y;
+              obj.position.z -= localCenter.z;
 
               // Calculate individual base scale so entire ecosystem fits ~20cm diameter in viewport
               const baseScale = 0.20 / localMaxDim;
@@ -404,7 +407,15 @@
               const finalScale = baseScale * userZoomFactor;
               obj.scale.set(finalScale, finalScale, finalScale);
 
-              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
+              console.log('[Auto-Center & Scale Diagnostics]', {
+                worldCenter: center,
+                localCenter: localCenter,
+                posBefore: posBefore,
+                posAfter: obj.position.clone(),
+                localMaxDim: localMaxDim,
+                baseScale: baseScale,
+                finalScale: finalScale
+              });
             });
           }
         });
