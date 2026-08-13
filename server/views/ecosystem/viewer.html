@@ -383,9 +383,8 @@
               obj.position.set(0, 0, 0);
               obj.scale.set(1, 1, 1);
 
-              // Proportional base scale 0.065 matching 3D View full-ring perspective
-              const cleanMaxDim = 5.60;
-              const baseScale = 0.065;
+              // Proportional base scale 450 matching GLB coordinate unit scale
+              const baseScale = 450;
               this.el.dataset.baseScale = baseScale;
 
               const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
@@ -399,12 +398,9 @@
 
               console.log('[AR Diagnostics — Model Loaded]', {
                 entityParentId: entityParentId,
-                cleanMaxDim: cleanMaxDim,
                 baseScale: baseScale,
                 finalScale: finalScale,
                 meshCount: meshCount,
-                animalRingRadius: (2.65 * finalScale).toFixed(3) + 'm',
-                badgeRingRadius: '0.18m (100% 3D View Aligned!)',
                 centerPosition: obj.position.clone()
               });
             });
@@ -878,7 +874,7 @@
 
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
-        const baseScale = parseFloat(m.dataset.baseScale) || 0.065;
+        const baseScale = parseFloat(m.dataset.baseScale) || 450;
         const finalScale = baseScale * userZoomFactor;
         m.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
       });
