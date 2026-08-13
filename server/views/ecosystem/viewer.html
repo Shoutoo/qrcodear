@@ -313,9 +313,6 @@
 
   <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER ────────────────── -->
   <script>
-    let userZoomFactor = 1.0;
-    let isPinching = false;
-    let previousPinchDist = 0;
     let rawMaxDim = 1.93;
     let touchListenersAttached = false;
 
@@ -539,15 +536,11 @@
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
             <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
-              <!-- Dedicated User Scale Entity for Pinch Zoom (0.40x to 2.50x) -->
-              <a-entity id="cam-user-scale" scale="1 1 1">
-                <a-entity id="cam-glb-group"
-                  animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-                  <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
-                  ${badgeEntities}
-                </a-entity>
+              <a-entity id="cam-glb-group"
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
+                ${badgeEntities}
               </a-entity>
-              <!-- Fixed Base Torus (Stable floor ring indicator) -->
               <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
@@ -559,15 +552,11 @@
 
           <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <!-- Dedicated User Scale Entity for Pinch Zoom (0.40x to 2.50x) -->
-            <a-entity id="anchor-user-scale" scale="1 1 1">
-              <a-entity id="anchor-glb-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
-                ${badgeEntities}
-              </a-entity>
+            <a-entity id="anchor-glb-group"
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
+              ${badgeEntities}
             </a-entity>
-            <!-- Fixed Base Torus (Stable floor ring indicator) -->
             <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
               animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
             </a-torus>
@@ -575,39 +564,7 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom (Dedicated Scale Entity + WebGL Matrix World Update) ──
-    function updateModelZoomScale() {
-      if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
-        userZoomFactor = 1.0;
-      } else {
-        userZoomFactor = Math.min(Math.max(userZoomFactor, 0.40), 2.50);
-      }
-
-      const sStr = `${userZoomFactor} ${userZoomFactor} ${userZoomFactor}`;
-      const camScaleEl = document.getElementById('cam-user-scale');
-      const anchorScaleEl = document.getElementById('anchor-user-scale');
-
-      if (camScaleEl) {
-        camScaleEl.setAttribute('scale', sStr);
-        if (camScaleEl.object3D) camScaleEl.object3D.updateMatrixWorld(true);
-      }
-      if (anchorScaleEl) {
-        anchorScaleEl.setAttribute('scale', sStr);
-        if (anchorScaleEl.object3D) anchorScaleEl.object3D.updateMatrixWorld(true);
-      }
-
-      // Backup direct Three.js matrix update for GLTF models
-      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
-      const models = document.querySelectorAll('a-gltf-model[center-model]');
-      models.forEach(m => {
-        if (m.object3D) {
-          m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
-          m.object3D.updateMatrixWorld(true);
-        }
-      });
-    }
-
-    // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
+    // ── Touch Gesture Setup for 360° Drag Rotation ──
     function setupTouchGestureRotation() {
       if (touchListenersAttached) return;
       touchListenersAttached = true;
@@ -621,29 +578,15 @@
 
         if (e.touches.length === 1) {
           isTouchDragging = true;
-          isPinching = false;
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2) {
-          isTouchDragging = false;
-          const dist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          if (dist > 10) {
-            isPinching = true;
-            previousPinchDist = dist;
-          } else {
-            isPinching = false;
-            previousPinchDist = 0;
-          }
         }
       };
 
       const handleMove = (e) => {
         if (!arActive || !e.touches) return;
 
-        if (e.touches.length === 1 && isTouchDragging && !isPinching) {
+        if (e.touches.length === 1 && isTouchDragging) {
           const deltaX = e.touches[0].clientX - previousTouchX;
           const deltaY = e.touches[0].clientY - previousTouchY;
 
@@ -665,37 +608,10 @@
 
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2) {
-          const currentDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-
-          if (!isPinching || previousPinchDist <= 10) {
-            isPinching = true;
-            previousPinchDist = currentDist;
-          } else if (currentDist > 10 && previousPinchDist > 10) {
-            let deltaRatio = currentDist / previousPinchDist;
-            deltaRatio = Math.min(Math.max(deltaRatio, 0.7), 1.4);
-
-            const newZoomFactor = userZoomFactor * deltaRatio;
-
-            if (isFinite(newZoomFactor) && !isNaN(newZoomFactor)) {
-              userZoomFactor = Math.min(Math.max(newZoomFactor, 0.40), 2.50);
-              updateModelZoomScale();
-            }
-
-            previousPinchDist = currentDist;
-          }
         }
       };
 
       const handleEnd = (e) => {
-        // Layer 5: Clean reset on touch end
-        if (!e.touches || e.touches.length < 2) {
-          isPinching = false;
-          previousPinchDist = 0;
-        }
         if (!e.touches || e.touches.length === 0) {
           isTouchDragging = false;
         }
