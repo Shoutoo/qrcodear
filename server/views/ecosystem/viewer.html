@@ -409,24 +409,27 @@
               const size = box.getSize(new THREE.Vector3());
               const localMaxDim = Math.max(size.x, size.y, size.z) || 5.6;
 
-              // 2. Auto-center posisi lokal
-              obj.position.x -= center.x;
-              obj.position.y -= center.y;
-              obj.position.z -= center.z;
-
-              // 3. Simpan dan terapkan baseScale per-elemen langsung ke Three.js Mesh
+              // 2. Simpan baseScale per-elemen & referensi localCenter
               const baseScale = 0.20 / localMaxDim;
               obj.userData.baseScale = baseScale;
+              obj.userData.localCenter = center.clone();
               this.el.dataset.baseScale = baseScale;
 
               const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
               const finalScale = baseScale * zoom;
+
+              // 3. Terapkan scale langsung ke Three.js Mesh
               obj.scale.set(finalScale, finalScale, finalScale);
+
+              // 4. Auto-center posisi lokal dengan offset yang DISKALAKAN sesuai finalScale
+              obj.position.x -= center.x * finalScale;
+              obj.position.y -= center.y * finalScale;
+              obj.position.z -= center.z * finalScale;
 
               const entityParentId = this.el.parentElement ? this.el.parentElement.id : 'no-parent';
               const parentScaleAttr = this.el.parentElement ? this.el.parentElement.getAttribute('scale') : 'none';
 
-              // 4. Log Diagnostik Lengkap untuk Verifikasi Empiris
+              // 5. Log Diagnostik Lengkap untuk Verifikasi Empiris
               console.log('[Auto-Center & Scale Diagnostics]', {
                 entityParentId: entityParentId,
                 parentScaleAttr: parentScaleAttr,
@@ -869,6 +872,12 @@
           const baseScale = mesh.userData.baseScale || parseFloat(m.dataset.baseScale) || 0.05;
           const finalScale = baseScale * userZoomFactor;
           mesh.scale.set(finalScale, finalScale, finalScale);
+
+          // Jaga posisi model tetap di tengah saat di-zoom manual
+          if (mesh.userData.localCenter) {
+            const lc = mesh.userData.localCenter;
+            mesh.position.set(-lc.x * finalScale, -lc.y * finalScale, -lc.z * finalScale);
+          }
         }
       });
     }
