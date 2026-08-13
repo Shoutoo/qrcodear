@@ -395,14 +395,16 @@
               obj.position.y = -center.y;
               obj.position.z = -center.z;
 
-              // Restore mesh local scale
-              obj.scale.copy(origScale);
+              // Calculate individual base scale so entire ecosystem fits ~20cm diameter in viewport
+              const baseScale = 0.20 / localMaxDim;
+              obj.userData.baseScale = baseScale;
+              this.el.dataset.baseScale = baseScale;
 
-              // Normalize scale so entire ecosystem fits beautifully in AR camera viewport (~20cm total width)
-              const desiredScale = 0.20 / localMaxDim;
-              this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
+              // Apply base scale directly to Three.js Mesh
+              const finalScale = baseScale * userZoomFactor;
+              obj.scale.set(finalScale, finalScale, finalScale);
 
-              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'Desired Scale:', desiredScale);
+              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
             });
           }
         });
@@ -813,7 +815,7 @@
       document.getElementById('ar-zoom-controls').classList.remove('active');
     }
 
-    // ── Update Model Scale for Button Zoom (Direct Three.js Mesh Scale) ──
+    // ── Update Model Scale for Button Zoom (Direct Three.js Mesh Scale with Per-Element BaseScale) ──
     function applyButtonZoom() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
@@ -827,7 +829,9 @@
       models.forEach(m => {
         const mesh = m.getObject3D('mesh');
         if (mesh) {
-          mesh.scale.set(userZoomFactor, userZoomFactor, userZoomFactor);
+          const baseScale = mesh.userData.baseScale || parseFloat(m.dataset.baseScale) || 0.05;
+          const finalScale = baseScale * userZoomFactor;
+          mesh.scale.set(finalScale, finalScale, finalScale);
         }
       });
     }
