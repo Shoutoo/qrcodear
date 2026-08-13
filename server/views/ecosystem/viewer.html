@@ -368,30 +368,41 @@
         });
       }
 
-      // 2. Center-Model Component (Auto-centers GLB mesh & sets scale with userZoomFactor)
+      // 2. Center-Model Component (Auto-centers GLB mesh & sets unscaled normalized initial viewport scale)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
             this.el.addEventListener('model-loaded', () => {
+              if (this.isCentered) return;
+              this.isCentered = true;
+
               const obj = this.el.getObject3D('mesh');
               if (!obj) return;
 
-              // Compute GLB mesh bounding box
+              // Save original scale and temporarily set to (1,1,1) for unscaled bounding box calculation
+              const origScale = obj.scale.clone();
+              obj.scale.set(1, 1, 1);
+              obj.updateMatrixWorld(true);
+
+              // Compute exact unscaled GLB mesh bounding box
               const box = new THREE.Box3().setFromObject(obj);
               const center = box.getCenter(new THREE.Vector3());
               const size = box.getSize(new THREE.Vector3());
-              rawMaxDim = Math.max(size.x, size.y, size.z) || 1.93;
+              const localMaxDim = Math.max(size.x, size.y, size.z) || 2.0;
 
               // Auto-center mesh at origin (0, 0, 0)
-              obj.position.x -= center.x;
-              obj.position.y -= center.y;
-              obj.position.z -= center.z;
+              obj.position.x = -center.x;
+              obj.position.y = -center.y;
+              obj.position.z = -center.z;
 
-              // Normalize scale to fit nicely in 3D AR viewport (Base scale 0.12 fits entire ecosystem inside mobile camera frame at 1.0x)
-              const desiredScale = 0.12 / rawMaxDim;
+              // Restore mesh local scale
+              obj.scale.copy(origScale);
+
+              // Normalize scale so entire ecosystem fits beautifully in AR camera viewport (~20cm total width)
+              const desiredScale = 0.20 / localMaxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
-              console.log('[AR Runtime Scale Log] GLB Model Bounding Box Size:', size, 'center:', center, 'rawMaxDim:', rawMaxDim, 'Base desiredScale:', desiredScale);
+              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'Desired Scale:', desiredScale);
             });
           }
         });
