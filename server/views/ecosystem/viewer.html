@@ -398,11 +398,16 @@
               // Restore mesh local scale
               obj.scale.copy(origScale);
 
-              // Normalize scale so entire ecosystem fits beautifully in AR camera viewport (~20cm total width)
-              const desiredScale = 0.20 / localMaxDim;
-              this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
+              // Normalize scale so entire 6-animal ecosystem fits perfectly inside billboard badges ring (like 3D view)
+              const cleanMaxDim = (localMaxDim && localMaxDim > 0.5) ? localMaxDim : 5.60;
+              const baseScale = 0.85 / cleanMaxDim;
+              this.el.dataset.baseScale = baseScale;
 
-              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'Desired Scale:', desiredScale);
+              const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
+              const finalScale = baseScale * zoom;
+              this.el.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
+
+              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'cleanMaxDim:', cleanMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
             });
           }
         });
@@ -813,7 +818,7 @@
       document.getElementById('ar-zoom-controls').classList.remove('active');
     }
 
-    // ── Update Model Scale for Button Zoom (Direct Three.js Mesh Scale) ──
+    // ── Update Model Scale for Button Zoom (Synchronized A-Frame Entity Scale) ──
     function applyButtonZoom() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
@@ -825,10 +830,9 @@
 
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
-        const mesh = m.getObject3D('mesh');
-        if (mesh) {
-          mesh.scale.set(userZoomFactor, userZoomFactor, userZoomFactor);
-        }
+        const baseScale = parseFloat(m.dataset.baseScale) || 0.15;
+        const finalScale = baseScale * userZoomFactor;
+        m.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
       });
     }
 
@@ -851,6 +855,10 @@
       const zoomControls = document.getElementById('ar-zoom-controls');
 
       if (mode === 'ar') {
+        userZoomFactor = 1.0;
+        const badge = document.getElementById('zoom-level-badge');
+        if (badge) badge.textContent = '1.0x';
+
         btn3d.classList.remove('active'); btnAr.classList.add('active');
         mvEl.style.display = 'none';
         ctrlBar.style.display = 'none';
