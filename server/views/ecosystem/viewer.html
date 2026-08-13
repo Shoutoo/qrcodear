@@ -311,6 +311,7 @@
     let isPinching = false;
     let previousPinchDist = 0;
     let rawMaxDim = 1.93;
+    let touchListenersAttached = false;
 
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -573,11 +574,16 @@
 
     // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
     function setupTouchGestureRotation() {
+      if (touchListenersAttached) return;
+      touchListenersAttached = true;
+
       const container = document.getElementById('ar-container');
       if (!container) return;
 
       const handleStart = (e) => {
         if (!arActive || !e.touches) return;
+        if (e.target && e.target.closest && e.target.closest('#top-nav')) return;
+
         if (e.touches.length === 1) {
           isTouchDragging = true;
           isPinching = false;
