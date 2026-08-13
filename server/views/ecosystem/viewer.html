@@ -411,6 +411,41 @@
           }
         });
       }
+
+      // Live Debugger Helper for Instant Console Inspection
+      window.arDebug = function() {
+        const modelEl = document.getElementById('camera-space-model');
+        const gltfEl = document.querySelector('a-gltf-model[center-model]');
+        const mesh = gltfEl ? gltfEl.getObject3D('mesh') : null;
+        const cam = document.querySelector('a-camera')?.object3D;
+
+        console.table({
+          'camera-space-model visible': modelEl?.getAttribute('visible'),
+          'camera-space-model scale': JSON.stringify(modelEl?.getAttribute('scale')),
+          'camera-space-model pos': JSON.stringify(modelEl?.getAttribute('position')),
+          'gltf-model scale attribute': JSON.stringify(gltfEl?.getAttribute('scale')),
+          'Three.js mesh world pos': mesh ? JSON.stringify(mesh.getWorldPosition(new THREE.Vector3())) : 'none',
+          'Three.js mesh world scale': mesh ? JSON.stringify(mesh.getWorldScale(new THREE.Vector3())) : 'none',
+          'Three.js mesh visible': mesh ? mesh.visible : 'none'
+        });
+      };
+
+      window.setArScale = function(s) {
+        document.querySelectorAll('a-gltf-model[center-model]').forEach(m => {
+          m.setAttribute('scale', `${s} ${s} ${s}`);
+        });
+        console.log('[Live Tuning] Applied scale:', s);
+        window.arDebug();
+      };
+
+      window.setArPos = function(x, y, z) {
+        const modelEl = document.getElementById('camera-space-model');
+        if (modelEl) {
+          modelEl.setAttribute('position', `${x} ${y} ${z}`);
+          console.log('[Live Tuning] Applied position:', `${x} ${y} ${z}`);
+          window.arDebug();
+        }
+      };
     }
 
     const ECOSYSTEM_ID = '{{ECOSYSTEM_ID}}';
