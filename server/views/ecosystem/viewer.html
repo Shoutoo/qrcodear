@@ -353,7 +353,7 @@
               obj.position.z -= center.z;
 
               // Normalize scale to fit nicely in 3D AR viewport
-              const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+              const desiredScale = 0.55 / rawMaxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
               console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
@@ -567,15 +567,18 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom (Guarded) ──
+    // ── Update Model Scale for Pinch Zoom (Parent Entity Scaling) ──
     function updateModelZoomScale() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
         return;
       }
-      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
-      const models = document.querySelectorAll('a-gltf-model[center-model]');
-      models.forEach(m => m.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`));
+      const camGlbGroup = document.getElementById('cam-glb-group');
+      const anchorGlbGroup = document.getElementById('anchor-glb-group');
+      const scaleStr = `${userZoomFactor} ${userZoomFactor} ${userZoomFactor}`;
+
+      if (camGlbGroup) camGlbGroup.setAttribute('scale', scaleStr);
+      if (anchorGlbGroup) anchorGlbGroup.setAttribute('scale', scaleStr);
     }
 
     // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
@@ -601,8 +604,7 @@
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
           );
-          // Layer 1: Threshold Guard > 30px to prevent tiny-distance divide spikes
-          if (dist > 30) {
+          if (dist > 10) {
             isPinching = true;
             previousPinchDist = dist;
           } else {
@@ -637,22 +639,22 @@
 
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2 && isPinching && previousPinchDist > 30) {
+        } else if (e.touches.length === 2) {
           const currentDist = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
           );
 
-          if (currentDist > 10 && previousPinchDist > 10) {
-            // Layer 2: Incremental Delta Ratio with Dampener (0.7 to 1.4)
+          if (!isPinching || previousPinchDist <= 10) {
+            isPinching = true;
+            previousPinchDist = currentDist;
+          } else if (currentDist > 10 && previousPinchDist > 10) {
             let deltaRatio = currentDist / previousPinchDist;
             deltaRatio = Math.min(Math.max(deltaRatio, 0.7), 1.4);
 
             const newZoomFactor = userZoomFactor * deltaRatio;
 
-            // Layer 3: NaN / Infinity Safety Guard
             if (isFinite(newZoomFactor) && !isNaN(newZoomFactor)) {
-              // Layer 4: Strict Clamp Bounds (0.40x to 2.50x)
               userZoomFactor = Math.min(Math.max(newZoomFactor, 0.40), 2.50);
               updateModelZoomScale();
             }
