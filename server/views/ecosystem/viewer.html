@@ -398,16 +398,30 @@
               // Restore mesh local scale
               obj.scale.copy(origScale);
 
-              // Calibrated baseline scale for 6-animal ecosystem in AR mode (~0.35)
+              // Aligned base scale for 6-animal ecosystem to match 0.45m badge circle (R=2.0m * 0.225 = 0.45m)
               const cleanMaxDim = (localMaxDim && localMaxDim > 0.5) ? localMaxDim : 5.60;
-              const baseScale = 0.35;
+              const baseScale = 0.225;
               this.el.dataset.baseScale = baseScale;
 
               const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
               const finalScale = baseScale * zoom;
               this.el.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
 
-              console.log('[AR Engine] Auto-centered GLB model cleanly! cleanMaxDim:', cleanMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
+              let meshCount = 0;
+              obj.traverse(c => { if (c.isMesh) meshCount++; });
+
+              const entityParentId = this.el.parentElement ? this.el.parentElement.id : 'no-parent';
+
+              console.log('[AR Diagnostics — Model Loaded]', {
+                entityParentId: entityParentId,
+                cleanMaxDim: cleanMaxDim,
+                baseScale: baseScale,
+                finalScale: finalScale,
+                meshCount: meshCount,
+                animalRingRadius: (2.0 * finalScale).toFixed(3) + 'm',
+                badgeRingRadius: '0.45m (Aligned!)',
+                centerPosition: obj.position.clone()
+              });
             });
           }
         });
@@ -554,6 +568,20 @@
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
         modelEl.setAttribute('scale', '1 1 1');
+
+        setTimeout(() => {
+          const groupEl = document.getElementById('cam-glb-group');
+          const group3D = groupEl ? groupEl.object3D : null;
+          const cam = document.querySelector('a-camera')?.object3D;
+          console.log('[AR Diagnostics — Model Revealed]', {
+            modelVisible: modelEl.getAttribute('visible'),
+            modelScale: modelEl.getAttribute('scale'),
+            modelPos: modelEl.getAttribute('position'),
+            modelRotation: modelEl.getAttribute('rotation'),
+            groupWorldPos: group3D ? group3D.getWorldPosition(new THREE.Vector3()) : null,
+            groupWorldScale: group3D ? group3D.getWorldScale(new THREE.Vector3()) : null
+          });
+        }, 100);
       }
     }
 
@@ -588,8 +616,8 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges (with 20° tilt towards camera) -->
-            <a-entity id="camera-space-model" position="0 -0.15 -0.85" rotation="20 0 0" scale="0 0 0" visible="false">
+            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges (Z=-1.45m with 28° tilt for full 6-animal overview) -->
+            <a-entity id="camera-space-model" position="0 -0.20 -1.45" rotation="28 0 0" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
@@ -830,7 +858,7 @@
 
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
-        const baseScale = parseFloat(m.dataset.baseScale) || 0.35;
+        const baseScale = parseFloat(m.dataset.baseScale) || 0.225;
         const finalScale = baseScale * userZoomFactor;
         m.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
       });
