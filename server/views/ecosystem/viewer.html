@@ -379,19 +379,13 @@
               const obj = this.el.getObject3D('mesh');
               if (!obj) return;
 
-              // Compute exact unscaled GLB geometry bounding box (Ignores all parent matrixWorld scales)
-              const box = new THREE.Box3();
-              obj.traverse((child) => {
-                if (child.isMesh && child.geometry) {
-                  if (!child.geometry.boundingBox) {
-                    child.geometry.computeBoundingBox();
-                  }
-                  const geomBox = child.geometry.boundingBox.clone();
-                  geomBox.applyMatrix4(child.matrix);
-                  box.union(geomBox);
-                }
-              });
+              // Save original scale and temporarily set to (1,1,1) for unscaled bounding box calculation
+              const origScale = obj.scale.clone();
+              obj.scale.set(1, 1, 1);
+              obj.updateMatrixWorld(true);
 
+              // Compute exact unscaled GLB mesh bounding box
+              const box = new THREE.Box3().setFromObject(obj);
               const center = box.getCenter(new THREE.Vector3());
               const size = box.getSize(new THREE.Vector3());
               const localMaxDim = Math.max(size.x, size.y, size.z) || 2.0;
@@ -400,6 +394,9 @@
               obj.position.x = -center.x;
               obj.position.y = -center.y;
               obj.position.z = -center.z;
+
+              // Restore mesh local scale
+              obj.scale.copy(origScale);
 
               // Normalize scale so entire ecosystem fits beautifully in AR camera viewport (~20cm total width)
               const desiredScale = 0.20 / localMaxDim;
