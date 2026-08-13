@@ -407,7 +407,12 @@
               const finalScale = baseScale * userZoomFactor;
               obj.scale.set(finalScale, finalScale, finalScale);
 
+              const entityParentId = this.el.parentElement ? this.el.parentElement.id : 'no-parent';
+              const parentScaleAttr = this.el.parentElement ? this.el.parentElement.getAttribute('scale') : 'none';
+
               console.log('[Auto-Center & Scale Diagnostics]', {
+                entityParentId: entityParentId,
+                parentScaleAttr: parentScaleAttr,
                 worldCenter: center,
                 localCenter: localCenter,
                 posBefore: posBefore,
