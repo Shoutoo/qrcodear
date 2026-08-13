@@ -20,49 +20,64 @@
     body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #f4faff; color: #0d1e25; }
     model-viewer { width: 100vw; height: 100vh; position: absolute; inset: 0; background: radial-gradient(circle at center, #ffffff 0%, #dff1fb 100%); }
     
-    /* 3D Hotspot Species Labels — Anti-Collision Styling */
+    /* 3D Hotspot Species Labels — Clean Anti-Collision Styling */
     .species-hotspot {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(14px);
       border: 2px solid #632ce5;
-      border-radius: 18px;
-      padding: 6px 14px;
-      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.18);
+      border-radius: 16px;
+      padding: 4px 10px;
+      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.16);
       font-family: 'Quicksand', sans-serif;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: #0d1e25;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       cursor: pointer;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
       white-space: nowrap;
       user-select: none;
       z-index: 10;
     }
+    @media (min-width: 640px) {
+      .species-hotspot {
+        padding: 6px 14px;
+        font-size: 13px;
+        border-radius: 18px;
+      }
+    }
     .species-hotspot:hover {
-      transform: scale(1.1);
+      transform: scale(1.08);
       border-color: #632ce5;
       background: #632ce5;
       color: #ffffff;
     }
     .species-role-badge {
-      background: #fdd400;
+      background: #fde047;
       color: #0d1e25;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 900;
-      padding: 2.5px 8px;
-      border-radius: 8px;
+      padding: 2px 6px;
+      border-radius: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
+    }
+    @media (min-width: 640px) {
+      .species-role-badge {
+        font-size: 10px;
+        padding: 2.5px 8px;
+        border-radius: 8px;
+      }
     }
 
-    /* Floating Clean Card HUD */
+    /* Floating Clean Glassmorphism Card HUD */
     .hud-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(16px);
-      border: 1.5px solid #d4e5ef;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(212, 229, 239, 0.9);
       box-shadow: 0 12px 32px -4px rgba(99, 44, 229, 0.12);
       color: #0d1e25;
     }
@@ -72,53 +87,54 @@
       transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .chunky-btn:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
     }
   </style>
 </head>
-<body class="w-screen h-screen relative select-none">
+<body class="w-screen h-screen relative select-none overflow-hidden">
 
-  <!-- TOP NAVIGATION HEADER & MODE SWITCHER -->
-  <header class="absolute top-4 left-4 right-4 z-30 pointer-events-auto">
-    <div class="max-w-4xl mx-auto hud-card p-3 sm:p-3.5 rounded-3xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+  <!-- TOP NAVIGATION HEADER & MODE SWITCHER (Overflow-Proof Responsive Layout) -->
+  <header class="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-30 pointer-events-auto">
+    <div class="max-w-4xl mx-auto hud-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl sm:rounded-3xl flex items-center justify-between gap-2 shadow-lg">
       
       <!-- Left Brand Info with Logo -->
-      <div class="flex items-center gap-3">
-        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white shadow-md flex items-center justify-center flex-shrink-0">
-          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse Logo" class="w-7 h-7 object-contain select-none"/>
+      <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white shadow-md flex items-center justify-center flex-shrink-0">
+          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse Logo" class="w-5 h-5 sm:w-6 sm:h-6 object-contain select-none"/>
         </div>
-        <div>
-          <h1 class="font-extrabold text-on-surface text-base sm:text-lg leading-tight flex items-center gap-2">
-            <span>{{ECOSYSTEM_NAME}}</span>
-            <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-black border border-primary/20">SD Edu</span>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-[#0d1e25] text-xs sm:text-base leading-tight flex items-center gap-1.5 truncate">
+            <span class="truncate">{{ECOSYSTEM_NAME}}</span>
+            <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-[#632ce5] font-black border border-purple-200 flex-shrink-0">SD Edu</span>
           </h1>
-          <p class="text-xs text-on-surface/70 font-bold flex items-center gap-1.5 mt-0.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Ring Siklus Rantai Makanan 360°
+          <p class="text-[10px] sm:text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 truncate">
+            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+            <span class="truncate">Ring Rantai Makanan 360°</span>
           </p>
         </div>
       </div>
 
       <!-- Right Mode Viewing Selector Buttons -->
-      <div class="flex items-center gap-1.5 bg-[#f4f7fc] p-1.5 rounded-2xl border border-[#d4e5ef]">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1.5 shadow-sm">
-          <span class="material-symbols-outlined text-base">3d_rotation</span> 3D View
+      <div class="flex items-center gap-1 bg-[#f1f5f9] p-1 rounded-xl sm:rounded-2xl border border-[#e2e8f0] flex-shrink-0">
+        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm">
+          <span class="material-symbols-outlined text-sm sm:text-base">3d_rotation</span> 3D
         </button>
-        <button id="btn-mode-webar" onclick="switchViewMode('webar')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-base">qr_code_scanner</span> Marker WebAR
+        <button id="btn-mode-webar" onclick="switchViewMode('webar')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm sm:text-base">qr_code_scanner</span> Marker
         </button>
-        <button id="btn-mode-world" onclick="switchViewMode('world')" class="chunky-btn px-3.5 py-2 rounded-xl text-xs font-bold text-on-surface/70 hover:text-primary hover:bg-white transition-all flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-base">view_in_ar</span> AR World
+        <button id="btn-mode-world" onclick="switchViewMode('world')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm sm:text-base">view_in_ar</span> AR World
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- SUB-HEADER: CRISP CONTRAST CIRCULAR TEXT BANNER -->
-  <div id="circular-text-hud" class="absolute top-24 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-    <div class="bg-amber-400 border-2 border-amber-300 text-slate-950 text-xs font-black px-5 py-2 rounded-full flex items-center gap-2 shadow-lg animate-pulse">
-      <span class="material-symbols-outlined text-base text-slate-950">autorenew</span>
-      <span id="circular-text-banner" class="tracking-wide">🔄 PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
+  <!-- SUB-HEADER: CRISP CONTRAST CIRCULAR TEXT BANNER (Responsive Fit) -->
+  <div id="circular-text-hud" class="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-2 flex justify-center">
+    <div class="bg-gradient-to-r from-amber-400 to-amber-300 border border-amber-200 text-slate-950 text-[10px] sm:text-xs font-black px-3.5 sm:px-5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md truncate">
+      <span class="material-symbols-outlined text-xs sm:text-sm text-slate-950 flex-shrink-0">autorenew</span>
+      <span id="circular-text-banner" class="tracking-tight sm:tracking-wide truncate">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
     </div>
   </div>
 
@@ -177,39 +193,39 @@
 
     <!-- Center Ring Hotspot Badge -->
     <button slot="hotspot-center" class="species-hotspot" data-position="0 2.6 0" data-normal="0 1 0" style="border-color: #705d00; background: #ffe170; color: #0d1e25;">
-      <span class="material-symbols-outlined text-secondary text-base">cyclone</span>
-      <span class="font-extrabold">RANTAI MAKANAN 360°</span>
+      <span class="material-symbols-outlined text-secondary text-sm sm:text-base">cyclone</span>
+      <span class="font-extrabold text-[11px] sm:text-xs">RANTAI MAKANAN 360°</span>
     </button>
   </model-viewer>
 
-  <!-- BOTTOM FLOATING HUD: UNIFIED ROTATION CONTROLS & AR BUTTON -->
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-md px-4">
-    <div class="hud-card p-4 rounded-3xl space-y-3 shadow-2xl">
+  <!-- BOTTOM FLOATING HUD: UNIFIED ROTATION CONTROLS & AR BUTTON (Sleek Compact Island) -->
+  <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[94vw] sm:max-w-md px-2">
+    <div class="hud-card p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 sm:space-y-2.5 shadow-2xl">
       
       <!-- Top Row: Rotational Controls -->
-      <div class="flex items-center justify-between gap-2 text-xs font-bold text-on-surface">
-        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn px-4 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-primary font-extrabold flex items-center gap-1.5 transition-colors">
-          <span id="rot-icon" class="material-symbols-outlined text-base">pause_circle</span>
+      <div class="flex items-center justify-between gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-slate-700">
+        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn flex-1 py-1.5 px-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
+          <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">pause_circle</span>
           <span id="rot-text">Hentikan Putaran</span>
         </button>
 
-        <button onclick="reverseRotation()" class="chunky-btn px-3.5 py-2 rounded-xl bg-surface-container hover:bg-surface-variant text-on-surface font-extrabold flex items-center gap-1.5 transition-colors" title="Balik Arah Rotasi">
-          <span class="material-symbols-outlined text-base">screen_rotation</span> Arah
+        <button onclick="reverseRotation()" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Balik Arah Rotasi">
+          <span class="material-symbols-outlined text-sm sm:text-base">screen_rotation</span> Arah
         </button>
 
-        <div class="flex items-center gap-1.5 bg-[#f4f7fc] px-3 py-1.5 rounded-xl border border-[#d4e5ef]">
-          <span class="text-[11px] text-outline font-semibold">Kecepatan:</span>
-          <select onchange="changeSpeed(this.value)" class="bg-transparent text-xs font-extrabold text-primary outline-none cursor-pointer p-0 border-none focus:ring-0">
-            <option value="10deg">Lambat</option>
-            <option value="20deg" selected>Normal</option>
-            <option value="45deg">Cepat</option>
+        <div class="flex items-center gap-1 bg-[#f1f5f9] px-2 py-1 rounded-xl border border-[#e2e8f0]">
+          <span class="text-[10px] sm:text-[11px] text-slate-500 font-semibold">Speed:</span>
+          <select onchange="changeSpeed(this.value)" class="bg-transparent text-[11px] sm:text-xs font-extrabold text-[#632ce5] outline-none cursor-pointer p-0 border-none focus:ring-0">
+            <option value="10deg">0.5x</option>
+            <option value="20deg" selected>1.0x</option>
+            <option value="45deg">2.0x</option>
           </select>
         </div>
       </div>
 
       <!-- Bottom Row: Solid Main AR Trigger Button -->
-      <button onclick="triggerArExperience()" id="ar-main-btn" class="chunky-btn w-full py-3.5 rounded-2xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white flex items-center justify-center gap-2 text-sm shadow-lg tracking-wide">
-        <span class="material-symbols-outlined text-xl">view_in_ar</span> Mulai AR Permukaan Dunia Nyata
+      <button onclick="triggerArExperience()" id="ar-main-btn" class="chunky-btn w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide">
+        <span class="material-symbols-outlined text-base sm:text-lg">view_in_ar</span> Mulai AR Permukaan Dunia Nyata
       </button>
 
     </div>
