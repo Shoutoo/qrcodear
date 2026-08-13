@@ -383,9 +383,9 @@
               obj.position.set(0, 0, 0);
               obj.scale.set(1, 1, 1);
 
-              // Aligned base scale for 6-animal ecosystem to match 0.45m badge circle (R=2.0m * 0.225 = 0.45m)
+              // Proportional base scale 0.12 matching 3D View perspective
               const cleanMaxDim = 5.60;
-              const baseScale = 0.225;
+              const baseScale = 0.12;
               this.el.dataset.baseScale = baseScale;
 
               const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
@@ -403,8 +403,8 @@
                 baseScale: baseScale,
                 finalScale: finalScale,
                 meshCount: meshCount,
-                animalRingRadius: (2.0 * finalScale).toFixed(3) + 'm',
-                badgeRingRadius: '0.45m (Aligned!)',
+                animalRingRadius: (2.65 * finalScale).toFixed(3) + 'm',
+                badgeRingRadius: '0.32m (100% 3D View Aligned!)',
                 centerPosition: obj.position.clone()
               });
             });
@@ -460,12 +460,12 @@
     ];
 
     const SLOT_BADGES = [
-      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.45 0.24 0' },
-      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.22 0.24 0.39' },
-      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.22 0.24 0.39' },
-      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.45 0.24 0' },
-      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.22 0.24 -0.39' },
-      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.22 0.24 -0.39' },
+      { label: '{{SLOT_0_LABEL}}', role: '{{SLOT_0_ROLE}}', pos: '0.32 0.16 0' },
+      { label: '{{SLOT_1_LABEL}}', role: '{{SLOT_1_ROLE}}', pos: '0.16 0.17 0.27' },
+      { label: '{{SLOT_2_LABEL}}', role: '{{SLOT_2_ROLE}}', pos: '-0.16 0.16 0.27' },
+      { label: '{{SLOT_3_LABEL}}', role: '{{SLOT_3_ROLE}}', pos: '-0.32 0.17 0' },
+      { label: '{{SLOT_4_LABEL}}', role: '{{SLOT_4_ROLE}}', pos: '-0.16 0.16 -0.27' },
+      { label: '{{SLOT_5_LABEL}}', role: '{{SLOT_5_ROLE}}', pos: '0.16 0.17 -0.27' },
     ];
 
     let arActive = false;
@@ -636,14 +636,14 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
+            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges (Z=-1.10m with 35° isometric tilt matching 3D View) -->
+            <a-entity id="camera-space-model" position="0 -0.20 -1.10" rotation="35 0 0" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
                 ${badgeEntities}
               </a-entity>
-              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
+              <a-torus radius="0.38" radius-tubular="0.010" color="#10b981" rotation="90 0 0" position="0 -0.05 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
@@ -878,7 +878,7 @@
 
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
-        const baseScale = parseFloat(m.dataset.baseScale) || 0.225;
+        const baseScale = parseFloat(m.dataset.baseScale) || 0.12;
         const finalScale = baseScale * userZoomFactor;
         m.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
       });
