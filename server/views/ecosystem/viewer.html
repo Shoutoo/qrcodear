@@ -203,6 +203,32 @@
     .spd { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 6px 8px; border-radius: 10px; display: flex; align-items: center; gap: 4px; }
     .spd span { font-size: 10px; color: #64748b; font-weight: 700; }
     .spd select { background: transparent; border: none; font-size: 11px; font-weight: 900; color: #7c3aed; outline: none; cursor: pointer; }
+
+    /* ── AR Zoom Floating Controls (+ / −) ───────────────────── */
+    #ar-zoom-controls {
+      display: none;
+      position: fixed; bottom: max(24px, env(safe-area-inset-bottom)); right: 16px;
+      z-index: 99999 !important; pointer-events: auto !important;
+      background: rgba(15,23,42,0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1.5px solid rgba(255,255,255,0.22); border-radius: 999px;
+      padding: 4px; display: flex; align-items: center; gap: 4px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #ar-zoom-controls.active { display: flex !important; }
+    .zoom-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.15); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.15s ease;
+      touch-action: manipulation !important;
+      pointer-events: auto !important;
+    }
+    .zoom-btn:active { background: #7c3aed; transform: scale(0.92); }
+    .zoom-badge {
+      font-size: 11px; font-weight: 900; color: #fde047;
+      min-width: 36px; text-align: center; user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -267,6 +293,17 @@
     <button class="wsb" onclick="goToDetected()">🔀 Pindah ke Ekosistem</button>
   </div>
 
+  <!-- ── AR ZOOM FLOATING CONTROLS (+ / −) ───────────────────── -->
+  <div id="ar-zoom-controls">
+    <button id="btn-zoom-out" class="zoom-btn" onclick="zoomOut()" title="Perkecil Model 3D">
+      <span class="material-symbols-outlined" style="font-size:20px;">remove</span>
+    </button>
+    <div id="zoom-level-badge" class="zoom-badge">1.0x</div>
+    <button id="btn-zoom-in" class="zoom-btn" onclick="zoomIn()" title="Perbesar Model 3D">
+      <span class="material-symbols-outlined" style="font-size:20px;">add</span>
+    </button>
+  </div>
+
   <!-- ── 3D BOTTOM CONTROLS ────────────────────────────────────── -->
   <div id="ctrl-bar">
     <div class="ctrl-card">
@@ -313,6 +350,7 @@
 
   <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER ────────────────── -->
   <script>
+    let userZoomFactor = 1.0;
     let rawMaxDim = 1.93;
     let touchListenersAttached = false;
 
@@ -350,7 +388,7 @@
               obj.position.z -= center.z;
 
               // Normalize scale to fit nicely in 3D AR viewport
-              const desiredScale = 0.55 / rawMaxDim;
+              const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
               console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
@@ -761,7 +799,38 @@
       document.getElementById('ar-status-pill').style.display = 'none';
       document.getElementById('scan-frame').style.display = 'none';
       document.getElementById('ar-hint').classList.remove('active');
+      document.getElementById('ar-zoom-controls').classList.remove('active');
     }
+
+    // ── Update Model Scale for Button Zoom (Direct Three.js Matrix Scaling) ──
+    function applyButtonZoom() {
+      if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
+        userZoomFactor = 1.0;
+      }
+      userZoomFactor = Math.min(Math.max(userZoomFactor, 0.40), 2.50);
+
+      const badge = document.getElementById('zoom-level-badge');
+      if (badge) badge.textContent = `${userZoomFactor.toFixed(1)}x`;
+
+      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+      const models = document.querySelectorAll('a-gltf-model[center-model]');
+      models.forEach(m => {
+        if (m.object3D) {
+          m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
+          m.object3D.updateMatrixWorld(true);
+        }
+      });
+    }
+
+    window.zoomIn = function() {
+      userZoomFactor += 0.15;
+      applyButtonZoom();
+    };
+
+    window.zoomOut = function() {
+      userZoomFactor -= 0.15;
+      applyButtonZoom();
+    };
 
     // ── Switch Mode (3D View <-> Mode AR) ──
     window.switchMode = function(mode) {
@@ -769,16 +838,19 @@
       const btnAr = document.getElementById('btn-ar');
       const ctrlBar = document.getElementById('ctrl-bar');
       const mvEl = document.getElementById('eco-mv');
+      const zoomControls = document.getElementById('ar-zoom-controls');
 
       if (mode === 'ar') {
         btn3d.classList.remove('active'); btnAr.classList.add('active');
         mvEl.style.display = 'none';
         ctrlBar.style.display = 'none';
+        if (zoomControls) zoomControls.classList.add('active');
         startAR();
       } else {
         btn3d.classList.add('active'); btnAr.classList.remove('active');
         mvEl.style.display = 'block';
         ctrlBar.style.display = '';
+        if (zoomControls) zoomControls.classList.remove('active');
         stopAR();
         applyRot();
       }
