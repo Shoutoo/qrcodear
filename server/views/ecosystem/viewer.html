@@ -557,21 +557,22 @@
         </a-scene>`;
     }
 
-    // ── Touch Gesture Setup for 360° Interactive Model Inspection ──
+    // ── Touch Gesture Setup for 360° Interactive Model Inspection (Minimal-Invasive Option A) ──
     function setupTouchGestureRotation() {
       const container = document.getElementById('ar-container');
       if (!container) return;
 
-      container.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
+      const handleStart = (e) => {
+        if (!arActive) return;
+        if (e.touches && e.touches.length === 1) {
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
         }
-      }, { passive: true });
+      };
 
-      container.addEventListener('touchmove', (e) => {
-        if (!isTouchDragging || e.touches.length !== 1) return;
+      const handleMove = (e) => {
+        if (!arActive || !isTouchDragging || !e.touches || e.touches.length !== 1) return;
 
         const deltaX = e.touches[0].clientX - previousTouchX;
         const deltaY = e.touches[0].clientY - previousTouchY;
@@ -582,17 +583,31 @@
         const camGlbGroup = document.getElementById('cam-glb-group');
         const anchorGlbGroup = document.getElementById('anchor-glb-group');
 
-        const rotStr = `${customRotX} ${customRotY} 0`;
-        if (camGlbGroup) camGlbGroup.setAttribute('rotation', rotStr);
-        if (anchorGlbGroup) anchorGlbGroup.setAttribute('rotation', rotStr);
+        // Remove loop animation so A-Frame animation component stops overwriting user touch rotation
+        if (camGlbGroup) {
+          if (camGlbGroup.hasAttribute('animation')) camGlbGroup.removeAttribute('animation');
+          camGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
+        }
+        if (anchorGlbGroup) {
+          if (anchorGlbGroup.hasAttribute('animation')) anchorGlbGroup.removeAttribute('animation');
+          anchorGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
+        }
 
         previousTouchX = e.touches[0].clientX;
         previousTouchY = e.touches[0].clientY;
-      }, { passive: true });
+      };
 
-      container.addEventListener('touchend', () => {
+      const handleEnd = () => {
         isTouchDragging = false;
-      }, { passive: true });
+      };
+
+      container.addEventListener('touchstart', handleStart, { passive: true });
+      container.addEventListener('touchmove', handleMove, { passive: true });
+      container.addEventListener('touchend', handleEnd, { passive: true });
+
+      window.addEventListener('touchstart', handleStart, { passive: true });
+      window.addEventListener('touchmove', handleMove, { passive: true });
+      window.addEventListener('touchend', handleEnd, { passive: true });
     }
 
     // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
