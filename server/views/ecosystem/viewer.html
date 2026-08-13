@@ -816,8 +816,21 @@
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
         if (m.object3D) {
+          const mesh = m.getObject3D('mesh');
+          console.log('[Zoom Diagnostics] BEFORE Scale:', {
+            userZoomFactor: userZoomFactor,
+            desiredScale: desiredScale,
+            entityPos: m.object3D.position.clone(),
+            meshPos: mesh ? mesh.position.clone() : 'NO_MESH'
+          });
+
           m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
           m.object3D.updateMatrixWorld(true);
+
+          console.log('[Zoom Diagnostics] AFTER Scale:', {
+            entityPos: m.object3D.position.clone(),
+            meshPos: mesh ? mesh.position.clone() : 'NO_MESH'
+          });
         }
       });
     }
