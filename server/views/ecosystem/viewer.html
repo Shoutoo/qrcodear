@@ -379,12 +379,12 @@
               const obj = this.el.getObject3D('mesh');
               if (!obj) return;
 
-              // Restore mesh local scale & preserve natural model center at (0, 0, 0)
-              obj.scale.copy(origScale);
+              // Ensure natural local origin and unscaled mesh
               obj.position.set(0, 0, 0);
+              obj.scale.set(1, 1, 1);
 
               // Aligned base scale for 6-animal ecosystem to match 0.45m badge circle (R=2.0m * 0.225 = 0.45m)
-              const cleanMaxDim = (localMaxDim && localMaxDim > 0.5) ? localMaxDim : 5.60;
+              const cleanMaxDim = 5.60;
               const baseScale = 0.225;
               this.el.dataset.baseScale = baseScale;
 
