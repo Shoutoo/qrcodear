@@ -342,13 +342,12 @@
     window.addEventListener('DOMContentLoaded', applyRot);
   </script>
 
-  <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (GOLDEN SCALING + 360° DRAG + PINCH ZOOM) ── -->
+  <!-- ── REVERTED & REFINED ROCK-SOLID AR CONTROLLER ── -->
   <script>
-    // GOLDEN BASE SCALES:
-    // MindAR Anchor Scale: 0.35 (fits beautifully on physical card target)
-    // Camera-Space Fallback Scale: 0.22 (fits 100% inside yellow scan box)
-    const ANCHOR_BASE_SCALE = 0.35;
-    const CAMERA_BASE_SCALE = 0.22;
+    let userZoomFactor = 1.0;
+    let customRotX = 0;
+    let customRotY = 0;
+    let rawMaxDim = 1.93; // default GLB dimension fallback
 
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
@@ -364,21 +363,29 @@
         });
       }
 
-      // 2. Center-Model Component (Auto-centers GLB mesh)
+      // 2. Center-Model Component (Rock-Solid Auto-Centering + Safe 0.18m Compact Scaling)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
             this.el.addEventListener('model-loaded', () => {
-              const meshObj = this.el.getObject3D('mesh');
-              if (!meshObj) return;
+              const obj = this.el.getObject3D('mesh');
+              if (!obj) return;
 
-              const box = new THREE.Box3().setFromObject(meshObj);
+              const box = new THREE.Box3().setFromObject(obj);
               const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              rawMaxDim = Math.max(size.x, size.y, size.z) || 1.93;
 
               // Auto-center GLB mesh origin to (0,0,0)
-              meshObj.position.set(-center.x, -center.y, -center.z);
+              obj.position.x -= center.x;
+              obj.position.y -= center.y;
+              obj.position.z -= center.z;
 
-              console.log('[AR Engine] Auto-centered GLB model origin to (0,0,0)! Center:', center);
+              // Safe compact scale: 0.18m across (fits 100% comfortably in screen view)
+              const desiredScale = (0.18 * userZoomFactor) / rawMaxDim;
+              this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
+
+              console.log('[AR Engine] Auto-centered & scaled GLB model! RawMaxDim:', rawMaxDim, 'DesiredScale:', desiredScale);
             });
           }
         });
@@ -410,51 +417,40 @@
     let qrScanInterval = null;
     let isLockedCleanMode = false;
 
-    // Interactive 360° Drag & Touch Pinch Zoom Variables
     let isTouchDragging = false;
     let previousTouchX = 0;
     let previousTouchY = 0;
-    let customRotX = 0;
-    let customRotY = 0;
-
-    let userScaleFactor = 1.0;
     let initialPinchDist = 0;
     let initialUserScale = 1.0;
 
-    // ── Apply User Scale & Rotation to User Groups ──
-    function applyModelUserScale() {
-      const camUserGroup = document.getElementById('cam-user-group');
-      const anchorUserGroup = document.getElementById('anchor-user-group');
+    // ── Apply User Scale & 360 Rotation Cleanly ──
+    function updateModelTransform() {
+      const models = document.querySelectorAll('a-gltf-model[center-model]');
+      const desiredScale = (0.18 * userZoomFactor) / rawMaxDim;
+      models.forEach(m => m.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`));
 
-      const camScale = CAMERA_BASE_SCALE * userScaleFactor;
-      const anchorScale = ANCHOR_BASE_SCALE * userScaleFactor;
+      const camGroup = document.getElementById('cam-glb-group');
+      const anchorGroup = document.getElementById('anchor-glb-group');
       const rotStr = `${customRotX} ${customRotY} 0`;
-
-      if (camUserGroup) {
-        camUserGroup.setAttribute('scale', `${camScale} ${camScale} ${camScale}`);
-        camUserGroup.setAttribute('rotation', rotStr);
-      }
-      if (anchorUserGroup) {
-        anchorUserGroup.setAttribute('scale', `${anchorScale} ${anchorScale} ${anchorScale}`);
-        anchorUserGroup.setAttribute('rotation', rotStr);
-      }
+      if (camGroup) camGroup.setAttribute('rotation', rotStr);
+      if (anchorGroup) anchorGroup.setAttribute('rotation', rotStr);
     }
 
     window.zoomInAR = function() {
-      userScaleFactor = Math.min(userScaleFactor * 1.3, 5.0);
-      applyModelUserScale();
+      userZoomFactor = Math.min(userZoomFactor * 1.25, 4.0);
+      updateModelTransform();
     };
 
     window.zoomOutAR = function() {
-      userScaleFactor = Math.max(userScaleFactor / 1.3, 0.15);
-      applyModelUserScale();
+      userZoomFactor = Math.max(userZoomFactor / 1.25, 0.25);
+      updateModelTransform();
     };
 
     window.resetZoomAR = function() {
-      userScaleFactor = 1.0;
+      userZoomFactor = 1.0;
       customRotX = 0;
       customRotY = 0;
-      applyModelUserScale();
+      updateModelTransform();
     };
 
     // ── Generate Canvas Texture for Rounded Species Badges ──
@@ -566,7 +562,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
-        applyModelUserScale();
+        modelEl.setAttribute('scale', '1 1 1');
       }
     }
 
@@ -574,10 +570,11 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'false');
+        modelEl.setAttribute('scale', '0 0 0');
       }
     }
 
-    // ── Build HTML for A-Frame Scene (Placing 3D Model Directly on Card Image Anchor Target) ──
+    // ── Build HTML for A-Frame Scene (Based on Verified Working Structure Commit 1b2b2e9) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
@@ -600,16 +597,13 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Fallback Camera-Space 3D Model -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.9" visible="false">
-              <a-entity id="cam-user-group" position="0 0 0" rotation="0 0 0" scale="0.22 0.22 0.22">
-                <a-entity id="cam-spin-group"
-                  animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
-                  <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
-                  ${badgeEntities}
-                </a-entity>
-                <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.05 0" opacity="0.85"></a-torus>
+            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
+            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
+              <a-entity id="cam-glb-group">
+                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
+                ${badgeEntities}
               </a-entity>
+              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
@@ -618,26 +612,25 @@
           <a-light type="directional" position="2 5 3" intensity="3.0"></a-light>
           <a-light type="directional" position="-2 -3 2" intensity="1.5"></a-light>
 
-          <!-- MindAR Anchor 0 (PLACES 3D MODEL DIRECTLY ON TOP OF CARD ANCHOR IMAGE) -->
+          <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-entity id="anchor-user-group" position="0 0 0" rotation="0 0 0" scale="0.35 0.35 0.35">
-              <a-entity id="anchor-spin-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 16000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
-                ${badgeEntities}
-              </a-entity>
-              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
-                animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
-              </a-torus>
+            <a-entity id="anchor-glb-group">
+              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
+              ${badgeEntities}
             </a-entity>
+            <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
+              animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
+            </a-torus>
           </a-entity>
         </a-scene>`;
     }
 
-    // ── Touch Gesture Setup for Unbound 360° Drag & 2-Finger Pinch Zoom ──
+    // ── Touch Gesture Setup for 360° Drag & 2-Finger Pinch Zoom ──
     function setupTouchGestureRotation() {
-      const handleTouchStart = (e) => {
-        if (!arActive) return;
+      const container = document.getElementById('ar-container');
+      if (!container) return;
+
+      container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
@@ -648,12 +641,11 @@
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
           );
-          initialUserScale = userScaleFactor;
+          initialUserScale = userZoomFactor;
         }
-      };
+      }, { passive: true });
 
-      const handleTouchMove = (e) => {
-        if (!arActive) return;
+      container.addEventListener('touchmove', (e) => {
         if (e.touches.length === 1 && isTouchDragging) {
           const deltaX = e.touches[0].clientX - previousTouchX;
           const deltaY = e.touches[0].clientY - previousTouchY;
@@ -661,7 +653,7 @@
           customRotY += deltaX * 0.6;
           customRotX += deltaY * 0.4;
 
-          applyModelUserScale();
+          updateModelTransform();
 
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
@@ -671,20 +663,15 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const scaleFactor = currentDist / initialPinchDist;
-          userScaleFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.15), 5.0);
-          applyModelUserScale();
+          userZoomFactor = Math.min(Math.max(initialUserScale * scaleFactor, 0.2), 4.0);
+          updateModelTransform();
         }
-      };
+      }, { passive: true });
 
-      const handleTouchEnd = (e) => {
-        if (!arActive) return;
+      container.addEventListener('touchend', (e) => {
         if (e.touches.length < 2) initialPinchDist = 0;
         if (e.touches.length === 0) isTouchDragging = false;
-      };
-
-      window.addEventListener('touchstart', handleTouchStart, { passive: true });
-      window.addEventListener('touchmove', handleTouchMove, { passive: true });
-      window.addEventListener('touchend', handleTouchEnd, { passive: true });
+      }, { passive: true });
     }
 
     // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
@@ -767,7 +754,6 @@
         setStatus('✨ AR Siap — arahkan kamera ke QR Code / Gambar Kartu');
 
         setupTouchGestureRotation();
-        applyModelUserScale();
 
         const anchorEl = sceneEl.querySelector('#anchor-match');
         if (anchorEl) {
