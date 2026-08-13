@@ -309,11 +309,6 @@
 
   <!-- ── HYBRID DUAL-ENGINE AR CONTROLLER (With Auto-Centering + 3D AR Billboard Badges) ── -->
   <script>
-    let userZoomFactor = 1.0;
-    let initialPinchDist = 0;
-    let initialUserZoom = 1.0;
-    let rawMaxDim = 1.93;
-
     // ── Register A-Frame Components ────────────────────────
     if (window.AFRAME) {
       // 1. Billboard Component (Always face camera head-on)
@@ -328,7 +323,7 @@
         });
       }
 
-      // 2. Center-Model Component (Auto-centers GLB mesh & sets scale with userZoomFactor)
+      // 2. Center-Model Component (CRITICAL FIX: auto-centers GLB meshes to (0,0,0) so model is NEVER off-screen!)
       if (!AFRAME.components['center-model']) {
         AFRAME.registerComponent('center-model', {
           init: function () {
@@ -340,7 +335,7 @@
               const box = new THREE.Box3().setFromObject(obj);
               const center = box.getCenter(new THREE.Vector3());
               const size = box.getSize(new THREE.Vector3());
-              rawMaxDim = Math.max(size.x, size.y, size.z) || 1.93;
+              const maxDim = Math.max(size.x, size.y, size.z) || 1;
 
               // Auto-center mesh at origin (0, 0, 0)
               obj.position.x -= center.x;
@@ -348,7 +343,7 @@
               obj.position.z -= center.z;
 
               // Normalize scale to fit nicely in 3D AR viewport
-              const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
+              const desiredScale = 0.55 / maxDim;
               this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
               console.log('[AR Engine] Auto-centered GLB model! Center:', center, 'Size:', size, 'Desired Scale:', desiredScale);
@@ -562,74 +557,48 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom ──
-    function updateModelZoomScale() {
-      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
-      const models = document.querySelectorAll('a-gltf-model[center-model]');
-      models.forEach(m => m.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`));
-    }
-
-    // ── Touch Gesture Setup for 360° Drag & 2-Finger Pinch Zoom ──
+    // ── Touch Gesture Setup for 360° Interactive Model Inspection (Minimal-Invasive Option A) ──
     function setupTouchGestureRotation() {
       const container = document.getElementById('ar-container');
       if (!container) return;
 
       const handleStart = (e) => {
-        if (!arActive || !e.touches) return;
-        if (e.touches.length === 1) {
+        if (!arActive) return;
+        if (e.touches && e.touches.length === 1) {
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2) {
-          isTouchDragging = false;
-          initialPinchDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          initialUserZoom = userZoomFactor;
         }
       };
 
       const handleMove = (e) => {
-        if (!arActive || !e.touches) return;
+        if (!arActive || !isTouchDragging || !e.touches || e.touches.length !== 1) return;
 
-        if (e.touches.length === 1 && isTouchDragging) {
-          const deltaX = e.touches[0].clientX - previousTouchX;
-          const deltaY = e.touches[0].clientY - previousTouchY;
+        const deltaX = e.touches[0].clientX - previousTouchX;
+        const deltaY = e.touches[0].clientY - previousTouchY;
 
-          customRotY += deltaX * 0.6;
-          customRotX += deltaY * 0.4;
+        customRotY += deltaX * 0.6;
+        customRotX += deltaY * 0.4;
 
-          const camGlbGroup = document.getElementById('cam-glb-group');
-          const anchorGlbGroup = document.getElementById('anchor-glb-group');
+        const camGlbGroup = document.getElementById('cam-glb-group');
+        const anchorGlbGroup = document.getElementById('anchor-glb-group');
 
-          // Remove loop animation so A-Frame animation component stops overwriting user touch rotation
-          if (camGlbGroup) {
-            if (camGlbGroup.hasAttribute('animation')) camGlbGroup.removeAttribute('animation');
-            camGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
-          }
-          if (anchorGlbGroup) {
-            if (anchorGlbGroup.hasAttribute('animation')) anchorGlbGroup.removeAttribute('animation');
-            anchorGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
-          }
-
-          previousTouchX = e.touches[0].clientX;
-          previousTouchY = e.touches[0].clientY;
-        } else if (e.touches.length === 2 && initialPinchDist > 0) {
-          const currentDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          const scaleRatio = currentDist / initialPinchDist;
-          // Clamp user zoom factor safely between 0.35x and 3.0x
-          userZoomFactor = Math.min(Math.max(initialUserZoom * scaleRatio, 0.35), 3.0);
-          updateModelZoomScale();
+        // Remove loop animation so A-Frame animation component stops overwriting user touch rotation
+        if (camGlbGroup) {
+          if (camGlbGroup.hasAttribute('animation')) camGlbGroup.removeAttribute('animation');
+          camGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
         }
+        if (anchorGlbGroup) {
+          if (anchorGlbGroup.hasAttribute('animation')) anchorGlbGroup.removeAttribute('animation');
+          anchorGlbGroup.setAttribute('rotation', `${customRotX} ${customRotY} 0`);
+        }
+
+        previousTouchX = e.touches[0].clientX;
+        previousTouchY = e.touches[0].clientY;
       };
 
-      const handleEnd = (e) => {
-        if (!e.touches || e.touches.length < 2) initialPinchDist = 0;
-        if (!e.touches || e.touches.length === 0) isTouchDragging = false;
+      const handleEnd = () => {
+        isTouchDragging = false;
       };
 
       container.addEventListener('touchstart', handleStart, { passive: true });
