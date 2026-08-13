@@ -838,25 +838,16 @@
       }
     };
 
-    // Direct Dual Event Binding (click + touchend) for Mode Buttons
+    // Direct Clean Event Binding for Mode Buttons (Preserves User-Gesture Context for getUserMedia)
     document.addEventListener('DOMContentLoaded', function() {
       const b3d = document.getElementById('btn-3d');
       const bar = document.getElementById('btn-ar');
 
-      const triggerSwitch = (mode, e) => {
-        if (e) {
-          try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
-        }
-        window.switchMode(mode);
-      };
-
       if (b3d) {
-        b3d.addEventListener('click', (e) => triggerSwitch('3d', e));
-        b3d.addEventListener('touchend', (e) => triggerSwitch('3d', e));
+        b3d.addEventListener('click', function() { window.switchMode('3d'); });
       }
       if (bar) {
-        bar.addEventListener('click', (e) => triggerSwitch('ar', e));
-        bar.addEventListener('touchend', (e) => triggerSwitch('ar', e));
+        bar.addEventListener('click', function() { window.switchMode('ar'); });
       }
     });
   </script>
