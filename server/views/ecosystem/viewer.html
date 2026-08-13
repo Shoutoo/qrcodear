@@ -379,42 +379,58 @@
               const obj = this.el.getObject3D('mesh');
               if (!obj) return;
 
-              // Save original scale and temporarily set to (1,1,1) for unscaled bounding box calculation
-              const origScale = obj.scale.clone();
-              obj.scale.set(1, 1, 1);
-              obj.updateMatrixWorld(true);
-
-              // Compute exact unscaled GLB mesh bounding box
-              const box = new THREE.Box3().setFromObject(obj);
-              const center = box.getCenter(new THREE.Vector3());
-              const size = box.getSize(new THREE.Vector3());
-              const localMaxDim = Math.max(size.x, size.y, size.z) || 2.0;
-
               const posBefore = obj.position.clone();
 
-              // Convert world-space center into parent's local coordinate space for true local auto-centering
-              const localCenter = obj.parent ? obj.parent.worldToLocal(center.clone()) : center.clone();
-              obj.position.x -= localCenter.x;
-              obj.position.y -= localCenter.y;
-              obj.position.z -= localCenter.z;
+              // 1. Hitung Bounding Box Geometri Lokal Murni (Terisolasi dari Skala Parent)
+              const box = new THREE.Box3();
+              obj.updateMatrix();
+              obj.traverse((child) => {
+                if (child.isMesh && child.geometry) {
+                  if (!child.geometry.boundingBox) {
+                    child.geometry.computeBoundingBox();
+                  }
+                  child.updateMatrix();
+                  const geomBox = child.geometry.boundingBox.clone();
+                  
+                  // Transformasikan hanya dalam hierarki lokal objek GLTF (berhenti di obj):
+                  let m = child.matrix.clone();
+                  let p = child.parent;
+                  while (p && p !== obj) {
+                    p.updateMatrix();
+                    m.premultiply(p.matrix);
+                    p = p.parent;
+                  }
+                  geomBox.applyMatrix4(m);
+                  box.union(geomBox);
+                }
+              });
 
-              // Calculate individual base scale so entire ecosystem fits ~20cm diameter in viewport
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              const localMaxDim = Math.max(size.x, size.y, size.z) || 5.6;
+
+              // 2. Auto-center posisi lokal
+              obj.position.x -= center.x;
+              obj.position.y -= center.y;
+              obj.position.z -= center.z;
+
+              // 3. Simpan dan terapkan baseScale per-elemen langsung ke Three.js Mesh
               const baseScale = 0.20 / localMaxDim;
               obj.userData.baseScale = baseScale;
               this.el.dataset.baseScale = baseScale;
 
-              // Apply base scale directly to Three.js Mesh
-              const finalScale = baseScale * userZoomFactor;
+              const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
+              const finalScale = baseScale * zoom;
               obj.scale.set(finalScale, finalScale, finalScale);
 
               const entityParentId = this.el.parentElement ? this.el.parentElement.id : 'no-parent';
               const parentScaleAttr = this.el.parentElement ? this.el.parentElement.getAttribute('scale') : 'none';
 
+              // 4. Log Diagnostik Lengkap untuk Verifikasi Empiris
               console.log('[Auto-Center & Scale Diagnostics]', {
                 entityParentId: entityParentId,
                 parentScaleAttr: parentScaleAttr,
-                worldCenter: center,
-                localCenter: localCenter,
+                localCenter: center.clone(),
                 posBefore: posBefore,
                 posAfter: obj.position.clone(),
                 localMaxDim: localMaxDim,
