@@ -539,11 +539,15 @@
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
             <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
-              <a-entity id="cam-glb-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
-                ${badgeEntities}
+              <!-- Dedicated User Scale Entity for Pinch Zoom (0.40x to 2.50x) -->
+              <a-entity id="cam-user-scale" scale="1 1 1">
+                <a-entity id="cam-glb-group"
+                  animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+                  <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
+                  ${badgeEntities}
+                </a-entity>
               </a-entity>
+              <!-- Fixed Base Torus (Stable floor ring indicator) -->
               <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
@@ -555,11 +559,15 @@
 
           <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <a-entity id="anchor-glb-group"
-              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
-              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
-              ${badgeEntities}
+            <!-- Dedicated User Scale Entity for Pinch Zoom (0.40x to 2.50x) -->
+            <a-entity id="anchor-user-scale" scale="1 1 1">
+              <a-entity id="anchor-glb-group"
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+                <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
+                ${badgeEntities}
+              </a-entity>
             </a-entity>
+            <!-- Fixed Base Torus (Stable floor ring indicator) -->
             <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
               animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
             </a-torus>
@@ -567,19 +575,20 @@
         </a-scene>`;
     }
 
-    // ── Update Model Scale for Pinch Zoom (Direct Three.js Matrix Scaling) ──
+    // ── Update Model Scale for Pinch Zoom (Dedicated Scale Entity) ──
     function updateModelZoomScale() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
-        return;
+      } else {
+        userZoomFactor = Math.min(Math.max(userZoomFactor, 0.40), 2.50);
       }
-      const desiredScale = (0.55 * userZoomFactor) / rawMaxDim;
-      const models = document.querySelectorAll('a-gltf-model[center-model]');
-      models.forEach(m => {
-        if (m.object3D) {
-          m.object3D.scale.set(desiredScale, desiredScale, desiredScale);
-        }
-      });
+
+      const sStr = `${userZoomFactor} ${userZoomFactor} ${userZoomFactor}`;
+      const camScaleEl = document.getElementById('cam-user-scale');
+      const anchorScaleEl = document.getElementById('anchor-user-scale');
+
+      if (camScaleEl) camScaleEl.setAttribute('scale', sStr);
+      if (anchorScaleEl) anchorScaleEl.setAttribute('scale', sStr);
     }
 
     // ── Touch Gesture Setup for 360° Drag & 4-Layer Guarded Pinch Zoom ──
