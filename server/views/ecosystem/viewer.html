@@ -504,7 +504,7 @@
       }
     }
 
-    // ── Build HTML for A-Frame Scene (With Touch Wrapper for 360° Drag Rotation) ──
+    // ── Build HTML for A-Frame Scene (With Auto-Centering + 3D AR Billboard Badges) ──
     function buildArSceneHTML() {
       const mindFile = `/assets/markers/preset-${cleanId}.mind`;
 
@@ -529,15 +529,12 @@
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
             <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
-              <!-- Touch Wrapper (Unanimated entity for 1-Finger Touch Rotation) -->
-              <a-entity id="cam-touch-wrapper" rotation="0 0 0">
-                <a-entity id="cam-glb-group"
-                  animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
-                  <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
-                  ${badgeEntities}
-                </a-entity>
-                <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
+              <a-entity id="cam-glb-group"
+                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+                <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
+                ${badgeEntities}
               </a-entity>
+              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.1 0" opacity="0.85"></a-torus>
             </a-entity>
           </a-camera>
           
@@ -548,34 +545,33 @@
 
           <!-- MindAR Anchor 0 (locks 3D model & Billboard Badges on physical card) -->
           <a-entity mindar-image-target="targetIndex: 0" id="anchor-match">
-            <!-- Touch Wrapper (Unanimated entity for 1-Finger Touch Rotation) -->
-            <a-entity id="anchor-touch-wrapper" rotation="0 0 0">
-              <a-entity id="anchor-glb-group"
-                animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 14000; loop: true; easing: linear">
-                <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
-                ${badgeEntities}
-              </a-entity>
-              <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
-                animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
-              </a-torus>
+            <a-entity id="anchor-glb-group"
+              animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
+              <a-gltf-model src="${GLB_URL}" position="0 0.05 0" center-model></a-gltf-model>
+              ${badgeEntities}
             </a-entity>
+            <a-torus radius="0.55" radius-tubular="0.015" color="#10b981" rotation="90 0 0" position="0 -0.02 0" opacity="0.85"
+              animation="property: rotation; from: 90 0 0; to: 90 360 0; dur: 3000; loop: true; easing: linear">
+            </a-torus>
           </a-entity>
         </a-scene>`;
     }
 
-    // ── Touch Gesture Setup for 360° Interactive Model Inspection (Tahap 1 Only) ──
+    // ── Touch Gesture Setup for 360° Interactive Model Inspection ──
     function setupTouchGestureRotation() {
-      const handleTouchStart = (e) => {
-        if (!arActive) return;
+      const container = document.getElementById('ar-container');
+      if (!container) return;
+
+      container.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
           isTouchDragging = true;
           previousTouchX = e.touches[0].clientX;
           previousTouchY = e.touches[0].clientY;
         }
-      };
+      }, { passive: true });
 
-      const handleTouchMove = (e) => {
-        if (!arActive || !isTouchDragging || e.touches.length !== 1) return;
+      container.addEventListener('touchmove', (e) => {
+        if (!isTouchDragging || e.touches.length !== 1) return;
 
         const deltaX = e.touches[0].clientX - previousTouchX;
         const deltaY = e.touches[0].clientY - previousTouchY;
@@ -583,24 +579,20 @@
         customRotY += deltaX * 0.6;
         customRotX += deltaY * 0.4;
 
-        const camWrapper = document.getElementById('cam-touch-wrapper');
-        const anchorWrapper = document.getElementById('anchor-touch-wrapper');
-        const rotStr = `${customRotX} ${customRotY} 0`;
+        const camGlbGroup = document.getElementById('cam-glb-group');
+        const anchorGlbGroup = document.getElementById('anchor-glb-group');
 
-        if (camWrapper) camWrapper.setAttribute('rotation', rotStr);
-        if (anchorWrapper) anchorWrapper.setAttribute('rotation', rotStr);
+        const rotStr = `${customRotX} ${customRotY} 0`;
+        if (camGlbGroup) camGlbGroup.setAttribute('rotation', rotStr);
+        if (anchorGlbGroup) anchorGlbGroup.setAttribute('rotation', rotStr);
 
         previousTouchX = e.touches[0].clientX;
         previousTouchY = e.touches[0].clientY;
-      };
+      }, { passive: true });
 
-      const handleTouchEnd = () => {
+      container.addEventListener('touchend', () => {
         isTouchDragging = false;
-      };
-
-      window.addEventListener('touchstart', handleTouchStart, { passive: true });
-      window.addEventListener('touchmove', handleTouchMove, { passive: true });
-      window.addEventListener('touchend', handleTouchEnd, { passive: true });
+      }, { passive: true });
     }
 
     // ── Real-Time jsQR Code Scanner (Engine 2 Fallback) ──
