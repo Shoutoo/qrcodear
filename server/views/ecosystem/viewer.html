@@ -268,10 +268,10 @@
         </div>
       </div>
       <div class="mode-switcher">
-        <button id="btn-3d" class="mode-btn active" onclick="switchMode('3d')">
+        <button id="btn-3d" class="mode-btn active">
           <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span> 3D View
         </button>
-        <button id="btn-ar" class="mode-btn" onclick="switchMode('ar')">
+        <button id="btn-ar" class="mode-btn">
           <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span> Mode AR
         </button>
       </div>
@@ -464,6 +464,7 @@
     ];
 
     let arActive = false;
+    let arStarting = false; // synchronous re-entrancy lock — arActive itself is only set AFTER the async scene load, so a duplicate call before that has nothing to check against
     let wrongEcoId = null;
     let qrScanInterval = null;
     let isLockedCleanMode = false;
@@ -765,7 +766,8 @@
 
     // ── Start AR Camera Engine ──
     async function startAR() {
-      if (arActive) return;
+      if (arActive || arStarting) return;
+      arStarting = true;
 
       const container = document.getElementById('ar-container');
       
@@ -773,6 +775,7 @@
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
         stream.getTracks().forEach(t => t.stop());
       } catch(e) {
+        arStarting = false;
         alert('Akses kamera ditolak. Harap izinkan akses kamera di browser Anda.');
         switchMode('3d');
         return;
@@ -785,6 +788,7 @@
 
       function setupAnchorListeners() {
         arActive = true;
+        arStarting = false;
         document.getElementById('ar-status-pill').style.display = 'flex';
         document.getElementById('scan-frame').style.display = 'block';
         document.getElementById('ar-hint').classList.add('active');
@@ -819,6 +823,7 @@
     // ── Stop AR Camera Engine ──
     function stopAR() {
       arActive = false;
+      arStarting = false;
       stopQrCodeFallbackScanner();
       hideWrong();
       resetCleanScanView();
