@@ -268,10 +268,10 @@
         </div>
       </div>
       <div class="mode-switcher">
-        <button id="btn-3d" class="mode-btn active">
+        <button id="btn-3d" class="mode-btn active" onclick="switchMode('3d')">
           <span class="material-symbols-outlined" style="font-size:15px;">3d_rotation</span> 3D View
         </button>
-        <button id="btn-ar" class="mode-btn">
+        <button id="btn-ar" class="mode-btn" onclick="switchMode('ar')">
           <span class="material-symbols-outlined" style="font-size:15px;">view_in_ar</span> Mode AR
         </button>
       </div>
@@ -379,67 +379,30 @@
               const obj = this.el.getObject3D('mesh');
               if (!obj) return;
 
-              const posBefore = obj.position.clone();
+              // Save original scale and temporarily set to (1,1,1) for unscaled bounding box calculation
+              const origScale = obj.scale.clone();
+              obj.scale.set(1, 1, 1);
+              obj.updateMatrixWorld(true);
 
-              // 1. Hitung Bounding Box Geometri Lokal Murni (Terisolasi dari Skala Parent)
-              const box = new THREE.Box3();
-              obj.updateMatrix();
-              obj.traverse((child) => {
-                if (child.isMesh && child.geometry) {
-                  if (!child.geometry.boundingBox) {
-                    child.geometry.computeBoundingBox();
-                  }
-                  child.updateMatrix();
-                  const geomBox = child.geometry.boundingBox.clone();
-                  
-                  // Transformasikan hanya dalam hierarki lokal objek GLTF (berhenti di obj):
-                  let m = child.matrix.clone();
-                  let p = child.parent;
-                  while (p && p !== obj) {
-                    p.updateMatrix();
-                    m.premultiply(p.matrix);
-                    p = p.parent;
-                  }
-                  geomBox.applyMatrix4(m);
-                  box.union(geomBox);
-                }
-              });
-
+              // Compute exact unscaled GLB mesh bounding box
+              const box = new THREE.Box3().setFromObject(obj);
               const center = box.getCenter(new THREE.Vector3());
               const size = box.getSize(new THREE.Vector3());
-              const localMaxDim = Math.max(size.x, size.y, size.z) || 5.6;
+              const localMaxDim = Math.max(size.x, size.y, size.z) || 2.0;
 
-              // 2. Simpan baseScale per-elemen & referensi localCenter
-              const baseScale = 0.20 / localMaxDim;
-              obj.userData.baseScale = baseScale;
-              obj.userData.localCenter = center.clone();
-              this.el.dataset.baseScale = baseScale;
+              // Auto-center mesh at origin (0, 0, 0)
+              obj.position.x = -center.x;
+              obj.position.y = -center.y;
+              obj.position.z = -center.z;
 
-              const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
-              const finalScale = baseScale * zoom;
+              // Restore mesh local scale
+              obj.scale.copy(origScale);
 
-              // 3. Terapkan scale langsung ke Three.js Mesh
-              obj.scale.set(finalScale, finalScale, finalScale);
+              // Normalize scale so entire ecosystem fits beautifully in AR camera viewport (~20cm total width)
+              const desiredScale = 0.20 / localMaxDim;
+              this.el.setAttribute('scale', `${desiredScale} ${desiredScale} ${desiredScale}`);
 
-              // 4. Auto-center posisi lokal dengan offset yang DISKALAKAN sesuai finalScale
-              obj.position.x -= center.x * finalScale;
-              obj.position.y -= center.y * finalScale;
-              obj.position.z -= center.z * finalScale;
-
-              const entityParentId = this.el.parentElement ? this.el.parentElement.id : 'no-parent';
-              const parentScaleAttr = this.el.parentElement ? this.el.parentElement.getAttribute('scale') : 'none';
-
-              // 5. Log Diagnostik Lengkap untuk Verifikasi Empiris
-              console.log('[Auto-Center & Scale Diagnostics]', {
-                entityParentId: entityParentId,
-                parentScaleAttr: parentScaleAttr,
-                localCenter: center.clone(),
-                posBefore: posBefore,
-                posAfter: obj.position.clone(),
-                localMaxDim: localMaxDim,
-                baseScale: baseScale,
-                finalScale: finalScale
-              });
+              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'Desired Scale:', desiredScale);
             });
           }
         });
@@ -467,7 +430,6 @@
     ];
 
     let arActive = false;
-    let arStarting = false; // synchronous re-entrancy lock — arActive itself is only set AFTER the async scene load, so a duplicate call before that has nothing to check against
     let wrongEcoId = null;
     let qrScanInterval = null;
     let isLockedCleanMode = false;
@@ -586,6 +548,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'true');
+        modelEl.setAttribute('scale', '1 1 1');
       }
     }
 
@@ -593,6 +556,7 @@
       const modelEl = document.getElementById('camera-space-model');
       if (modelEl) {
         modelEl.setAttribute('visible', 'false');
+        modelEl.setAttribute('scale', '0 0 0');
       }
     }
 
@@ -620,7 +584,7 @@
           
           <a-camera position="0 0 0" look-controls="enabled: false">
             <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" visible="false">
+            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
@@ -767,8 +731,7 @@
 
     // ── Start AR Camera Engine ──
     async function startAR() {
-      if (arActive || arStarting) return;
-      arStarting = true;
+      if (arActive) return;
 
       const container = document.getElementById('ar-container');
       
@@ -776,7 +739,6 @@
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
         stream.getTracks().forEach(t => t.stop());
       } catch(e) {
-        arStarting = false;
         alert('Akses kamera ditolak. Harap izinkan akses kamera di browser Anda.');
         switchMode('3d');
         return;
@@ -789,7 +751,6 @@
 
       function setupAnchorListeners() {
         arActive = true;
-        arStarting = false;
         document.getElementById('ar-status-pill').style.display = 'flex';
         document.getElementById('scan-frame').style.display = 'block';
         document.getElementById('ar-hint').classList.add('active');
@@ -824,7 +785,6 @@
     // ── Stop AR Camera Engine ──
     function stopAR() {
       arActive = false;
-      arStarting = false;
       stopQrCodeFallbackScanner();
       hideWrong();
       resetCleanScanView();
@@ -853,7 +813,7 @@
       document.getElementById('ar-zoom-controls').classList.remove('active');
     }
 
-    // ── Update Model Scale for Button Zoom (Direct Three.js Mesh Scale with Per-Element BaseScale) ──
+    // ── Update Model Scale for Button Zoom (Direct Three.js Mesh Scale) ──
     function applyButtonZoom() {
       if (!isFinite(userZoomFactor) || isNaN(userZoomFactor)) {
         userZoomFactor = 1.0;
@@ -867,15 +827,7 @@
       models.forEach(m => {
         const mesh = m.getObject3D('mesh');
         if (mesh) {
-          const baseScale = mesh.userData.baseScale || parseFloat(m.dataset.baseScale) || 0.05;
-          const finalScale = baseScale * userZoomFactor;
-          mesh.scale.set(finalScale, finalScale, finalScale);
-
-          // Jaga posisi model tetap di tengah saat di-zoom manual
-          if (mesh.userData.localCenter) {
-            const lc = mesh.userData.localCenter;
-            mesh.position.set(-lc.x * finalScale, -lc.y * finalScale, -lc.z * finalScale);
-          }
+          mesh.scale.set(userZoomFactor, userZoomFactor, userZoomFactor);
         }
       });
     }
