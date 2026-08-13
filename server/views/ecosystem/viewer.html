@@ -398,16 +398,16 @@
               // Restore mesh local scale
               obj.scale.copy(origScale);
 
-              // Normalize scale so entire 6-animal ecosystem fits perfectly inside billboard badges ring (like 3D view)
+              // Calibrated baseline scale for 6-animal ecosystem in AR mode (~0.35)
               const cleanMaxDim = (localMaxDim && localMaxDim > 0.5) ? localMaxDim : 5.60;
-              const baseScale = 0.85 / cleanMaxDim;
+              const baseScale = 0.35;
               this.el.dataset.baseScale = baseScale;
 
               const zoom = (typeof userZoomFactor === 'number' && isFinite(userZoomFactor)) ? userZoomFactor : 1.0;
               const finalScale = baseScale * zoom;
               this.el.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
 
-              console.log('[AR Engine] Auto-centered GLB model cleanly! localMaxDim:', localMaxDim, 'cleanMaxDim:', cleanMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
+              console.log('[AR Engine] Auto-centered GLB model cleanly! cleanMaxDim:', cleanMaxDim, 'baseScale:', baseScale, 'finalScale:', finalScale);
             });
           }
         });
@@ -588,8 +588,8 @@
           device-orientation-permission-ui="enabled: false">
           
           <a-camera position="0 0 0" look-controls="enabled: false">
-            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges -->
-            <a-entity id="camera-space-model" position="0 -0.05 -0.85" scale="0 0 0" visible="false">
+            <!-- Camera-Space Fallback 3D Model + Billboard Slot Badges (with 20° tilt towards camera) -->
+            <a-entity id="camera-space-model" position="0 -0.15 -0.85" rotation="20 0 0" scale="0 0 0" visible="false">
               <a-entity id="cam-glb-group"
                 animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 12000; loop: true; easing: linear">
                 <a-gltf-model src="${GLB_URL}" center-model></a-gltf-model>
@@ -830,7 +830,7 @@
 
       const models = document.querySelectorAll('a-gltf-model[center-model]');
       models.forEach(m => {
-        const baseScale = parseFloat(m.dataset.baseScale) || 0.15;
+        const baseScale = parseFloat(m.dataset.baseScale) || 0.35;
         const finalScale = baseScale * userZoomFactor;
         m.setAttribute('scale', `${finalScale} ${finalScale} ${finalScale}`);
       });
