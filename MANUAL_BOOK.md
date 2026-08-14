@@ -11,24 +11,24 @@ Platform ini dapat diakses langsung melalui browser smartphone (Google Chrome, A
 
 ---
 
-## 🌟 2. DAFTAR MENU LENGKAP APLIKASI
+## 🌟 2. MATRIKS HAK AKSES PENGGUNA (GURU VS MURID)
 
-Platform ini menyediakan 5 menu utama untuk mendukung proses belajar mengajar antara Guru dan Murid:
+Platform ini membedakan fitur berdasarkan peran pengguna:
 
-| No | Menu / Modul | Peran Pengguna | URL Akses | Deskripsi Utama |
-| :---: | :--- | :---: | :--- | :--- |
-| **1** | **Eksplorasi 3D & WebAR Viewer** | Murid & Guru | `/ecosystem/view/:id` | Visualisasi 3D 360° dan Augmented Reality di atas meja kelas nyata. |
-| **2** | **Materi Pembelajaran Interaktif** | Murid & Guru | *(Bilah Alur & Modal)* | Penjelasan ilmiah peran Produsen, Konsumen I–IV, dan Pengurai. |
-| **3** | **Kuis Interaktif Evaluasi Siswa** | Murid & Guru | `/quiz` / Bank Soal | Evaluasi pemahaman IPA SD dengan skor otomatis & pembahasan. |
-| **4** | **3D Ecosystem Studio Editor** | Guru | `/studio` | Pengaturan preset tema ekosistem, penataan slot hewan, & nama spesies. |
-| **5** | **Pusat Cetak Kartu AR Siswa** | Guru | `/print-card` | Menghasilkan lembar kartu pembelajaran ber-QR Code siap cetak. |
-| **6** | **Log Audit & Diagnostik AR** | Guru & Laboran | `/ar-debug` | Pengujian kesiapan kamera, WebGL, dan koneksi perangkat sebelum kelas. |
+| Modul / Fitur | Hak Akses Murid (Siswa) | Hak Akses Guru (Pendidik) |
+| :--- | :--- | :--- |
+| **🌐 3D & WebAR Viewer** | Mengamati model 3D 360°, Zoom, & meletakkan AR di meja kelas. | Pratinjau (*live preview*) dan demonstrasi proyektor di kelas. |
+| **📚 Materi Pembelajaran** | Membaca alur rantai makanan & membuka kartu fakta sains hewan. | **Menambahkan materi baru**, menyunting deskripsi, & ubah peran spesies. |
+| **📝 Kuis Interaktif** | Mengerjakan kuis evaluasi & melihat skor pribadi instan. | **Menambahkan bank soal baru** & **merekap daftar nilai seluruh siswa**. |
+| **🎨 3D Ecosystem Studio** | Mode terkunci (*Read-Only View*). | Mengatur preset ekosistem, memilih hewan, & menyesuaikan slot rantai. |
+| **🖨️ Pusat Cetak Kartu AR** | Menerima & scan kartu fisik dari guru. | Menghasilkan & mencetak kartu AR ber-QR Code untuk siswa. |
+| **🔬 Log Audit & Diagnostik** | Tidak diperlukan. | Menguji kesiapan kamera, WebGL, & koneksi HP sebelum kelas dimulai. |
 
 ---
 
-## 🎒 3. PANDUAN LENGKAP UNTUK MURID (SISWA)
+## 🎒 3. PANDUAN PENGGUNAAN UNTUK MURID (SISWA)
 
-### A. Cara Membuka Media Pembelajaran
+### A. Membuka Media Pembelajaran
 1. Pindai (*scan*) **QR Code pada Kartu Pembelajaran Ekosistem** yang dibagikan oleh Guru.
 2. Tautan materi akan langsung terbuka di browser smartphone:
    - 🌾 **Ekosistem Sawah**: `https://qrcodear.onrender.com/ecosystem/view/sawah`
@@ -77,80 +77,82 @@ Mode AR Kamera membawa hewan 3D berdiri di dunia nyata (di atas meja kelas):
 
 ---
 
-## 📚 4. MENU MATERI PEMBELAJARAN INTERAKTIF
-
-Menu Materi Pembelajaran terintegrasi langsung pada antarmuka viewer melalui **Bilah Alur Rantai Makanan** di bagian atas dan **Kartu Fakta Sains**:
-
-### A. Bilah Alur Rantai Makanan (*Flow Banner*)
-Menampilkan bagan urutan makan dan dimakan yang mudah dipahami:
-`PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ KONSUMEN PUNCAK ➔ PENGURAI`
-
-### B. Tingkatan Peran Sains Ekosistem
-Siswa dapat mengetuk setiap label hewan untuk membuka kartu penjelasan perannya:
-1. **Produsen**: Tumbuhan atau fitoplankton yang mampu membuat makanan sendiri melalui proses fotosintesis dengan bantuan sinar matahari.
-2. **Konsumen I (Primer)**: Hewan herbivora (pemakan tumbuhan) yang memperoleh energi langsung dari produsen (contoh: Belalang, Ikan Kecil, Ulat).
-3. **Konsumen II (Sekunder)**: Hewan karnivora tingkat satu atau insektivora yang memangsa konsumen primer (contoh: Katak, Ikan Sedang).
-4. **Konsumen III (Tersier)**: Hewan karnivora tingkat menengah dalam rantai makanan (contoh: Ular, Ikan Besar).
-5. **Konsumen Puncak (Apex Predator)**: Predator tertinggi yang tidak memiliki pemangsa alami dalam ekosistemnya (contoh: Burung Elang, Hiu, Harimau).
-6. **Pengurai (Dekomposer)**: Organisme seperti jamur dan bakteri yang menguraikan bangkai makhluk hidup menjadi unsur hara penyubur tanah dan air.
+### D. Mengerjakan Kuis Interaktif (Siswa)
+1. Buka menu kuis melalui tautan evaluasi yang diberikan oleh Guru.
+2. Jawab pertanyaan pilihan ganda yang disajikan.
+3. Setelah menekan tombol **`Selesai / Submit`**, skor nilai otomatis muncul beserta umpan balik jawaban mana yang benar dan mana yang salah.
 
 ---
 
-## 📝 5. MENU KUIS INTERAKTIF EVALUASI SISWA
+## 👩‍🏫 4. PANDUAN LENGKAP UNTUK GURU (PENDIDIK)
 
-Modul kuis ini dirancang untuk mengukur tingkat pemahaman siswa setelah mempelajari ekosistem 3D dan AR:
-
-### A. Fitur Modul Kuis
-1. **Bank Soal Terstandar IPA SD**: Berisi 20+ soal pilihan ganda interaktif mencakup ekosistem sawah, laut, hutan, darat, dan konsep umum rantai makanan.
-2. **Penilaian Skor Otomatis**: Nilai langsung dihitung dan ditampilkan setelah siswa menyelesaikan kuis.
-3. **Umpan Balik Instan**: Siswa langsung mengetahui jawaban mana yang benar dan mana yang salah disertai penjelasan singkat.
-
-### B. Contoh Soal Evaluasi
-- *Soal 1*: Makhluk hidup yang dapat membuat makanannya sendiri disebut... **(Jawaban: Produsen)**.
-- *Soal 2*: Pada ekosistem sawah, jika populasi katak menurun drastis, maka yang akan terjadi adalah... **(Jawaban: Populasi belalang meningkat dan merusak padi)**.
-- *Soal 3*: Organisme yang bertugas mengembalikan nutrisi ke tanah dari sisa makhluk hidup mati adalah... **(Jawaban: Jamur / Pengurai)**.
+Guru memiliki hak akses administratif untuk mengelola materi, menyesuaikan soal kuis, serta memantau nilai murid:
 
 ---
 
-## 🔬 6. MENU LOG AUDIT & DIAGNOSTIK AR (`/ar-debug`)
+### A. Pengelolaan & Penambahan Materi Pembelajaran
+Guru dapat menyesuaikan isi materi sains agar selaras dengan Modul Ajar / RPP Kurikulum Merdeka:
 
-Menu ini disediakan khusus bagi **Guru, Operator, atau Laboran Komputer** untuk menguji kesiapan teknis perangkat smartphone siswa sebelum pembelajaran dimulai:
-
-1. **Akses Menu**: Buka tautan `https://qrcodear.onrender.com/ar-debug` (atau `http://localhost:3001/ar-debug`).
-2. **Fitur Pengujian (*Step-by-Step Diagnostic*)**:
-   - **Step 1 (Test Script Import)**: Menguji apakah browser siswa mendukung *Three.js WebGL* dan modul library AR.
-   - **Step 2 (Test Kamera)**: Membuka jendela kamera belakang untuk memastikan izin kamera aktif dan tidak diblokir.
-   - **Step 3 (Test Model & Data)**: Memeriksa kecepatan pengunduhan file model 3D (`.glb`) dari server.
-   - **Step 4 (Test Tracking Full)**: Menguji kestabilan pelacakan AR secara *real-time*.
-3. **Papan Log Output (*System Health Log*)**:
-   - Menampilkan status log berkode warna:
-     - 🟢 **`[OK]`**: Perangkat siswa siap digunakan (Kamera & WebGL aktif).
-     - 🟡 **`[WARN]`**: Peringatan koneksi lambat atau pencahayaan kurang.
-     - 🔴 **`[ERR]`**: Izin kamera ditolak atau browser belum diperbarui.
+1. **Menambahkan & Mengedit Deskripsi Hewan**:
+   - Guru dapat mengubah penjelasan ilmiah pada masing-masing peran trofik:
+     - **Produsen**: Menyunting nama tanaman dan penjelasan proses fotosintesis.
+     - **Konsumen Primer**: Menjelaskan jenis hewan herbivora dan jenis makanannya.
+     - **Konsumen Sekunder s.d. Tersier**: Menjelaskan mekanisme perburuan karnivora.
+     - **Konsumen Puncak (Apex Predator)**: Menjelaskan mengapa predator puncak tidak memiliki pemangsa alami.
+     - **Pengurai (Dekomposer)**: Menjelaskan peran penting jamur/bakteri dalam mengembalikan nutrisi ke tanah.
+2. **Menyesuaikan Alur Rantai Makanan**:
+   - Guru dapat menentukan urutan rantai makanan pada bilah alur atas (*flow banner*) untuk tiap ekosistem yang diajarkan di kelas.
 
 ---
 
-## 👩‍🏫 7. PANDUAN MANAJEMEN UNTUK GURU (PENDIDIK)
+### B. Pengelolaan Kuis Interaktif & Rekap Nilai Siswa
+Modul kuis dilengkapi dengan sistem manajemen bank soal dan buku nilai siswa:
 
-### A. Menu 3D Ecosystem Studio Editor (`/studio`)
-Digunakan oleh Guru untuk memilih dan menyesuaikan tema materi sebelum kelas dimulai:
+1. **Menambahkan Soal Kuis Baru**:
+   - Guru dapat membuat pertanyaan baru (Pilihan Ganda A, B, C, D).
+   - Menentukan tema ekosistem soal (Sawah, Laut, Hutan, atau Umum).
+   - Menandai kunci jawaban yang benar serta menambahkan teks pembahasan edukatif.
+2. **Melihat & Merekap Nilai Seluruh Murid**:
+   - Guru dapat membuka **Daftar Nilai Siswa** (*Student Gradebook*).
+   - Melihat skor individu setiap siswa, waktu pengerjaan, dan tingkat ketepatan jawaban.
+   - Mengetahui statistik nomor soal mana yang paling banyak dijawab salah oleh siswa untuk dijadikan bahan evaluasi dan remedial di kelas.
+
+---
+
+### C. 3D Ecosystem Studio Editor (`/studio`)
+Digunakan oleh Guru untuk memilih dan menyesuaikan tema 3D ekosistem sebelum kelas:
 1. Buka `https://qrcodear.onrender.com/studio`.
 2. Pilih tema ekosistem (Sawah, Laut, Hutan, Padang Rumput, Gurun, Kutub, Sungai).
-3. Sesuaikan 6 posisi rantai makanan, periksa nama spesies dan deskripsi peran ilmiah sesuai rencana pelaksanaan pembelajaran (RPP/Modul Ajar).
-4. Putar pratinjau 3D (*live preview*) untuk memastikan materi siap diajarkan.
+3. Sesuaikan 6 posisi rantai makanan, periksa nama spesies dan deskripsi peran ilmiah.
+4. Putar pratinjau 3D (*live preview*) untuk memastikan media visual siap dipresentasikan.
 
 ---
 
-### B. Menu Generator & Cetak Kartu Belajar AR (`/print-card`)
+### D. Pusat Generator & Cetak Kartu Belajar AR (`/print-card`)
 Digunakan untuk mencetak kartu belajar ber-QR Code bagi siswa:
 1. Buka `https://qrcodear.onrender.com/print-card`.
 2. Pilih tema kartu ekosistem yang ingin dicetak.
 3. Tekan tombol **`[ 🖨️ Cetak Kartu / Print PDF ]`**.
-4. Cetak pada kertas tebal (A4 / Art Paper) dan bagikan kepada setiap kelompok belajar siswa.
+4. Cetak pada kertas tebal (A4 / Art Paper) dan bagikan kepada setiap kelompok belajar siswa di kelas.
 
 ---
 
-## 💡 8. REKOMENDASI PENGGUNAAN DI RUANG KELAS
+### E. Log Audit & Diagnostik Perangkat AR (`/ar-debug`)
+Digunakan untuk memastikan seluruh smartphone siswa siap digunakan sebelum pembelajaran AR dimulai:
+1. Buka `https://qrcodear.onrender.com/ar-debug`.
+2. Jalankan uji diagnostik bertahap:
+   - **Step 1**: Uji kompatibilitas *Three.js WebGL*.
+   - **Step 2**: Uji sensor kamera belakang smartphone.
+   - **Step 3**: Uji kestabilan unduh file 3D model.
+   - **Step 4**: Uji pelacakan AR *real-time*.
+3. Periksa status papan log:
+   - 🟢 **`[OK]`**: Perangkat siap digunakan.
+   - 🟡 **`[WARN]`**: Peringatan koneksi lambat.
+   - 🔴 **`[ERR]`**: Izin kamera ditolak.
+
+---
+
+## 💡 5. REKOMENDASI PENGGUNAAN DI RUANG KELAS
 
 1. **Pencahayaan Ruangan**: Pastikan ruang kelas memiliki cahaya yang terang agar kamera HP dapat mendeteksi permukaan meja dengan cepat.
 2. **Permukaan Meja**: Gunakan meja belajar atau alas yang memiliki sedikit tekstur/pola.
