@@ -516,8 +516,8 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // ─── Touch Gesture Handling for In-Browser AR (Drag, Scale, Rotate) ───
-    let touchStartData = { count: 0, x: 0, y: 0, dist: 0, angle: 0 };
+    // ─── Touch Gesture Handling for In-Browser AR (1-Finger Rotate, 2-Finger Scale & Pan) ───
+    let touchStartData = { count: 0, x: 0, y: 0, midX: 0, midY: 0, dist: 0, angle: 0 };
 
     function initTouchGestures() {
       const container = document.getElementById('canvas-container');
@@ -535,6 +535,8 @@
           const dy = e.touches[0].clientY - e.touches[1].clientY;
           touchStartData.dist = Math.hypot(dx, dy);
           touchStartData.angle = Math.atan2(dy, dx);
+          touchStartData.midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          touchStartData.midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
         }
       }, { passive: true });
 
@@ -542,30 +544,43 @@
         if (currentMode !== 'ar' || !isModelPlacedInAR || !ecosystemGroup) return;
 
         if (e.touches.length === 1 && touchStartData.count === 1) {
-          // 1 Finger Swipe: Smooth 360° Orbit Rotation around Y axis (Identical to 3D view)
+          // 1 Finger Swipe: Smooth 360° Orbit Rotation around Y axis
           const dx = e.touches[0].clientX - touchStartData.x;
           touchStartData.x = e.touches[0].clientX;
           touchStartData.y = e.touches[0].clientY;
 
           ecosystemGroup.rotation.y += dx * 0.008;
         } else if (e.touches.length === 2) {
-          // 2 Fingers: Pinch to Scale & Twist to Rotate
+          const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
           const newDist = Math.hypot(dx, dy);
-          const newAngle = Math.atan2(dy, dx);
 
+          // 1. Smooth Pinch to Scale (Zoom In / Zoom Out)
           if (touchStartData.dist > 0) {
             const pinchRatio = newDist / touchStartData.dist;
-            const newScale = THREE.MathUtils.clamp(ecosystemGroup.scale.x * pinchRatio, 0.15, 1.6);
+            const scaleDelta = (pinchRatio - 1.0) * 0.85 + 1.0;
+            const newScale = THREE.MathUtils.clamp(ecosystemGroup.scale.x * scaleDelta, 0.15, 1.6);
             ecosystemGroup.scale.set(newScale, newScale, newScale);
           }
 
-          const dAngle = newAngle - touchStartData.angle;
-          ecosystemGroup.rotation.y += dAngle;
+          // 2. Stable & Smooth 2-Finger Translation (Menggeser objek 3D di ruangan)
+          if (touchStartData.midX !== undefined && touchStartData.midY !== undefined) {
+            const panDx = currentMidX - touchStartData.midX;
+            const panDy = currentMidY - touchStartData.midY;
+
+            // Stabilized pan speed
+            const panSpeed = 0.0022;
+            ecosystemGroup.position.x += panDx * panSpeed;
+            ecosystemGroup.position.z += panDy * panSpeed;
+            ecosystemGroup.position.x = THREE.MathUtils.clamp(ecosystemGroup.position.x, -3.0, 3.0);
+            ecosystemGroup.position.z = THREE.MathUtils.clamp(ecosystemGroup.position.z, -5.0, -0.6);
+          }
 
           touchStartData.dist = newDist;
-          touchStartData.angle = newAngle;
+          touchStartData.midX = currentMidX;
+          touchStartData.midY = currentMidY;
         }
       }, { passive: true });
 
