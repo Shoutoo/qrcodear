@@ -145,111 +145,116 @@
     </div>
   </div>
 
-  <!-- ─── 3. TOP NAVIGATION HEADER & VIEW MODE SELECTOR ─────────── -->
-  <header class="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-30 pointer-events-auto">
-    <div class="max-w-4xl mx-auto hud-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl sm:rounded-3xl flex items-center justify-between gap-2 shadow-lg">
+  <!-- ─── 3. TOP NAVIGATION HEADER & VIEW MODE SELECTOR (MOBILE POLISHED) ─── -->
+  <header class="absolute top-2.5 sm:top-4 left-2.5 sm:left-4 right-2.5 sm:right-4 z-30 pointer-events-auto">
+    <div class="max-w-4xl mx-auto hud-card px-2.5 py-2 sm:px-4 sm:py-2.5 rounded-2xl sm:rounded-3xl flex items-center justify-between gap-2 shadow-lg">
       
       <!-- Brand & Project Info -->
-      <a href="/" class="flex items-center gap-2 sm:gap-2.5 min-w-0 cursor-pointer" title="Kembali ke Beranda">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white shadow-md flex items-center justify-center flex-shrink-0">
-          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" class="w-5 h-5 sm:w-6 sm:h-6 object-contain"/>
+      <a href="/" class="flex items-center gap-2 min-w-0 cursor-pointer" title="Kembali ke Beranda">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white shadow-md flex items-center justify-center flex-shrink-0">
+          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" class="w-4 h-4 sm:w-6 sm:h-6 object-contain"/>
         </div>
-        <div class="min-w-0">
-          <h1 class="font-extrabold text-[#0d1e25] text-xs sm:text-base leading-tight flex items-center gap-1.5 truncate">
-            <span class="truncate" id="header-eco-name">Rantai Makanan AR</span>
-            <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-[#632ce5] font-black border border-purple-200 flex-shrink-0">SD Edu</span>
-          </h1>
-          <p class="text-[10px] sm:text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 truncate">
-            <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+        <div class="min-w-0 flex flex-col justify-center">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <h1 class="font-black text-[#0d1e25] text-xs sm:text-sm leading-tight truncate" id="header-eco-name">
+              Rantai Makanan AR
+            </h1>
+            <span class="text-[8px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-[#632ce5] font-black border border-purple-200 flex-shrink-0">SD Edu</span>
+          </div>
+          <p class="text-[9px] sm:text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
             <span id="header-mode-status" class="truncate">3D Interaktif Studio</span>
           </p>
         </div>
       </a>
 
       <!-- Right Action & Mode Switcher Buttons -->
-      <div class="flex items-center gap-1 bg-[#f1f5f9] p-1 rounded-xl sm:rounded-2xl border border-[#e2e8f0] flex-shrink-0">
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl sm:rounded-2xl border border-slate-200/80 flex-shrink-0">
         <!-- 3D Studio Mode Button -->
-        <button id="btn-tab-3d" onclick="setViewerMode('3d')" class="chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white shadow-sm transition-all flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm sm:text-base">3d_rotation</span> 3D
+        <button id="btn-tab-3d" onclick="setViewerMode('3d')" class="chunky-btn px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black bg-[#632ce5] text-white shadow-sm transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs sm:text-sm">3d_rotation</span> 3D
         </button>
         <!-- In-Browser Tap-to-Place Camera AR Button -->
-        <button id="btn-tab-ar" onclick="setViewerMode('ar')" class="chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm sm:text-base">view_in_ar</span> AR Kamera
+        <button id="btn-tab-ar" onclick="setViewerMode('ar')" class="chunky-btn px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs sm:text-sm">view_in_ar</span> AR Kamera
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- ─── 4. SUB-HEADER: FOOD CHAIN FLOW BANNER ──────────────────── -->
-  <div id="flow-banner-container" class="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-2 flex justify-center">
-    <div class="bg-gradient-to-r from-amber-400 to-amber-300 border border-amber-200 text-slate-950 text-[10px] sm:text-xs font-black px-3.5 sm:px-5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md truncate">
+  <!-- ─── 4. SUB-HEADER: FOOD CHAIN FLOW BANNER (NO OVERLAP) ──────── -->
+  <div id="flow-banner-container" class="absolute top-[64px] sm:top-[76px] left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[94vw] sm:max-w-md px-2 flex justify-center">
+    <div class="bg-gradient-to-r from-amber-400 to-amber-300 border border-amber-200/90 text-slate-950 text-[9px] sm:text-xs font-black px-3 sm:px-4 py-1 sm:py-1.5 rounded-full flex items-center gap-1.5 shadow-md truncate">
       <span class="material-symbols-outlined text-xs sm:text-sm text-slate-950 flex-shrink-0">autorenew</span>
-      <span class="tracking-tight sm:tracking-wide truncate">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
+      <span class="tracking-tight truncate">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
     </div>
   </div>
 
   <!-- ─── 5. IN-BROWSER AR TAP-TO-PLACE INSTRUCTION RETICLE ──────── -->
   <div id="ar-placement-guide" class="hidden absolute inset-0 pointer-events-none z-30 flex flex-col items-center justify-between p-6">
     <!-- Top Instruction Pill -->
-    <div class="bg-slate-950/85 backdrop-blur-md text-white border border-purple-400/50 px-4 py-2.5 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-2 mt-20 animate-bounce">
-      <span class="material-symbols-outlined text-purple-400 text-lg">touch_app</span>
+    <div class="bg-slate-950/90 backdrop-blur-md text-white border border-purple-400/50 px-4 py-2 rounded-2xl text-[11px] sm:text-xs font-black shadow-2xl flex items-center gap-2 mt-24 animate-bounce">
+      <span class="material-symbols-outlined text-purple-400 text-base sm:text-lg">touch_app</span>
       <span>Arahkan kamera ke meja/lantai lalu KETUK LAYAR</span>
     </div>
 
     <!-- Center Glowing Reticle Ring -->
-    <div class="reticle-ring w-36 h-36 rounded-full border-4 border-dashed border-purple-400 bg-purple-500/20 shadow-2xl flex items-center justify-center pointer-events-none">
-      <div class="w-4 h-4 rounded-full bg-amber-400 shadow-md"></div>
+    <div class="reticle-ring w-32 sm:w-36 h-32 sm:h-36 rounded-full border-4 border-dashed border-purple-400 bg-purple-500/20 shadow-2xl flex items-center justify-center pointer-events-none">
+      <div class="w-3.5 h-3.5 rounded-full bg-amber-400 shadow-md"></div>
     </div>
 
     <!-- Bottom Help Text -->
-    <div class="bg-slate-950/80 backdrop-blur-md text-slate-200 text-[11px] font-bold px-4 py-2 rounded-xl mb-24 border border-slate-700 text-center">
+    <div class="bg-slate-950/85 backdrop-blur-md text-slate-200 text-[10px] sm:text-[11px] font-bold px-3.5 py-1.5 rounded-xl mb-28 border border-slate-700 text-center">
       Ketuk sekali untuk mengunci model ekosistem 3D di ruangan nyata!
     </div>
   </div>
 
-  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (3D & AR CONTROLS) ───────── -->
-  <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[94vw] sm:max-w-md px-2">
-    <div class="hud-card p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 sm:space-y-2.5 shadow-2xl">
+  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (RESPONSIVE & SAFE AREA) ─── -->
+  <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[95vw] sm:max-w-md px-1.5">
+    <div class="hud-card p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 shadow-2xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
       
       <!-- Top Row: Controls (Rotate, Reset View, Audio Narration) -->
-      <div class="flex items-center justify-between gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-slate-700">
+      <div class="grid grid-cols-4 gap-1.5 text-[10px] sm:text-xs font-bold text-slate-700">
         <!-- Auto Rotate Toggle -->
-        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn flex-1 py-1.5 px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
+        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn py-1.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
           <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">pause_circle</span>
-          <span id="rot-text">Hentikan Putaran</span>
+          <span id="rot-text" class="hidden sm:inline">Putar</span>
         </button>
 
         <!-- Reset Camera View -->
-        <button type="button" onclick="resetCameraView()" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Atur Ulang Kamera">
-          <span class="material-symbols-outlined text-sm sm:text-base">center_focus_strong</span> Reset
+        <button type="button" onclick="resetCameraView()" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Atur Ulang Kamera">
+          <span class="material-symbols-outlined text-sm sm:text-base">center_focus_strong</span>
+          <span>Reset</span>
         </button>
 
         <!-- Toggle Hotspot Labels -->
-        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
-          <span class="material-symbols-outlined text-sm sm:text-base">label</span> Label
+        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
+          <span class="material-symbols-outlined text-sm sm:text-base">label</span>
+          <span>Label</span>
         </button>
 
         <!-- Audio BGM -->
-        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Audio Suara">
+        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Audio Suara">
           <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
+          <span class="hidden sm:inline">Audio</span>
         </button>
       </div>
 
       <!-- Bottom Row: Primary AR Trigger / Placement Control CTA -->
       <div id="ar-cta-container">
         <!-- In 3D Mode: Big "Mulai AR Kamera" CTA -->
-        <button type="button" onclick="setViewerMode('ar')" id="btn-main-ar-start" class="chunky-btn w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide cursor-pointer">
+        <button type="button" onclick="setViewerMode('ar')" id="btn-main-ar-start" class="chunky-btn w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide cursor-pointer">
           <span class="material-symbols-outlined text-base sm:text-lg">view_in_ar</span> Lihat di AR (Kamera Browser)
         </button>
 
         <!-- In AR Mode: Re-position & Exit AR Bar -->
         <div id="ar-active-bar" class="hidden flex items-center gap-2">
-          <button type="button" onclick="resetArPlacement()" class="chunky-btn flex-1 py-2.5 rounded-xl font-black bg-purple-100 hover:bg-purple-200 text-[#632ce5] text-xs flex items-center justify-center gap-1.5 shadow-sm">
-            <span class="material-symbols-outlined text-sm">filter_center_focus</span> Pindah Posisi Meja
+          <button type="button" onclick="resetArPlacement()" class="chunky-btn flex-1 h-10 sm:h-11 rounded-xl font-black bg-purple-100 hover:bg-purple-200 text-[#632ce5] text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-base">filter_center_focus</span> Pindah Posisi
           </button>
-          <button type="button" onclick="setViewerMode('3d')" class="chunky-btn py-2.5 px-4 rounded-xl font-black bg-slate-900 hover:bg-black text-white text-xs flex items-center justify-center gap-1.5 shadow-sm">
-            <span class="material-symbols-outlined text-sm">close</span> Tutup AR
+          <button type="button" onclick="setViewerMode('3d')" class="chunky-btn h-10 sm:h-11 px-4 rounded-xl font-black bg-slate-900 hover:bg-black text-white text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-base">close</span> Tutup AR
           </button>
         </div>
       </div>
@@ -288,8 +293,8 @@
     </div>
   </div>
 
-  <!-- ─── 8. IN-APP TOAST NOTIFICATION ──────────────────────────── -->
-  <div id="viewer-toast" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-700/80 pointer-events-none transition-all">
+  <!-- ─── 8. IN-APP TOAST NOTIFICATION (NO OVERLAP WITH BANNER) ── -->
+  <div id="viewer-toast" class="hidden fixed top-28 sm:top-32 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-700/80 pointer-events-none transition-all">
     <span id="toast-icon" class="material-symbols-outlined text-base text-amber-400">info</span>
     <span id="toast-message">Notifikasi</span>
   </div>
