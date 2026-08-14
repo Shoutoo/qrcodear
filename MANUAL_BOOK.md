@@ -152,7 +152,49 @@ Digunakan untuk memastikan seluruh smartphone siswa siap digunakan sebelum pembe
 
 ---
 
-## 💡 5. REKOMENDASI PENGGUNAAN DI RUANG KELAS
+## 🎨 5. IDENTITAS DESAIN & PALET WARNA (DESIGN SYSTEM)
+
+Platform **QRCodeAR (AlamVerse)** dibangun dengan filosofi desain modern, ceria, dan ramah anak (*Kid-Friendly Playful Modern Aesthetic*):
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PALET WARNA UTAMA PROYEK                        │
+├──────────────┬──────────────┬──────────────┬─────────────┬─────────────┤
+│ 🟣 Primary   │ 🟡 Accent    │ 🟢 Nature    │ ⚪ Canvas   │ ⚫ Contrast │
+│   #632ce5    │   #fbbf24    │   #10b981    │   #f4faff   │   #0f172a   │
+│ Vibrant Bold │ Warm Golden  │ Emerald Bio  │ Studio Soft │ Deep Slate  │
+│  Edu Purple  │ Trophy Amber │ Green Nature │ Clean White │ Charcoal    │
+└──────────────┴──────────────┴──────────────┴─────────────┴─────────────┘
+```
+
+### A. Karakteristik & Gaya Visual
+1. **Gaya Tampilan (*Chunky Tactile & Glassmorphism*)**:
+   - Seluruh tombol dan kartu menggunakan sudut melengkung membulat yang lembut (**`rounded-2xl`** s.d. **`rounded-3xl`**).
+   - Efek kaca tembus pandang lembut (**`backdrop-blur-md`**) pada panel kontrol dan banner agar tidak menutupi visual 3D di belakangnya.
+   - Tombol interaktif memiliki efek kedalaman taktil (*chunky active press*) yang memberikan kepuasan respons visual saat ditekan oleh siswa.
+2. **Tipografi (*Typography*)**:
+   - Menggunakan jenis huruf **Quicksand** (Google Fonts) dengan ketebalan tebal (*Font Weight 800/Black*).
+   - Bentuk huruf membulat (*rounded geometric*) yang sangat mudah dan nyaman dibaca oleh anak-anak usia Sekolah Dasar.
+3. **Penataan Bebas Potong (*Zero-Overflow Responsive Island*)**:
+   - Panel kontrol bawah (*Bottom Floating HUD Island*) melayang secara presisi di atas bilah navigasi HP dengan *safe-area clearance*, sehingga di semua ukuran layar smartphone tombol selalu terlihat utuh dan elegan.
+
+---
+
+### B. Filosofi Palet Warna (*Color Palette*)
+- 🟣 **Vibrant Edu Purple (`#632ce5` / `#7c4dff`)**:
+  - Warna utama (*Primary Brand*) pada tombol utama AR dan identitas visual aplikasi. Melambangkan imajinasi, eksplorasi teknologi, dan rasa ingin tahu sains.
+- 🟡 **Warm Golden Amber (`#fbbf24` / `#f59e0b` / `#fef3c7`)**:
+  - Warna lencana (*badge*) peran rantai makanan dan panah alur energi. Memberikan kontras tinggi yang cerah dan memicu semangat belajar.
+- 🟢 **Emerald Nature Green (`#10b981` / `#059669` / `#ecfdf5`)**:
+  - Warna status aktif suara alam (*ambience*) dan peran produsen tumbuhan. Mencerminkan kelestarian lingkungan dan alam hayati.
+- ⚪ **Soft Studio White (`#f4faff` / `#ffffff`)**:
+  - Warna latar belakang studio 3D dan kartu informasi sains yang bersih (*clean*), ramah di mata, serta memberikan pencahayaan visual model 3D yang optimal.
+- ⚫ **Deep Slate Charcoal (`#0f172a` / `#1e293b`)**:
+  - Warna teks berkontras tinggi (*High-Legibility Text*) yang memastikan nama hewan dan penjelasan sains terbaca sangat jelas di bawah terik matahari maupun di dalam ruang kelas.
+
+---
+
+## 💡 6. REKOMENDASI PENGGUNAAN DI RUANG KELAS
 
 1. **Pencahayaan Ruangan**: Pastikan ruang kelas memiliki cahaya yang terang agar kamera HP dapat mendeteksi permukaan meja dengan cepat.
 2. **Permukaan Meja**: Gunakan meja belajar atau alas yang memiliki sedikit tekstur/pola.
