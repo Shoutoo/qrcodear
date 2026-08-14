@@ -238,33 +238,22 @@
     <!-- Main Content Area -->
     <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
       
-      <!-- Two Hero Action Cards: Upload Custom 3D & AI Generator -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Main Content Area -->
+    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+      
+      <!-- Single Hero Action Card: Upload Custom 3D -->
+      <div>
         <!-- Upload Custom 3D Card -->
-        <label for="custom-glb-upload" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 p-5 rounded-2xl flex items-center gap-4 transition-all group">
+        <label for="custom-glb-upload" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 p-5 rounded-2xl flex items-center justify-center gap-4 transition-all group w-full">
           <div class="w-12 h-12 rounded-xl bg-purple-100 text-[#632ce5] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-2xl">cloud_upload</span>
           </div>
           <div>
-            <h3 class="text-xs font-black text-slate-800">Unggah Custom 3D</h3>
+            <h3 class="text-xs font-black text-slate-800">Unggah Custom 3D Model</h3>
             <p class="text-[10px] text-slate-500 font-bold mt-0.5">Format .glb atau .gltf (Maks. 50MB)</p>
           </div>
           <input type="file" id="custom-glb-upload" accept=".glb,.gltf" class="hidden" onchange="handleCustomGlbUpload(event)"/>
         </label>
-
-        <!-- AI 3D Generator Card -->
-        <div onclick="openAi3DGeneratorModal()" class="cursor-pointer border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100/60 hover:to-orange-100/60 p-5 rounded-2xl flex items-center gap-4 transition-all group shadow-sm">
-          <div class="w-12 h-12 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
-            <span class="material-symbols-outlined text-2xl text-amber-700">auto_awesome</span>
-          </div>
-          <div>
-            <h3 class="text-xs font-black text-slate-900 flex items-center gap-1.5">
-              <span>Hasilkan Objek AI</span>
-              <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">NEW</span>
-            </h3>
-            <p class="text-[10px] text-slate-600 font-bold mt-0.5">Buat objek 3D dari teks deskripsi</p>
-          </div>
-        </div>
       </div>
 
       <!-- Presets & 3D Assets Grid -->
@@ -336,23 +325,18 @@
       </div>
     </div>
 
-    <!-- 3 Action Cards (Screenshot 1) -->
-    <div class="p-6 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <!-- 2 Action Cards (Terkini & Unggah 2D Kustom) -->
+    <div class="p-6 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
       <!-- Terkini -->
-      <button onclick="alert('Menampilkan stiker terkini!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
+      <button onclick="showToast('Menampilkan stiker terkini!', 'sync')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
         <span class="material-symbols-outlined text-purple-600 text-lg">sync</span> Terkini
       </button>
 
       <!-- Unggah Gambar 2D Kustom -->
-      <label for="custom-img-upload" class="cursor-pointer border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
+      <label for="custom-img-upload" class="cursor-pointer border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
         <span class="material-symbols-outlined text-blue-600 text-lg">cloud_upload</span> Unggah Gambar 2D
         <input type="file" id="custom-img-upload" accept="image/*" class="hidden" onchange="handleImageTextureUpload(event)"/>
       </label>
-
-      <!-- Generate with AI -->
-      <button onclick="alert('Fitur AI Stiker 2D siap!')" class="border border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-purple-700 chunky-btn shadow-sm">
-        <span class="material-symbols-outlined text-pink-600 text-lg">auto_awesome</span> Generate AI
-      </button>
     </div>
 
     <!-- Category Grid with Cute Pastel Cards (Screenshot 1) -->
