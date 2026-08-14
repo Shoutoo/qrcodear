@@ -332,6 +332,7 @@
   <script>
     const GLB_URL = "{{ECOSYSTEM_GLB_URL}}";
     const ECO_NAME = "{{ECOSYSTEM_NAME}}";
+    const ECO_ID = "{{ECOSYSTEM_ID}}".toLowerCase().replace(/^preset-/, '');
 
     let scene, camera, renderer, controls;
     let ecosystemGroup = null;
@@ -757,6 +758,8 @@
       window.speechSynthesis.speak(utter);
     }
 
+    let narrationAudio = null;
+
     function toggleAudioNarration() {
       audioPlaying = !audioPlaying;
       const icon = document.getElementById('audio-icon');
@@ -770,19 +773,49 @@
           btn.classList.remove('bg-slate-100', 'text-slate-700');
           btn.classList.add('bg-purple-100', 'text-[#632ce5]');
         }
-        // Play melodic chime chords
-        playTone(523.25, 'triangle', 0.18);
-        setTimeout(() => playTone(659.25, 'triangle', 0.18), 100);
-        setTimeout(() => playTone(783.99, 'triangle', 0.28), 200);
 
-        showToast(`Memutar audio narasi ${ECO_NAME} 🎵`, 'volume_up');
-        speakIndonesian(`Selamat datang di pembelajaran ${ECO_NAME}. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!`);
+        showToast(`Memutar audio narasi: ${ECO_NAME} 🎵`, 'volume_up');
+
+        // Play generated cheerful Indonesian AI voice narration
+        const ecoKey = ECO_ID || 'sawah';
+        const audioSrc = `/audio/ecosystems/${ecoKey}.mp3`;
+
+        if (!narrationAudio) {
+          narrationAudio = new Audio(audioSrc);
+          narrationAudio.addEventListener('ended', () => {
+            audioPlaying = false;
+            if (icon) icon.textContent = 'volume_off';
+            if (btnText) btnText.textContent = 'Suara';
+            if (btn) {
+              btn.classList.add('bg-slate-100', 'text-slate-700');
+              btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+            }
+          });
+          narrationAudio.addEventListener('error', () => {
+            // Fallback to Web Speech API
+            speakIndonesian(`Selamat datang di pembelajaran ${ECO_NAME}. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!`);
+          });
+        } else {
+          narrationAudio.src = audioSrc;
+        }
+
+        narrationAudio.currentTime = 0;
+        const playPromise = narrationAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            speakIndonesian(`Selamat datang di pembelajaran ${ECO_NAME}. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!`);
+          });
+        }
       } else {
         if (icon) icon.textContent = 'volume_off';
         if (btnText) btnText.textContent = 'Suara';
         if (btn) {
           btn.classList.add('bg-slate-100', 'text-slate-700');
           btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+        }
+        if (narrationAudio) {
+          narrationAudio.pause();
+          narrationAudio.currentTime = 0;
         }
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         showToast('Audio narasi dihentikan', 'volume_off');

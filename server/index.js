@@ -63,6 +63,8 @@ const VIEWS_DIR   = path.join(__dirname, 'views');
 
 // Serve uploads static assets & MindAR marker fallback
 app.use('/assets', express.static(ASSETS_DIR));
+app.use('/audio', express.static(path.join(__dirname, 'public', 'audio')));
+app.use('/audio', express.static(path.join(__dirname, '..', 'public', 'audio')));
 
 app.get('/assets/markers/:filename', (req, res) => {
   const { filename } = req.params;
