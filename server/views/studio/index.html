@@ -13,7 +13,7 @@
 
   <style>
     body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #f8fafc; color: #0f172a; }
-    #canvas-container { width: 100vw; height: 100vh; position: absolute; inset: 0; }
+    #canvas-container { width: 100vw; height: 100vh; position: absolute; inset: 0; z-index: 0; }
     
     /* Sleek Custom Scrollbars */
     .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -32,25 +32,29 @@
 
     /* Chunky Friendly Buttons */
     .chunky-btn {
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .chunky-btn:active { transform: scale(0.95); }
+    .chunky-btn:active { transform: scale(0.94); }
 
     /* Flyout Drawer Transitions */
     .drawer-slide {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
     }
     .drawer-hidden {
-      transform: translateX(-100%);
+      display: none !important;
+      transform: translateX(-20px);
       opacity: 0;
-      pointer-events: none;
+      pointer-events: none !important;
     }
 
     /* Modal Backdrop */
     .modal-backdrop {
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(6px);
-      transition: opacity 0.25s ease;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      transition: opacity 0.2s ease;
     }
   </style>
 
@@ -79,31 +83,31 @@
       <div class="w-8 h-[1px] bg-slate-200 my-1"></div>
 
       <!-- Tool: 3D Library (Pustaka 3D) -->
-      <button onclick="toggleDrawer('drawer-3d-library', 'tool-btn-3d', event)" id="tool-btn-3d" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka 3D">
+      <button type="button" onclick="toggleDrawer('drawer-3d-library', 'tool-btn-3d', event)" id="tool-btn-3d" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka 3D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">deployed_code</span>
         <span class="text-[9px] font-extrabold mt-0.5">3D</span>
       </button>
 
       <!-- Tool: Gambar / Pustaka 2D (Screenshot 1) -->
-      <button onclick="toggleDrawer('drawer-2d-library', 'tool-btn-gambar', event)" id="tool-btn-gambar" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka Gambar 2D">
+      <button type="button" onclick="toggleDrawer('drawer-2d-library', 'tool-btn-gambar', event)" id="tool-btn-gambar" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka Gambar 2D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">image</span>
         <span class="text-[9px] font-extrabold mt-0.5">Gambar</span>
       </button>
 
       <!-- Tool: Teks & Anotasi -->
-      <button onclick="toggleDrawer('drawer-text-tool', 'tool-btn-text', event)" id="tool-btn-text" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Teks & Anotasi 3D">
+      <button type="button" onclick="toggleDrawer('drawer-text-tool', 'tool-btn-text', event)" id="tool-btn-text" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Teks & Anotasi 3D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">title</span>
         <span class="text-[9px] font-extrabold mt-0.5">Teks</span>
       </button>
 
       <!-- Tool: Video Pembelajaran SD (Screenshot 2) -->
-      <button onclick="toggleDrawer('drawer-video-tool', 'tool-btn-video', event)" id="tool-btn-video" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Video Edukasi">
+      <button type="button" onclick="toggleDrawer('drawer-video-tool', 'tool-btn-video', event)" id="tool-btn-video" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Video Edukasi">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">smart_display</span>
         <span class="text-[9px] font-extrabold mt-0.5">Video</span>
       </button>
 
       <!-- Tool: Audio Narasi & SFX (Screenshot 3) -->
-      <button onclick="toggleDrawer('drawer-audio-tool', 'tool-btn-audio', event)" id="tool-btn-audio" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Audio / BGM & SFX">
+      <button type="button" onclick="toggleDrawer('drawer-audio-tool', 'tool-btn-audio', event)" id="tool-btn-audio" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Audio / BGM & SFX">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">graphic_eq</span>
         <span class="text-[9px] font-extrabold mt-0.5">Audio</span>
       </button>
@@ -112,15 +116,15 @@
     <!-- Bottom Group: Guide, Support, Settings (Dedicated Floating Popups) -->
     <div class="flex flex-col items-center gap-2 w-full px-2">
       <!-- Mempelajari -->
-      <button onclick="toggleTutorialPopup(event)" id="btn-tutorial-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Panduan Mempelajari Studio">
+      <button type="button" onclick="toggleTutorialPopup(event)" id="btn-tutorial-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Panduan Mempelajari Studio">
         <span class="material-symbols-outlined text-xl">menu_book</span>
       </button>
       <!-- Mendukung / Bantuan -->
-      <button onclick="toggleSupportPopup(event)" id="btn-support-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pusat Bantuan & Dukungan">
+      <button type="button" onclick="toggleSupportPopup(event)" id="btn-support-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pusat Bantuan & Dukungan">
         <span class="material-symbols-outlined text-xl">help</span>
       </button>
       <!-- Pengaturan (With Popup Menu) -->
-      <button onclick="toggleSettingsPopup(event)" id="btn-settings-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pengaturan Studio">
+      <button type="button" onclick="toggleSettingsPopup(event)" id="btn-settings-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pengaturan Studio">
         <span class="material-symbols-outlined text-xl">settings</span>
       </button>
     </div>
@@ -131,10 +135,10 @@
     
     <!-- Left: Undo & Redo History -->
     <div class="flex items-center gap-1">
-      <button onclick="undoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40" title="Urungkan (Ctrl+Z)">
+      <button type="button" onclick="undoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40 cursor-pointer" title="Urungkan (Ctrl+Z)">
         <span class="material-symbols-outlined text-lg">undo</span>
       </button>
-      <button onclick="redoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40" title="Ulangi (Ctrl+Y)">
+      <button type="button" onclick="redoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40 cursor-pointer" title="Ulangi (Ctrl+Y)">
         <span class="material-symbols-outlined text-lg">redo</span>
       </button>
     </div>
@@ -145,7 +149,7 @@
       <span class="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
         <span class="material-symbols-outlined text-xs">public</span> PUBLIK
       </span>
-      <button onclick="saveProject()" class="text-slate-400 hover:text-purple-600 transition-colors p-1" title="Simpan Projek">
+      <button type="button" onclick="saveProject()" class="text-slate-400 hover:text-purple-600 transition-colors p-1 cursor-pointer" title="Simpan Projek">
         <span class="material-symbols-outlined text-lg">save</span>
       </button>
     </div>
@@ -153,12 +157,12 @@
     <!-- Right: Preview 3D & Share/Publish Action -->
     <div class="flex items-center gap-2">
       <!-- Pratinjau 3D (Preview) -->
-      <button onclick="previewScene3D()" class="chunky-btn px-3.5 py-1.5 rounded-xl text-xs font-black text-[#632ce5] bg-purple-50 hover:bg-purple-100 border border-purple-200 flex items-center gap-1.5 shadow-sm">
+      <button type="button" onclick="previewScene3D()" class="chunky-btn px-3.5 py-1.5 rounded-xl text-xs font-black text-[#632ce5] bg-purple-50 hover:bg-purple-100 border border-purple-200 flex items-center gap-1.5 shadow-sm cursor-pointer">
         <span class="material-symbols-outlined text-base">play_arrow</span> Pratinjau
       </button>
 
       <!-- Bagikan / Publikasikan (Main Blue/Purple CTA) -->
-      <button onclick="openShareModal()" class="chunky-btn px-4 py-1.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] flex items-center gap-1.5 shadow-md">
+      <button type="button" onclick="openShareModal()" class="chunky-btn px-4 py-1.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] flex items-center gap-1.5 shadow-md cursor-pointer">
         <span class="material-symbols-outlined text-base">send</span> Bagikan
       </button>
     </div>
@@ -167,9 +171,9 @@
   <!-- ─── 3. TOP-RIGHT ORIENTATION VIEWCUBE GIZMO ────────────────── -->
   <div class="absolute top-20 right-6 z-10 pointer-events-auto flex flex-col items-center gap-2">
     <div class="glass-panel p-2 rounded-2xl flex flex-col items-center gap-1 shadow-md">
-      <button onclick="resetCameraView('top')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100">TOP</button>
-      <button onclick="resetCameraView('front')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100">FRONT</button>
-      <button onclick="resetCameraView('iso')" class="px-2 py-1 rounded text-[10px] font-black text-[#632ce5] hover:bg-purple-50 w-full text-center">3D ISO</button>
+      <button type="button" onclick="resetCameraView('top')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100 cursor-pointer">TOP</button>
+      <button type="button" onclick="resetCameraView('front')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100 cursor-pointer">FRONT</button>
+      <button type="button" onclick="resetCameraView('iso')" class="px-2 py-1 rounded text-[10px] font-black text-[#632ce5] hover:bg-purple-50 w-full text-center cursor-pointer">3D ISO</button>
     </div>
   </div>
 
@@ -177,32 +181,32 @@
   <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-3">
     <!-- Preset Ekosistem Quick Switcher Pills -->
     <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
-      <button onclick="loadEcosystemPreset('sawah')" id="tab-eco-sawah" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all">
+      <button type="button" onclick="loadEcosystemPreset('sawah')" id="tab-eco-sawah" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all cursor-pointer">
         🌾 Sawah
       </button>
-      <button onclick="loadEcosystemPreset('hutan')" id="tab-eco-hutan" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+      <button type="button" onclick="loadEcosystemPreset('hutan')" id="tab-eco-hutan" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
         🌲 Hutan
       </button>
-      <button onclick="loadEcosystemPreset('laut')" id="tab-eco-laut" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+      <button type="button" onclick="loadEcosystemPreset('laut')" id="tab-eco-laut" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
         🌊 Laut
       </button>
-      <button onclick="loadEcosystemPreset('darat')" id="tab-eco-darat" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+      <button type="button" onclick="loadEcosystemPreset('darat')" id="tab-eco-darat" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
         🦁 Darat
       </button>
     </div>
 
     <!-- Transform Tool Gizmo Buttons (W, E, R) -->
     <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
-      <button onclick="setGizmoMode('translate')" id="gizmo-btn-t" class="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-900 text-white font-bold text-xs" title="Geser Posisi (W)">
+      <button type="button" onclick="setGizmoMode('translate')" id="gizmo-btn-t" class="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-900 text-white font-bold text-xs cursor-pointer" title="Geser Posisi (W)">
         <span class="material-symbols-outlined text-base">open_with</span>
       </button>
-      <button onclick="setGizmoMode('rotate')" id="gizmo-btn-r" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs" title="Rotasi (E)">
+      <button type="button" onclick="setGizmoMode('rotate')" id="gizmo-btn-r" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer" title="Rotasi (E)">
         <span class="material-symbols-outlined text-base">sync</span>
       </button>
-      <button onclick="setGizmoMode('scale')" id="gizmo-btn-s" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs" title="Skala (R)">
+      <button type="button" onclick="setGizmoMode('scale')" id="gizmo-btn-s" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer" title="Skala (R)">
         <span class="material-symbols-outlined text-base">aspect_ratio</span>
       </button>
-      <button onclick="deleteSelectedObject()" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 font-bold text-xs" title="Hapus Objek (Del)">
+      <button type="button" onclick="deleteSelectedObject()" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 font-bold text-xs cursor-pointer" title="Hapus Objek (Del)">
         <span class="material-symbols-outlined text-base">delete</span>
       </button>
     </div>
@@ -213,7 +217,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
         <h2 class="text-base font-black text-slate-800">Pustaka 3D AlamVerse</h2>
@@ -228,22 +232,18 @@
 
     <!-- Category Tabs -->
     <div class="px-6 py-2.5 border-b border-slate-100 flex items-center gap-2 overflow-x-auto custom-scrollbar">
-      <button class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-[#632ce5] text-white shadow-sm flex-shrink-0">Semua</button>
-      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌾 Rantai Makanan</button>
-      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🐸 Hewan SD</button>
-      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌱 Tumbuhan</button>
-      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">⭐ Aset Anda</button>
+      <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-[#632ce5] text-white shadow-sm flex-shrink-0">Semua</button>
+      <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌾 Rantai Makanan</button>
+      <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🐸 Hewan SD</button>
+      <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌱 Tumbuhan</button>
+      <button type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">⭐ Aset Anda</button>
     </div>
 
     <!-- Main Content Area -->
     <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
       
-    <!-- Main Content Area -->
-    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
-      
       <!-- Single Hero Action Card: Upload Custom 3D -->
       <div>
-        <!-- Upload Custom 3D Card -->
         <label for="custom-glb-upload" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 p-5 rounded-2xl flex items-center justify-center gap-4 transition-all group w-full">
           <div class="w-12 h-12 rounded-xl bg-purple-100 text-[#632ce5] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
             <span class="material-symbols-outlined text-2xl">cloud_upload</span>
@@ -312,7 +312,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
         <h2 class="text-base font-black text-slate-800">Pustaka 2D & Stiker SD</h2>
@@ -320,15 +320,15 @@
 
       <!-- Tabs: Pustaka vs Milik Anda -->
       <div class="flex bg-slate-100 p-1 rounded-xl">
-        <button class="px-3.5 py-1 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Pustaka</button>
-        <button class="px-3.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Milik Anda</button>
+        <button type="button" class="px-3.5 py-1 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Pustaka</button>
+        <button type="button" class="px-3.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Milik Anda</button>
       </div>
     </div>
 
     <!-- 2 Action Cards (Terkini & Unggah 2D Kustom) -->
     <div class="p-6 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
       <!-- Terkini -->
-      <button onclick="showToast('Menampilkan stiker terkini!', 'sync')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
+      <button type="button" onclick="showToast('Menampilkan stiker terkini!', 'sync')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3.5 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm cursor-pointer">
         <span class="material-symbols-outlined text-purple-600 text-lg">sync</span> Terkini
       </button>
 
@@ -404,7 +404,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
         <h2 class="text-base font-black text-slate-800">Video Pembelajaran Edukasi</h2>
@@ -439,7 +439,7 @@
         </h4>
         <div class="flex gap-2">
           <input type="text" id="video-youtube-url" placeholder="https://www.youtube.com/watch?v=..." class="flex-1 p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all"/>
-          <button onclick="insertVideoFromUrl()" class="px-4 py-2.5 rounded-xl bg-[#632ce5] text-white font-black text-xs chunky-btn shadow-md">
+          <button type="button" onclick="insertVideoFromUrl()" class="px-4 py-2.5 rounded-xl bg-[#632ce5] text-white font-black text-xs chunky-btn shadow-md cursor-pointer">
             Sematkan
           </button>
         </div>
@@ -453,7 +453,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
         <h2 class="text-base font-black text-slate-800">Pustaka Audio Narasi & Musik</h2>
@@ -568,20 +568,20 @@
   <div id="drawer-text-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-80 bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
     <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
       <h2 class="text-sm font-black text-slate-800">Tambah Teks & Anotasi</h2>
-      <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+      <button type="button" onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
         <span class="material-symbols-outlined text-xl">close</span>
       </button>
     </div>
 
     <div class="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4">
       <div class="flex bg-slate-100 p-1 rounded-xl">
-        <button id="tab-text-3d" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Teks 3D</button>
-        <button id="tab-text-badge" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Anotasi Badges</button>
+        <button type="button" id="tab-text-3d" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Teks 3D</button>
+        <button type="button" id="tab-text-badge" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Anotasi Badges</button>
       </div>
 
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Isi Teks</label>
-        <textarea id="text-input-val" rows="3" class="w-full p-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all resize-none" placeholder="Ketik teks 3D di sini..."></textarea>
+        <textarea id="text-input-val" rows="3" class="w-full p-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all resize-none" placeholder="Ketik teks 3D di sini...">Halo Siswa SD!</textarea>
       </div>
 
       <div>
@@ -603,41 +603,41 @@
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Warna Teks</label>
         <div class="flex items-center gap-2">
-          <input type="color" id="text-color-val" value="#fde047" class="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5"/>
+          <input type="color" id="text-color-val" value="#fde047" class="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5" onchange="document.getElementById('text-color-hex').value=this.value.toUpperCase()"/>
           <input type="text" id="text-color-hex" value="#FDE047" class="flex-1 p-2 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl uppercase" readonly/>
         </div>
       </div>
 
-      <button onclick="insert3DTextToScene()" class="w-full py-3 rounded-xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white text-xs shadow-md transition-all mt-4 chunky-btn">
+      <button type="button" onclick="insert3DTextToScene()" class="w-full py-3 rounded-xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white text-xs shadow-md transition-all mt-4 chunky-btn cursor-pointer">
         Tempatkan di Scene
       </button>
     </div>
   </div>
 
   <!-- ─── 10. POPUP MENU PENGATURAN STUDIO (SCREENSHOT 4) ────────── -->
-  <div id="popup-settings-menu" class="hidden absolute bottom-4 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-2 w-64 space-y-1 select-none animate-in fade-in zoom-in-95 duration-150">
-    <button onclick="resetCameraView('iso'); closeAllPopups(); showToast('Kamera diatur ulang ke 3D ISO', 'videocam');" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+  <div id="popup-settings-menu" class="hidden absolute bottom-4 left-20 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-2 w-64 space-y-1 select-none animate-in fade-in zoom-in-95 duration-150">
+    <button type="button" onclick="resetCameraView('iso'); closeAllPopups(); showToast('Kamera diatur ulang ke 3D ISO', 'videocam');" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left cursor-pointer">
       <span class="material-symbols-outlined text-base">videocam</span> Atur Ulang Kamera
     </button>
-    <button onclick="toggleGridHelper(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button type="button" onclick="toggleGridHelper(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left cursor-pointer">
       <span class="material-symbols-outlined text-base">grid_4x4</span> Tampilkan/Sembunyikan Garis
     </button>
-    <button onclick="toggleBoundingBox(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button type="button" onclick="toggleBoundingBox(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left cursor-pointer">
       <span class="material-symbols-outlined text-base">deployed_code</span> Show / Hide Collider
     </button>
     <div class="h-[1px] bg-slate-100 my-1"></div>
-    <button onclick="openKeyboardShortcutsModal(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button type="button" onclick="openKeyboardShortcutsModal(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left cursor-pointer">
       <span class="material-symbols-outlined text-base">keyboard</span> Keyboard Shortcut
     </button>
   </div>
 
   <!-- ─── 10B. POPUP MENU MEMPELAJARI / TUTORIAL (FLOATING MENU) ──── -->
-  <div id="popup-tutorial-menu" class="hidden absolute bottom-20 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-80 space-y-3 select-none animate-in fade-in zoom-in-95 duration-150">
+  <div id="popup-tutorial-menu" class="hidden absolute bottom-20 left-20 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-80 space-y-3 select-none animate-in fade-in zoom-in-95 duration-150">
     <div class="flex items-center justify-between pb-2 border-b border-slate-100">
       <div class="flex items-center gap-2 text-xs font-black text-slate-800">
         <span class="material-symbols-outlined text-purple-600 text-base">menu_book</span> Panduan Belajar Studio
       </div>
-      <button onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+      <button type="button" onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
     </div>
@@ -667,12 +667,12 @@
   </div>
 
   <!-- ─── 10C. POPUP MENU MENDUKUNG / BANTUAN (FLOATING MENU) ─────── -->
-  <div id="popup-support-menu" class="hidden absolute bottom-12 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-72 space-y-2.5 select-none animate-in fade-in zoom-in-95 duration-150">
+  <div id="popup-support-menu" class="hidden absolute bottom-12 left-20 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-72 space-y-2.5 select-none animate-in fade-in zoom-in-95 duration-150">
     <div class="flex items-center justify-between pb-2 border-b border-slate-100">
       <div class="flex items-center gap-2 text-xs font-black text-slate-800">
         <span class="material-symbols-outlined text-purple-600 text-base">help</span> Pusat Bantuan SD Edu
       </div>
-      <button onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+      <button type="button" onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
     </div>
@@ -683,7 +683,7 @@
       <a href="mailto:support@alamverse.id" class="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#632ce5] font-black flex items-center gap-2.5 transition-all">
         <span class="material-symbols-outlined text-slate-500 text-base">mail</span> Email: support@alamverse.id
       </a>
-      <button onclick="showToast('Dokumentasi Guru SD sedang disiapkan ✨', 'school'); closeAllPopups();" class="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#632ce5] font-black flex items-center gap-2.5 transition-all text-left">
+      <button type="button" onclick="showToast('Dokumentasi Guru SD sedang disiapkan ✨', 'school'); closeAllPopups();" class="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#632ce5] font-black flex items-center gap-2.5 transition-all text-left cursor-pointer">
         <span class="material-symbols-outlined text-slate-500 text-base">school</span> Panduan Mengajar di Kelas
       </button>
     </div>
@@ -695,14 +695,14 @@
     <span id="toast-message">Pesan notifikasi</span>
   </div>
 
-  <!-- ─── 11. MODAL KEYBOARD SHORTCUTS (SCREENSHOT 4) ────────────── -->
+  <!-- ─── 11. MODAL KEYBOARD SHORTCUTS ───────────────────────────── -->
   <div id="modal-shortcuts" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
           <span class="material-symbols-outlined text-purple-600">keyboard</span> Pintasan Keyboard Studio
         </h3>
-        <button onclick="document.getElementById('modal-shortcuts').classList.add('hidden')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="document.getElementById('modal-shortcuts').classList.add('hidden')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
@@ -731,12 +731,12 @@
     </div>
   </div>
 
-  <!-- ─── 12. MODAL BAGIKAN (SCREENSHOT 2 DARI REQUEST SEBELUMNYA) ── -->
+  <!-- ─── 12. MODAL BAGIKAN ──────────────────────────────────────── -->
   <div id="modal-share" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-6">
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-base font-black text-slate-800">Bagikan Projek AR</h3>
-        <button onclick="closeShareModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <button type="button" onclick="closeShareModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
@@ -758,7 +758,7 @@
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Tautan Langsung AR</label>
         <div class="flex items-center gap-2">
           <input type="text" id="share-direct-url" value="https://qrcodear.onrender.com/ecosystem/view/sawah" class="flex-1 p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none" readonly/>
-          <button onclick="copyDirectUrl()" class="px-3.5 py-2.5 rounded-xl bg-[#632ce5] text-white font-bold text-xs chunky-btn flex items-center gap-1 shadow-sm">
+          <button type="button" onclick="copyDirectUrl()" class="px-3.5 py-2.5 rounded-xl bg-[#632ce5] text-white font-bold text-xs chunky-btn flex items-center gap-1 shadow-sm cursor-pointer">
             <span class="material-symbols-outlined text-sm">content_copy</span> Salin
           </button>
         </div>
@@ -767,15 +767,15 @@
       <div>
         <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Akses Marker & Presentasi</h4>
         <div class="grid grid-cols-3 gap-2.5">
-          <button onclick="alert('Mengunduh QR Code Marker AR!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+          <button type="button" onclick="showToast('Mengunduh QR Code Marker AR!', 'qr_code_scanner')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn cursor-pointer">
             <span class="material-symbols-outlined text-purple-600 text-2xl">qr_code_scanner</span>
             <span class="text-[11px] font-black text-slate-700">QR Marker</span>
           </button>
-          <button onclick="alert('Mengunduh Target Kartu Gambar!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+          <button type="button" onclick="showToast('Mengunduh Target Kartu Gambar!', 'crop_original')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn cursor-pointer">
             <span class="material-symbols-outlined text-indigo-600 text-2xl">crop_original</span>
             <span class="text-[11px] font-black text-slate-700">Kartu Fisik</span>
           </button>
-          <a href="/ecosystem/view/sawah" target="_blank" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn text-center">
+          <a href="/ecosystem/view/sawah" target="_blank" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn text-center cursor-pointer">
             <span class="material-symbols-outlined text-emerald-600 text-2xl">slideshow</span>
             <span class="text-[11px] font-black text-slate-700">Present</span>
           </a>
@@ -794,13 +794,16 @@
     function initStudio() {
       const container = document.getElementById('canvas-container');
 
+      // 1. Three.js Scene Setup
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0xf8fafc);
       scene.fog = new THREE.FogExp2(0xf8fafc, 0.03);
 
+      // 2. Camera Setup (Isometric 45° Angle)
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(4.5, 4.0, 5.5);
 
+      // 3. WebGL Renderer
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -808,12 +811,14 @@
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
+      // 4. OrbitControls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.target.set(0, 0.6, 0);
       controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
+      // 5. TransformControls Gizmo
       transformControls = new THREE.TransformControls(camera, renderer.domElement);
       transformControls.size = 0.75;
       transformControls.addEventListener('dragging-changed', (e) => {
@@ -821,6 +826,7 @@
       });
       scene.add(transformControls);
 
+      // 6. Lights
       const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
       scene.add(ambientLight);
 
@@ -835,14 +841,16 @@
       fillLight.position.set(-5, 4, -4);
       scene.add(fillLight);
 
+      // 7. Grid Floor
       gridHelper = new THREE.GridHelper(10, 20, 0xc4b5fd, 0xe2e8f0);
       gridHelper.position.y = 0;
       scene.add(gridHelper);
 
+      // 8. Event Listeners
       window.addEventListener('resize', onWindowResize);
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
-      // Keyboard Shortcut Listeners (W, E, R, Del)
+      // Keyboard Shortcuts (W, E, R, Del)
       window.addEventListener('keydown', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'w' || e.key === 'W') setGizmoMode('translate');
@@ -851,31 +859,25 @@
         if (e.key === 'Delete' || e.key === 'Backspace') deleteSelectedObject();
       });
 
-      // Close settings popup when clicking outside
-      window.addEventListener('click', (e) => {
-        const popup = document.getElementById('popup-settings-menu');
-        const btn = document.getElementById('btn-settings-toggle');
-        if (popup && !popup.contains(e.target) && !btn.contains(e.target)) {
-          popup.classList.add('hidden');
-        }
-      });
-
+      // Load Initial Preset
       loadEcosystemPreset('sawah');
       animate();
     }
 
     function animate() {
       requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      if (controls) controls.update();
+      if (renderer && scene && camera) renderer.render(scene, camera);
     }
 
     function onWindowResize() {
+      if (!camera || !renderer) return;
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
+    // ── Raycaster Object Selection ──
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
@@ -899,47 +901,54 @@
 
     function selectObject(obj) {
       selectedObject = obj;
-      if (obj) {
+      if (obj && transformControls) {
         transformControls.attach(obj);
-      } else {
+      } else if (transformControls) {
         transformControls.detach();
       }
     }
 
     function setGizmoMode(mode) {
+      if (!transformControls) return;
       transformControls.setMode(mode);
       ['t', 'r', 's'].forEach(m => {
         const btn = document.getElementById(`gizmo-btn-${m}`);
-        if (btn) btn.className = "w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs";
+        if (btn) btn.className = "w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer";
       });
       const activeBtn = document.getElementById(`gizmo-btn-${mode[0]}`);
-      if (activeBtn) activeBtn.className = "w-9 h-9 rounded-xl flex items-center justify-center bg-[#632ce5] text-white font-bold text-xs shadow-sm";
+      if (activeBtn) activeBtn.className = "w-9 h-9 rounded-xl flex items-center justify-center bg-[#632ce5] text-white font-bold text-xs shadow-sm cursor-pointer";
     }
 
     function deleteSelectedObject() {
       if (selectedObject && ecosystemGroup) {
         ecosystemGroup.remove(selectedObject);
-        transformControls.detach();
+        if (transformControls) transformControls.detach();
         selectedObject = null;
+        showToast('Objek berhasil dihapus', 'delete');
       }
     }
 
     function loadEcosystemPreset(presetId) {
       currentActivePresetId = presetId;
-      document.getElementById('project-title-input').value = `Ekosistem ${presetId.charAt(0).toUpperCase() + presetId.slice(1)}`;
-      document.getElementById('share-project-name').textContent = `Ekosistem ${presetId.charAt(0).toUpperCase() + presetId.slice(1)}`;
-      document.getElementById('share-direct-url').value = `https://qrcodear.onrender.com/ecosystem/view/${presetId}`;
+      const titleInput = document.getElementById('project-title-input');
+      const shareTitle = document.getElementById('share-project-name');
+      const shareUrl = document.getElementById('share-direct-url');
+      
+      const capitalized = presetId.charAt(0).toUpperCase() + presetId.slice(1);
+      if (titleInput) titleInput.value = `Ekosistem ${capitalized}`;
+      if (shareTitle) shareTitle.textContent = `Ekosistem ${capitalized}`;
+      if (shareUrl) shareUrl.value = `https://qrcodear.onrender.com/ecosystem/view/${presetId}`;
 
       ['sawah', 'hutan', 'laut', 'darat'].forEach(id => {
         const tab = document.getElementById(`tab-eco-${id}`);
-        if (tab) tab.className = "px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all";
+        if (tab) tab.className = "px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer";
       });
       const activeTab = document.getElementById(`tab-eco-${presetId}`);
-      if (activeTab) activeTab.className = "px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all";
+      if (activeTab) activeTab.className = "px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all cursor-pointer";
 
       if (ecosystemGroup) {
         scene.remove(ecosystemGroup);
-        transformControls.detach();
+        if (transformControls) transformControls.detach();
         ecosystemGroup = null;
       }
 
@@ -956,6 +965,8 @@
           ecosystemGroup = gltf.scene;
           ecosystemGroup.position.set(0, 0, 0);
           scene.add(ecosystemGroup);
+        }, undefined, (err) => {
+          console.warn('Preset model fallback notice:', err);
         });
       });
     }
@@ -1047,15 +1058,22 @@
       });
     }
 
-    // Close popups when clicking anywhere outside
+    // Close popups when clicking anywhere on 3D canvas
     window.addEventListener('click', (e) => {
       const sidebar = document.querySelector('aside');
+      const drawers = document.querySelectorAll('.drawer-slide');
       const popups = ['popup-settings-menu', 'popup-tutorial-menu', 'popup-support-menu'];
+      
       const clickedInsidePopup = popups.some(id => {
         const el = document.getElementById(id);
         return el && el.contains(e.target);
       });
       const clickedInsideSidebar = sidebar && sidebar.contains(e.target);
+      let clickedInsideDrawer = false;
+      drawers.forEach(d => {
+        if (!d.classList.contains('drawer-hidden') && d.contains(e.target)) clickedInsideDrawer = true;
+      });
+
       if (!clickedInsidePopup && !clickedInsideSidebar) {
         closeAllPopups();
       }
@@ -1099,9 +1117,11 @@
 
     function copyDirectUrl() {
       const input = document.getElementById('share-direct-url');
-      input.select();
-      navigator.clipboard.writeText(input.value);
-      showToast('Tautan langsung AR berhasil disalin! 🚀', 'content_copy');
+      if (input) {
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showToast('Tautan langsung AR berhasil disalin! 🚀', 'content_copy');
+      }
     }
 
     function toggleGridHelper() {
@@ -1112,6 +1132,7 @@
     }
 
     function resetCameraView(type) {
+      if (!camera || !controls) return;
       if (type === 'top') {
         camera.position.set(0, 8, 0.01);
         controls.target.set(0, 0, 0);
@@ -1125,11 +1146,117 @@
     }
 
     function playSampleAudio(name) {
-      showToast(`Memutar audio BGM: "${name}" 🎵`, 'music_note');
+      showToast(`Memutar audio: "${name}" 🎵`, 'music_note');
     }
 
     function insertStickerToScene(name) {
-      showToast(`Stiker "${name}" siap ditempatkan di 3D Scene! ✨`, 'image');
+      showToast(`Stiker "${name}" ditempatkan di 3D Scene! ✨`, 'image');
+      closeAllDrawers();
+    }
+
+    // ── Asset Upload Handlers ──
+    function handleCustomGlbUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showToast(`Memuat model 3D: ${file.name}...`, 'cloud_upload');
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const loader = new THREE.GLTFLoader();
+        loader.parse(e.target.result, '', (gltf) => {
+          const model = gltf.scene;
+          model.position.set(0, 0.5, 0);
+          scene.add(model);
+          selectObject(model);
+          showToast(`Model ${file.name} berhasil ditambahkan! ✨`, 'deployed_code');
+          closeAllDrawers();
+        }, (err) => {
+          showToast('Gagal memuat format file 3D: ' + err.message, 'error');
+        });
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    function handleImageTextureUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showToast(`Memuat gambar: ${file.name}...`, 'image');
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const texture = new THREE.TextureLoader().load(e.target.result, () => {
+          const geo = new THREE.PlaneGeometry(1, 1);
+          const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.set(0, 1.0, 0);
+          scene.add(mesh);
+          selectObject(mesh);
+          showToast(`Gambar ${file.name} berhasil disisipkan! ✨`, 'image');
+          closeAllDrawers();
+        });
+      };
+      reader.readAsDataURL(file);
+      event.target.value = '';
+    }
+
+    function handleVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showToast(`Video ${file.name} berhasil dipilih! 🎬`, 'smart_display');
+      closeAllDrawers();
+      event.target.value = '';
+    }
+
+    function insertVideoFromUrl() {
+      const input = document.getElementById('video-youtube-url');
+      if (input && input.value.trim()) {
+        showToast('Tautan YouTube disematkan ke scene 3D! 🎬', 'smart_display');
+        input.value = '';
+        closeAllDrawers();
+      } else {
+        showToast('Masukkan URL YouTube terlebih dahulu', 'warning');
+      }
+    }
+
+    function handleAudioUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      showToast(`Audio ${file.name} berhasil diunggah! 🎵`, 'graphic_eq');
+      closeAllDrawers();
+      event.target.value = '';
+    }
+
+    function insert3DTextToScene() {
+      const textVal = document.getElementById('text-input-val').value || 'Teks 3D';
+      const colorVal = document.getElementById('text-color-val').value || '#fde047';
+
+      // Create Crisp 2D Canvas Badge Plane for Text
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 160;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#632ce5';
+      ctx.roundRect(10, 10, 492, 140, 24);
+      ctx.fill();
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = colorVal;
+      ctx.roundRect(10, 10, 492, 140, 24);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '900 48px Quicksand, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(textVal, 256, 80);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const geo = new THREE.PlaneGeometry(1.6, 0.5);
+      const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(0, 1.2, 0);
+      scene.add(mesh);
+      selectObject(mesh);
+
+      showToast(`Teks 3D "${textVal}" ditempatkan di Scene! ✨`, 'title');
       closeAllDrawers();
     }
 
@@ -1137,6 +1264,7 @@
     function redoAction() { showToast('Ulangi aksi (Redo)', 'redo'); }
     function saveProject() { showToast('Projek berhasil disimpan! ✨', 'check_circle'); }
 
+    // Start Studio on DOM Ready
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
 </body>
