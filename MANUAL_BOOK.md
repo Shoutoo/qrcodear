@@ -1,171 +1,160 @@
-# 📘 MANUAL BOOK & PANDUAN PENGGUNAAN
+# 📘 BUKU PANDUAN PENGGUNAAN (MANUAL BOOK)
 ## QRCodeAR / AlamVerse — Media Pembelajaran AR 3D Ekosistem Rantai Makanan SD
 
 ---
 
-## 📌 1. TENTANG PROYEK
+## 📌 1. TENTANG PLATFORM
 
-**QRCodeAR (AlamVerse)** adalah platform media pembelajaran digital interaktif berbasis **Web Augmented Reality (WebAR)** dan **3D Interactive Studio** yang dirancang khusus untuk mata pelajaran **Ilmu Pengetahuan Alam (IPA) Sekolah Dasar (SD)** pada materi **Ekosistem dan Rantai Makanan**.
+**QRCodeAR (AlamVerse)** adalah media pembelajaran digital interaktif berbasis **Web Augmented Reality (WebAR)** dan **3D Interactive Studio** yang dirancang khusus untuk mendukung pembelajaran **Ilmu Pengetahuan Alam (IPA) Sekolah Dasar (SD)** pada materi **Siklus Rantai Makanan & Jaring-Jaring Kehidupan**.
 
-Aplikasi ini bekerja langsung di dalam browser smartphone (Google Chrome, Apple Safari, Microsoft Edge) **tanpa perlu mengunduh atau menginstal aplikasi tambahan dari Play Store maupun App Store**.
-
----
-
-## 🌟 2. FITUR UTAMA APLIKASI
-
-| Fitur | Deskripsi |
-| :--- | :--- |
-| **🌐 3D Interactive Studio** | Visualisasi 3D ekosistem lengkap 360° dengan pencahayaan realistis dan bayangan lembut. |
-| **📷 In-Browser WebAR (Tap-to-Place)** | Memproyeksikan ekosistem 3D langsung di atas meja atau lantai kelas nyata menggunakan kamera HP. |
-| **🏷️ Smart Hotspot Tracking (`matrixWorld`)** | Label peran spesies (Produsen, Konsumen I-IV, Pengurai) menempel tepat di atas kepala hewan dari segala sudut pandang 360°. |
-| **👆 Kontrol Multi-Touch Intuitif** | 1 Jari memutar objek 360°, 2 Jari mencubit (*pinch*) untuk memperbesar/memperkecil, dan 2 Jari menggeser (*pan*) untuk memindahkan objek di meja. |
-| **⚡ Multi-Speed Orbit Animation** | Pilihan kecepatan rotasi otomatis: `1.0x` (Normal), `2.0x` (Cepat), `0.5x` (Lambat/Detail), dan `Jeda`. |
-| **🍃 Audio Ambience Alami** | Soundscape suasana alam asli (gemericik air sawah, ombak laut, burung hutan) yang menenangkan konsentrasi belajar siswa. |
-| **📖 Modal Fakta Ilmiah Spesies** | Menampilkan kartu ringkasan sains saat nama hewan/tumbuhan diketuk. |
-| **📱 Zero-Overflow Mobile UI** | Tampilan antarmuka melayang (*floating HUD*) yang proporsional dan tidak terpotong oleh bilah navigasi HP. |
+Platform ini dapat diakses langsung melalui browser smartphone (Google Chrome, Apple Safari, Microsoft Edge) **tanpa perlu menginstal aplikasi tambahan apapun dari Play Store maupun App Store**.
 
 ---
 
-## 📖 3. PANDUAN PENGGUNAAN UNTUK GURU & SISWA
+## 🌟 2. RINGKASAN MENU & FITUR APLIKASI
 
-### A. Membuka Aplikasi
-1. Pindai (*scan*) QR Code yang ada pada kartu pembelajaran fisik menggunakan kamera HP, atau buka tautan di browser:
-   - **Ekosistem Sawah**: `https://qrcodear.onrender.com/ecosystem/view/sawah`
-   - **Ekosistem Laut**: `https://qrcodear.onrender.com/ecosystem/view/laut`
-   - **Ekosistem Hutan**: `https://qrcodear.onrender.com/ecosystem/view/hutan`
-   - *(Atau via server lokal: `http://localhost:3001/ecosystem/view/sawah`)*
+Platform ini memiliki 2 peran utama pengguna: **Menu untuk Murid (Siswa)** dan **Menu untuk Guru (Pendidik)**.
 
----
-
-### B. Menggunakan Mode 3D Interactive Studio
-1. **Memutar Model**: Usap layar dengan 1 jari ke kiri atau ke kanan untuk melihat hewan dari segala arah.
-2. **Memperbesar / Memperkecil**: Gunakan 2 jari (cubit / rentangkan) untuk memperbesar detail hewan.
-3. **Mengatur Kecepatan Putar**: Tekan tombol **`[ 🔄 Putar: 1.0x ]`** di bilah bawah untuk mengubah kecepatan rotasi otomatis (`1.0x` ➔ `2.0x` ➔ `0.5x` ➔ `Jeda`).
-4. **Membuka Informasi Hewan**: Ketuk salah satu label spesies (misal: *Padi*, *Katak*, *Ular*) untuk membuka kartu penjelasan perannya dalam rantai makanan.
-5. **Menyembunyikan Label**: Tekan tombol **`[ 🏷️ Label ]`** jika ingin melihat model 3D murni tanpa teks.
-6. **Mendengarkan Suasana Alam**: Tekan tombol **`[ 🍃 Suasana ]`** untuk menyalakan atau mematikan musik latar suara alam yang damai.
+| Kategori | Menu / Fitur | Deskripsi Singkat |
+| :--- | :--- | :--- |
+| **Murid** | 🌐 **3D Interactive Studio** | Ruang visualisasi 3D 360° untuk mengamati hewan, tumbuhan, dan rantai makanan. |
+| **Murid** | 📷 **In-Browser WebAR (Kamera)** | Memproyeksikan ekosistem 3D di atas meja atau lantai kelas nyata dengan teknologi *Tap-to-Place*. |
+| **Murid** | 🏷️ **Smart Hotspot & Label Peran** | Label interaktif (Produsen, Konsumen I–IV, Pengurai) yang selalu tegak dan menempel di atas hewan. |
+| **Murid** | 📖 **Kartu Edukasi Sains** | Penjelasan ilmiah lengkap saat hewan disentuh/diklik oleh siswa. |
+| **Murid** | 🍃 **Soundscape Ambience Alam** | Suara latar alam yang menenangkan (gemericik air, deburan ombak, desau angin hutan). |
+| **Guru** | 🎨 **3D Ecosystem Studio Editor** | Mengatur ekosistem, memilih preset tema, menyesuaikan hewan, dan mengedit peran rantai makanan. |
+| **Guru** | 🖨️ **Cetak Kartu AR & Generator QR** | Menghasilkan kartu belajar bergambar dan barcode QR Code siap cetak untuk dibagikan kepada siswa. |
+| **Guru** | 📦 **Manajemen Aset 3D & Preset** | Memilih variasi ekosistem (Sawah, Laut, Hutan, Padang Rumput, Gurun, Kutub, Sungai). |
 
 ---
 
-### C. Menggunakan Mode WebAR Kamera (Tap-to-Place)
-1. Tekan tombol ungu besar di bagian bawah: **`[ 📷 Lihat di AR (Kamera Browser) ]`**.
-2. Berikan izin saat browser meminta akses kamera (*Allow / Izinkan*).
-3. Arahkan kamera smartphone Anda ke permukaan datar (meja belajar atau lantai kelas).
-4. **Ketuk layar sekali (*Tap*)** tepat pada lingkaran target ungu yang muncul di tengah layar.
-5. Model ekosistem 3D dan seluruh label rantai makanan akan langsung terkunci dan berdiri tegak di atas meja Anda!
-6. **Interaksi di Mode AR**:
-   - 👆 **1 Jari Geser**: Memutar model 3D di atas meja.
-   - 🤏 **2 Jari Cubit**: Memperbesar / memperkecil ukuran model di ruangan kelas.
-   - 🖐️ **2 Jari Geser**: Memindahkan letak model ke area meja yang lain secara stabil.
-7. **Pindah Titik / Keluar**:
-   - Tekan tombol **`[ 🎯 Pindah Posisi ]`** untuk memindahkan titik letak model ke lokasi baru.
+## 🎒 3. PANDUAN LENGKAP UNTUK MURID (SISWA)
+
+### A. Cara Membuka Media Pembelajaran
+1. Buka aplikasi kamera atau pemindai QR Code di smartphone Anda.
+2. Arahkan kamera ke **QR Code pada Kartu Pembelajaran Ekosistem** yang diberikan oleh Guru.
+3. Ketuk tautan yang muncul untuk membuka media belajar di browser HP:
+   - 🌾 **Ekosistem Sawah**: `https://qrcodear.onrender.com/ecosystem/view/sawah`
+   - 🌊 **Ekosistem Laut**: `https://qrcodear.onrender.com/ecosystem/view/laut`
+   - 🌳 **Ekosistem Hutan**: `https://qrcodear.onrender.com/ecosystem/view/hutan`
+
+---
+
+### B. Eksplorasi di Mode 3D Interactive Studio
+Di halaman utama 3D Studio, siswa dapat mempelajari hewan dalam lingkungan 3D interaktif:
+
+```
+                  ┌─────────────────────────────────────────┐
+                  │ 🌾 Ekosistem Sawah  [3D] [AR Kamera]    │
+                  │ PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ... │
+                  ├─────────────────────────────────────────┤
+                  │                                         │
+                  │             [ Model 3D 360° ]           │
+                  │        🌾       🦗       🐸       🐍    │
+                  │                                         │
+                  ├─────────────────────────────────────────┤
+                  │  [ 🔄 Putar: 1.0x ]  [ 🏷️ Label ]  [ 🍃 Suasana ] │
+                  │  [ 📷 Lihat di AR (Kamera Browser) ]    │
+                  └─────────────────────────────────────────┘
+```
+
+1. **Memutar & Mengamati Hewan (360° View)**:
+   - Usap layar dengan **1 Jari** ke kiri/kanan/atas/bawah untuk memutar sudut pandang ekosistem.
+2. **Memperbesar Hewan (Zoom)**:
+   - Gunakan **2 Jari** (cubit atau rentangkan layar) untuk melihat bentuk fisik hewan secara dekat.
+3. **Mengatur Kecepatan Putaran Otomatis**:
+   - Tekan tombol **`[ 🔄 Putar: 1.0x ]`** di bilah bawah untuk mengganti kecepatan:
+     - 🚀 **`Putar: 1.0x`**: Kecepatan normal santai.
+     - ⚡ **`Putar: 2.0x`**: Kecepatan cepat untuk melihat perputaran rantai makanan.
+     - 🐢 **`Putar: 0.5x`**: Kecepatan lambat untuk mengamati detail tiap hewan.
+     - ⏸️ **`Jeda`**: Menghentikan putaran objek agar tetap diam.
+4. **Membuka Kartu Fakta Sains**:
+   - Ketuk salah satu **Label Nama Hewan** (misal: *Padi*, *Katak*, *Ular*, *Elang*, dll.).
+   - Jendela informasi sains akan terbuka, menjelaskan klasifikasi makanan dan peran ilmiah hewan tersebut.
+5. **Menyembunyikan / Menampilkan Label**:
+   - Tekan tombol **`[ 🏷️ Label ]`** jika ingin melihat keindahan model 3D murni tanpa teks.
+6. **Mendengarkan Musik Suasana Alam**:
+   - Tekan tombol **`[ 🍃 Suasana ]`** untuk menyalakan suara gemericik air, deburan ombak, atau kicauan burung yang menenangkan selama belajar.
+
+---
+
+### C. Belajar Nyata dengan Mode AR Kamera (*Tap-to-Place*)
+Mode AR Kamera membawa hewan-hewan 3D keluar dari layar dan berdiri di dunia nyata (di atas meja kelas):
+
+1. **Langkah Memulai AR**:
+   - Tekan tombol ungu besar: **`[ 📷 Lihat di AR (Kamera Browser) ]`**.
+   - Berikan izin saat browser meminta akses kamera (*Tekan "Izinkan" / "Allow"*).
+2. **Menempatkan Objek di Atas Meja (*Tap-to-Place*)**:
+   - Arahkan kamera HP ke permukaan datar (meja belajar atau lantai).
+   - Muncul lingkaran target (*reticle ring*) di tengah layar.
+   - **Ketuk layar sekali (*Tap*)** ➔ Seluruh model ekosistem 3D dan label rantai makanan langsung terkunci berdiri tegak di atas meja!
+3. **Gestur Kontrol Sentuh di Mode AR**:
+   - 👆 **1 Jari Geser**: Memutar model 3D 360° di atas meja untuk melihat hewan dari segala sisi.
+   - 🤏 **2 Jari Cubit (*Pinch*)**: Memperbesar atau memperkecil ukuran ekosistem di meja belajar.
+   - 🖐️ **2 Jari Geser (*Pan*)**: Memindahkan posisi ekosistem ke bagian meja yang lain secara halus dan stabil.
+4. **Memindahkan Posisi / Keluar dari AR**:
+   - Tekan tombol **`[ 🎯 Pindah Posisi ]`** untuk memilih titik meja baru.
    - Tekan tombol **`[ ✕ Tutup AR ]`** untuk kembali ke mode 3D Studio.
 
 ---
 
-## 🛠️ 4. PANDUAN PENGEMBANG (DEVELOPER MANUAL)
+## 👩‍🏫 4. PANDUAN LENGKAP UNTUK GURU (PENDIDIK)
 
-### A. Prasyarat Sistem (System Requirements)
-- **Node.js**: Versi `v18.x` atau lebih baru
-- **Python**: Versi `3.10+` (opsional untuk auto-generate audio MP3)
-- **FFmpeg**: Untuk konversi dan encoding audio
-- **Web Browser**: Chrome (Android/Desktop) / Safari (iOS 14+)
+Platform ini menyediakan berbagai modul manajemen pembelajaran yang memudahkan Guru dalam menyiapkan materi ajar di kelas:
 
 ---
 
-### B. Struktur Direktori Proyek
-```
-qrcodear/
-├── client/                     # Frontend client (React / Next / Vite)
-├── public/
-│   └── audio/
-│       └── ecosystems/         # File MP3 & WAV Ambience Ekosistem
-├── server/
-│   ├── data/                   # Data JSON preset ekosistem
-│   ├── public/                 # Static assets server
-│   ├── scripts/
-│   │   ├── bake_complete_preset_glb.js   # Script auto-bake 3D models
-│   │   └── generate_ecosystem_ambiance.py # Script synthesizer audio
-│   ├── views/
-│   │   ├── ecosystem/
-│   │   │   └── viewer.html     # Template utama WebAR & 3D Viewer
-│   │   └── studio/             # Antarmuka 3D Studio Editor
-│   └── index.js                # Express main server entry point
-├── server-v2/                  # Backend NestJS (Fase lanjutan)
-├── viewer.html                 # Fallback standalone viewer
-├── start.bat                   # Batch script untuk start server lokal
-├── render.yaml                 # Konfigurasi deployment Render
-├── package.json
-└── MANUAL_BOOK.md              # Buku panduan ini
-```
+### A. Menu 3D Ecosystem Studio Editor (`/studio`)
+Menu ini digunakan oleh Guru untuk mengatur, menyunting, dan mempratinjau materi ekosistem rantai makanan sebelum diajarkan kepada murid:
+
+1. **Akses Menu**: Buka tautan `https://qrcodear.onrender.com/studio` (atau `http://localhost:3001/studio`).
+2. **Pilihan Tema Ekosistem**:
+   Guru dapat memilih berbagai macam tema ekosistem standar Kurikulum IPA SD:
+   - 🌾 **Ekosistem Sawah** (Padi ➔ Belalang ➔ Katak ➔ Ular ➔ Elang ➔ Jamur Pengurai).
+   - 🌊 **Ekosistem Laut** (Fitoplankton ➔ Ikan Kecil ➔ Ikan Sedang ➔ Ikan Besar ➔ Hiu ➔ Bakteri Laut).
+   - 🌳 **Ekosistem Hutan** (Pohon/Tumbuhan ➔ Rusa ➔ Serigala ➔ Harimau ➔ Jamur Tanah).
+   - 🌿 **Ekosistem Padang Rumput / Sabana** (Rumput ➔ Zebra ➔ Singa ➔ Dekomposer).
+   - 🏜️ **Ekosistem Gurun**, ❄️ **Ekosistem Kutub**, dan 🏞️ **Ekosistem Air Tawar (Sungai)**.
+3. **Kustomisasi 6 Slot Rantai Makanan**:
+   Guru dapat menyesuaikan nama spesies dan perannya pada 6 slot rantai makanan:
+   - **Slot 1 (Produsen)**: Tumbuhan pembuat energi mandiri via fotosintesis.
+   - **Slot 2 (Konsumen Primer)**: Hewan herbivora pemakan produsen.
+   - **Slot 3 (Konsumen Sekunder)**: Hewan karnivora/insektivora tingkat satu.
+   - **Slot 4 (Konsumen Tersier)**: Pemangsa karnivora menengah.
+   - **Slot 5 (Konsumen Puncak / Apex)**: Predator tertinggi rantai makanan.
+   - **Slot 6 (Pengurai / Dekomposer)**: Mikroorganisme pengurai nutrisi tanah.
+4. **Pratinjau Langsung (*Live 3D Preview*)**:
+   Setiap perubahan slot dapat langsung diputar dan dilihat tampilannya secara *real-time*.
 
 ---
 
-### C. Menjalankan Server di Komputer Lokal
-1. Buka terminal PowerShell di folder proyek (`d:\3d\qrcodear`).
-2. Instal dependensi:
-   ```bash
-   npm install
-   ```
-3. Jalankan server Express:
-   ```bash
-   node server/index.js
-   ```
-   *(Atau klik ganda berkas `start.bat`)*
-4. Buka di browser:
-   `http://localhost:3001/ecosystem/view/sawah`
+### B. Menu Generator & Cetak Kartu Belajar AR Siswa (`/print-card`)
+Guru dapat membuat dan mencetak kartu fisik ber-QR Code untuk dibagikan kepada setiap kelompok belajar siswa di kelas:
+
+1. **Memilih Kartu Ekosistem**:
+   - Pilih tema ekosistem yang akan dicetak (contoh: *Kartu Ekosistem Sawah*).
+2. **Fitur Kartu Pembelajaran**:
+   - Terdapat ilustrasi visual menarik hewan-hewan ekosistem.
+   - Terdapat bagan alur rantai makanan (*Produsen ➔ Konsumen ➔ Pengurai*).
+   - Terdapat **QR Code Otomatis** dengan kontras tinggi yang mudah dipindai oleh semua jenis smartphone.
+3. **Mencetak Kartu**:
+   - Tekan tombol **`[ 🖨️ Cetak Kartu / Print PDF ]`**.
+   - Kartu siap dicetak pada kertas A4 atau kertas tebal (*Art Paper/Concorde*) untuk digunakan berulang kali di kelas.
 
 ---
 
-### D. Daftar Endpoint Penting
-
-| Metode | Endpoint URL | Fungsi |
-| :---: | :--- | :--- |
-| `GET` | `/ecosystem/view/:id` | Halaman WebAR & 3D Interactive Viewer (`sawah`, `laut`, `hutan`, dll.) |
-| `GET` | `/studio` | Halaman Studio Editor 3D Rantai Makanan |
-| `GET` | `/assets/:filename.glb` | Menyajikan file model 3D gabungan (*baked GLB*) |
-| `GET` | `/audio/ecosystems/:id.mp3` | Menyajikan file audio suasana alam berformat 192k MP3 |
-| `GET` | `/api/ecosystem/presets` | Mendapatkan data slot hewan dan peran rantai makanan |
+### C. Manajemen Aset & Model 3D (`/editor`)
+1. Guru dapat melihat galeri aset model 3D hewan dan tumbuhan yang tersedia.
+2. Memeriksa kecocokan model format `.glb` / `.gltf` yang optimal untuk smartphone siswa agar rendering berjalan lancar dan ringan.
 
 ---
 
-### E. Menambahkan atau Mengubah Preset Ekosistem Baru
-1. Tambahkan konfigurasi ekosistem baru di berkas `server/data/ecosystem_presets.json`.
-2. Setiap preset memiliki 6 slot rantai makanan:
-   - Slot 0: `produsen`
-   - Slot 1: `konsumen_primer` (Konsumen I)
-   - Slot 2: `konsumen_sekunder` (Konsumen II)
-   - Slot 3: `konsumen_tersier` (Konsumen III)
-   - Slot 4: `konsumen_final` (Konsumen Puncak)
-   - Slot 5: `decomposer` (Pengurai)
-3. Jalankan script auto-bake untuk menggabungkan model 3D:
-   ```bash
-   node server/scripts/bake_complete_preset_glb.js
-   ```
+## 📱 5. REKOMENDASI PENGGUNAAN DI KELAS
 
----
-
-## 🚀 5. PANDUAN DEPLOYMENT (PRODUCTION)
-
-Proyek ini telah dikonfigurasi untuk deployment otomatis ke **Render.com**:
-- **Repository Git**: `https://github.com/Shoutoo/qrcodear`
-- **Branch**: `main`
-- **Build Command**: `npm install`
-- **Start Command**: `node server/index.js`
-- **Live URL**: `https://qrcodear.onrender.com/ecosystem/view/sawah`
-
-Setiap kali dilakukan `git push origin main`, Render akan otomatis melakukan proses *build & deploy* dalam waktu ~1 menit.
-
----
-
-## 📞 6. CATATAN & TROUBLESHOOTING
-
-1. **Kamera Tidak Muncul di Mode AR**:
-   - Pastikan situs diakses menggunakan protokol **HTTPS** (kamera tidak dapat dibuka di HTTP kecuali pada `localhost`).
-   - Pastikan izin kamera pada browser smartphone telah diizinkan (*Settings -> Site Settings -> Camera -> Allow*).
-2. **Suara Ambience Tidak Bunyi**:
-   - Pastikan volume media pada smartphone tidak dalam kondisi *silent* atau *mute*.
-   - Tekan tombol **`[ 🍃 Suasana ]`** sekali untuk mengaktifkan Web Audio context.
+Untuk mendapatkan pengalaman pembelajaran interaktif terbaik:
+1. **Pencahayaan Kelas**: Pastikan ruangan kelas memiliki pencahayaan yang cukup saat menggunakan mode AR Kamera.
+2. **Permukaan Meja**: Arahkan kamera ke meja yang memiliki sedikit tekstur atau alas bermotif agar kamera mudah mendeteksi bidang datar.
+3. **Koneksi Internet**: Cukup koneksi internet standar untuk memuat model 3D pertama kali (~1,5 MB), setelah itu interaksi 3D dan suara berjalan mulus langsung di memori browser smartphone.
 
 ---
 
