@@ -548,14 +548,12 @@
         if (currentMode !== 'ar' || !isModelPlacedInAR || !ecosystemGroup) return;
 
         if (e.touches.length === 1 && touchStartData.count === 1) {
-          // 1 Finger Drag: Move model on ground plane
+          // 1 Finger Swipe: Smooth 360° Orbit Rotation around Y axis (Identical to 3D view)
           const dx = e.touches[0].clientX - touchStartData.x;
-          const dy = e.touches[0].clientY - touchStartData.y;
           touchStartData.x = e.touches[0].clientX;
           touchStartData.y = e.touches[0].clientY;
 
-          ecosystemGroup.position.x += dx * 0.003;
-          ecosystemGroup.position.z += dy * 0.003;
+          ecosystemGroup.rotation.y += dx * 0.008;
         } else if (e.touches.length === 2) {
           // 2 Fingers: Pinch to Scale & Twist to Rotate
           const dx = e.touches[0].clientX - e.touches[1].clientX;
