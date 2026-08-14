@@ -727,13 +727,23 @@
     }
 
     let audioContext = null;
+    let ambianceAudio = null;
+    let synthNodes = null;
+
+    function initAudioContext() {
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) audioContext = new AudioCtx();
+      }
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
 
     function playTone(freq, type = 'sine', duration = 0.20) {
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        if (!audioContext) audioContext = new AudioCtx();
-        if (audioContext.state === 'suspended') audioContext.resume();
+        initAudioContext();
+        if (!audioContext) return;
 
         const osc = audioContext.createOscillator();
         const gain = audioContext.createGain();
@@ -748,9 +758,99 @@
       } catch (e) {}
     }
 
-    let ambianceAudio = null;
+    function startSynthAmbiance(type = 'sawah') {
+      try {
+        initAudioContext();
+        if (!audioContext) return;
+        stopSynthAmbiance();
+
+        const masterGain = audioContext.createGain();
+        masterGain.gain.setValueAtTime(0.001, audioContext.currentTime);
+        masterGain.gain.exponentialRampToValueAtTime(0.18, audioContext.currentTime + 1.2);
+        masterGain.connect(audioContext.destination);
+
+        // Pink noise generator for soothing wind / stream / wave ambiance
+        const bufferSize = audioContext.sampleRate * 2;
+        const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.06;
+          b6 = white * 0.115926;
+        }
+
+        const whiteNoise = audioContext.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const isOcean = type.includes('laut') || type.includes('kutub');
+        const filter = audioContext.createBiquadFilter();
+        filter.type = isOcean ? 'lowpass' : 'bandpass';
+        filter.frequency.setValueAtTime(isOcean ? 380 : 720, audioContext.currentTime);
+        filter.Q.setValueAtTime(isOcean ? 1.2 : 0.7, audioContext.currentTime);
+
+        const lfo = audioContext.createOscillator();
+        lfo.frequency.setValueAtTime(isOcean ? 0.14 : 0.08, audioContext.currentTime);
+        const lfoGain = audioContext.createGain();
+        lfoGain.gain.setValueAtTime(isOcean ? 220 : 350, audioContext.currentTime);
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        whiteNoise.connect(filter);
+        filter.connect(masterGain);
+
+        // Peaceful Zen harmonic chord pad
+        const chordFreqs = isOcean ? [130.81, 196.00, 261.63, 329.63] : [164.81, 220.00, 246.94, 329.63];
+        const oscs = [];
+        chordFreqs.forEach((freq, idx) => {
+          const osc = audioContext.createOscillator();
+          const oscGain = audioContext.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+          oscGain.gain.setValueAtTime(0.018 / (idx + 1), audioContext.currentTime);
+          osc.connect(oscGain);
+          oscGain.connect(masterGain);
+          osc.start();
+          oscs.push(osc);
+        });
+
+        whiteNoise.start();
+        lfo.start();
+
+        synthNodes = { masterGain, whiteNoise, lfo, oscs };
+      } catch (e) {
+        console.warn('Synth ambiance error:', e);
+      }
+    }
+
+    function stopSynthAmbiance() {
+      if (synthNodes && audioContext) {
+        try {
+          synthNodes.masterGain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.4);
+          const currentNodes = synthNodes;
+          synthNodes = null;
+          setTimeout(() => {
+            try {
+              currentNodes.whiteNoise.stop();
+              currentNodes.lfo.stop();
+              currentNodes.oscs.forEach(o => o.stop());
+            } catch (err) {}
+          }, 450);
+        } catch (e) {
+          synthNodes = null;
+        }
+      }
+    }
 
     function toggleAudioNarration() {
+      initAudioContext();
       audioPlaying = !audioPlaying;
       const icon = document.getElementById('audio-icon');
       const btn = document.getElementById('btn-audio-narrate');
@@ -766,29 +866,25 @@
 
         showToast(`Memutar Suasana Alam: ${ECO_NAME} 🍃🎵`, 'spa');
 
-        // Play loopable ecosystem nature soundscape (air, ombak, angin, kicauan burung)
         const ecoKey = ECO_ID || 'sawah';
-        const audioSrc = `/audio/ecosystems/${ecoKey}.mp3`;
 
+        // 1. Start real-time Web Audio Synthesizer (Zero-latency guaranteed audio)
+        startSynthAmbiance(ecoKey);
+
+        // 2. Play loopable nature soundscape MP3
+        const audioSrc = `/audio/ecosystems/${ecoKey}.mp3`;
         if (!ambianceAudio) {
           ambianceAudio = new Audio(audioSrc);
           ambianceAudio.loop = true;
-          ambianceAudio.volume = 0.85;
-          ambianceAudio.addEventListener('error', () => {
-            // Soft chime feedback fallback
-            playTone(523.25, 'sine', 0.3);
-          });
+          ambianceAudio.volume = 0.75;
         } else {
           ambianceAudio.src = audioSrc;
           ambianceAudio.loop = true;
         }
 
-        const playPromise = ambianceAudio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            playTone(523.25, 'sine', 0.25);
-          });
-        }
+        ambianceAudio.play().catch(() => {
+          // Handled smoothly by Web Audio synthesizer fallback
+        });
       } else {
         if (icon) icon.textContent = 'spa';
         if (btnText) btnText.textContent = 'Suasana';
@@ -796,6 +892,7 @@
           btn.classList.add('bg-slate-100', 'text-slate-700');
           btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-300');
         }
+        stopSynthAmbiance();
         if (ambianceAudio) {
           ambianceAudio.pause();
         }
