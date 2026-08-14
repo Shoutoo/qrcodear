@@ -16,11 +16,25 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <style>
-    body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #0f172a; color: #0d1e25; touch-action: none; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      font-family: 'Quicksand', sans-serif;
+      background-color: #0f172a;
+      color: #0d1e25;
+      touch-action: none;
+    }
     
     #canvas-container {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       position: absolute;
       inset: 0;
       z-index: 10;
@@ -28,8 +42,9 @@
     }
 
     #camera-video {
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       position: absolute;
       inset: 0;
       object-fit: cover;
@@ -230,9 +245,9 @@
     </div>
   </div>
 
-  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (RESPONSIVE & SAFE AREA) ─── -->
-  <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[95vw] sm:max-w-md px-1.5">
-    <div class="hud-card p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 shadow-2xl pb-[max(0.65rem,env(safe-area-inset-bottom))]">
+  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (ZERO-OVERFLOW SAFE AREA) ─── -->
+  <div class="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-1" style="bottom: max(1.1rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));">
+    <div class="hud-card p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 shadow-2xl">
       
       <!-- Top Row: Controls (Rotate, Reset View, Audio Narration) -->
       <div class="grid grid-cols-4 gap-1.5 text-[10px] sm:text-xs font-bold text-slate-700">
