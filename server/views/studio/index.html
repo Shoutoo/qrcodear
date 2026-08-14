@@ -67,7 +67,7 @@
   <div id="canvas-container"></div>
 
   <!-- ─── 1. LEFT SIDEBAR NAVIGATION RAIL (ASSEMBLR STYLE) ──────── -->
-  <aside class="absolute top-0 left-0 bottom-0 w-[68px] bg-white border-r border-slate-200/90 z-30 flex flex-col items-center justify-between py-3.5 shadow-sm select-none">
+  <aside class="absolute top-0 left-0 bottom-0 w-[68px] bg-white border-r border-slate-200/90 z-40 flex flex-col items-center justify-between py-3.5 shadow-sm select-none pointer-events-auto">
     
     <!-- Top Group: Home & Creator Tools -->
     <div class="flex flex-col items-center gap-2.5 w-full px-2">
@@ -79,48 +79,48 @@
       <div class="w-8 h-[1px] bg-slate-200 my-1"></div>
 
       <!-- Tool: 3D Library (Pustaka 3D) -->
-      <button onclick="toggleDrawer('drawer-3d-library')" id="tool-btn-3d" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Pustaka 3D">
+      <button onclick="toggleDrawer('drawer-3d-library', 'tool-btn-3d', event)" id="tool-btn-3d" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka 3D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">deployed_code</span>
         <span class="text-[9px] font-extrabold mt-0.5">3D</span>
       </button>
 
       <!-- Tool: Gambar / Pustaka 2D (Screenshot 1) -->
-      <button onclick="toggleDrawer('drawer-2d-library')" id="tool-btn-gambar" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Pustaka Gambar 2D">
+      <button onclick="toggleDrawer('drawer-2d-library', 'tool-btn-gambar', event)" id="tool-btn-gambar" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Pustaka Gambar 2D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">image</span>
         <span class="text-[9px] font-extrabold mt-0.5">Gambar</span>
       </button>
 
       <!-- Tool: Teks & Anotasi -->
-      <button onclick="toggleDrawer('drawer-text-tool')" id="tool-btn-text" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Teks & Anotasi 3D">
+      <button onclick="toggleDrawer('drawer-text-tool', 'tool-btn-text', event)" id="tool-btn-text" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Teks & Anotasi 3D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">title</span>
         <span class="text-[9px] font-extrabold mt-0.5">Teks</span>
       </button>
 
       <!-- Tool: Video Pembelajaran SD (Screenshot 2) -->
-      <button onclick="toggleDrawer('drawer-video-tool')" id="tool-btn-video" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Video Edukasi">
+      <button onclick="toggleDrawer('drawer-video-tool', 'tool-btn-video', event)" id="tool-btn-video" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Video Edukasi">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">smart_display</span>
         <span class="text-[9px] font-extrabold mt-0.5">Video</span>
       </button>
 
       <!-- Tool: Audio Narasi & SFX (Screenshot 3) -->
-      <button onclick="toggleDrawer('drawer-audio-tool')" id="tool-btn-audio" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Audio / BGM & SFX">
+      <button onclick="toggleDrawer('drawer-audio-tool', 'tool-btn-audio', event)" id="tool-btn-audio" class="tool-sidebar-btn w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn cursor-pointer group" title="Audio / BGM & SFX">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">graphic_eq</span>
         <span class="text-[9px] font-extrabold mt-0.5">Audio</span>
       </button>
     </div>
 
-    <!-- Bottom Group: Guide, Support, Settings (Screenshot 4 - Dedicated Floating Popups) -->
+    <!-- Bottom Group: Guide, Support, Settings (Dedicated Floating Popups) -->
     <div class="flex flex-col items-center gap-2 w-full px-2">
       <!-- Mempelajari -->
-      <button onclick="toggleTutorialPopup(event)" id="btn-tutorial-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Panduan Mempelajari Studio">
+      <button onclick="toggleTutorialPopup(event)" id="btn-tutorial-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Panduan Mempelajari Studio">
         <span class="material-symbols-outlined text-xl">menu_book</span>
       </button>
       <!-- Mendukung / Bantuan -->
-      <button onclick="toggleSupportPopup(event)" id="btn-support-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Pusat Bantuan & Dukungan">
+      <button onclick="toggleSupportPopup(event)" id="btn-support-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pusat Bantuan & Dukungan">
         <span class="material-symbols-outlined text-xl">help</span>
       </button>
       <!-- Pengaturan (With Popup Menu) -->
-      <button onclick="toggleSettingsPopup(event)" id="btn-settings-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all chunky-btn" title="Pengaturan Studio">
+      <button onclick="toggleSettingsPopup(event)" id="btn-settings-toggle" class="bottom-sidebar-btn w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all chunky-btn cursor-pointer" title="Pengaturan Studio">
         <span class="material-symbols-outlined text-xl">settings</span>
       </button>
     </div>
@@ -961,18 +961,40 @@
     }
 
     // ── Drawer Management ──
-    function toggleDrawer(drawerId) {
+    function toggleDrawer(drawerId, btnId, event) {
+      if (event) event.stopPropagation();
       const drawer = document.getElementById(drawerId);
       const isAlreadyOpen = drawer && !drawer.classList.contains('drawer-hidden');
+      
       closeAllDrawers();
       closeAllPopups();
+      clearActiveSidebarButtons();
+
       if (drawer && !isAlreadyOpen) {
         drawer.classList.remove('drawer-hidden');
+        if (btnId) {
+          const btn = document.getElementById(btnId);
+          if (btn) {
+            btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+            btn.classList.remove('text-slate-600');
+          }
+        }
       }
+    }
+
+    function clearActiveSidebarButtons() {
+      document.querySelectorAll('.tool-sidebar-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+        btn.classList.add('text-slate-600');
+      });
+      document.querySelectorAll('.bottom-sidebar-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+      });
     }
 
     function closeAllDrawers() {
       document.querySelectorAll('.drawer-slide').forEach(d => d.classList.add('drawer-hidden'));
+      clearActiveSidebarButtons();
     }
 
     // ── Dedicated Floating Popups Management (Settings, Tutorial, Support) ──
@@ -980,24 +1002,39 @@
       if (event) event.stopPropagation();
       const popup = document.getElementById('popup-settings-menu');
       const isHidden = popup.classList.contains('hidden');
+      closeAllDrawers();
       closeAllPopups();
-      if (isHidden) popup.classList.remove('hidden');
+      if (isHidden) {
+        popup.classList.remove('hidden');
+        const btn = document.getElementById('btn-settings-toggle');
+        if (btn) btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+      }
     }
 
     function toggleTutorialPopup(event) {
       if (event) event.stopPropagation();
       const popup = document.getElementById('popup-tutorial-menu');
       const isHidden = popup.classList.contains('hidden');
+      closeAllDrawers();
       closeAllPopups();
-      if (isHidden) popup.classList.remove('hidden');
+      if (isHidden) {
+        popup.classList.remove('hidden');
+        const btn = document.getElementById('btn-tutorial-toggle');
+        if (btn) btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+      }
     }
 
     function toggleSupportPopup(event) {
       if (event) event.stopPropagation();
       const popup = document.getElementById('popup-support-menu');
       const isHidden = popup.classList.contains('hidden');
+      closeAllDrawers();
       closeAllPopups();
-      if (isHidden) popup.classList.remove('hidden');
+      if (isHidden) {
+        popup.classList.remove('hidden');
+        const btn = document.getElementById('btn-support-toggle');
+        if (btn) btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+      }
     }
 
     function closeAllPopups() {
@@ -1005,9 +1042,12 @@
         const p = document.getElementById(id);
         if (p) p.classList.add('hidden');
       });
+      document.querySelectorAll('.bottom-sidebar-btn').forEach(btn => {
+        btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+      });
     }
 
-    // Close popups when clicking anywhere on canvas
+    // Close popups when clicking anywhere outside
     window.addEventListener('click', (e) => {
       const sidebar = document.querySelector('aside');
       const popups = ['popup-settings-menu', 'popup-tutorial-menu', 'popup-support-menu'];
