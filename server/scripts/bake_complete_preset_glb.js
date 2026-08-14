@@ -295,13 +295,6 @@ async function bakeEcosystemPreset(presetId) {
         });
 
         slotGroup.add(modelObj);
-
-        // Add 3D Floating Badge directly above the animal
-        const animalHeight = normBox.max.y - normBox.min.y;
-        const badge = create3DBadgeMesh(slot.name, slot.role);
-        badge.position.set(0, animalHeight + 0.38, 0);
-        slotGroup.add(badge);
-
         console.log(`✅ [${presetId} - Slot ${i}] ${slot.name} (${slot.role}) berhasil dimuat!`);
       } else {
         console.warn(`⚠️ [${presetId} - Slot ${i}] File ${slot.file} tidak ditemukan, melewatinya...`);
@@ -332,11 +325,20 @@ async function bakeEcosystemPreset(presetId) {
 
   fs.writeFileSync(outputGlbPath, glbBuffer);
   fs.writeFileSync(publicGlbPath, glbBuffer);
+  
+  // Also update preset-{id}.glb so viewer and studio are 100% synchronized
+  const presetGlbPath = path.join(__dirname, `../uploads/preset-${presetId}.glb`);
+  fs.writeFileSync(presetGlbPath, glbBuffer);
+
+  if (presetId === 'sawah') {
+    const rootGlbPath = path.join(__dirname, `../../ekosistem_sawah_lengkap.glb`);
+    fs.writeFileSync(rootGlbPath, glbBuffer);
+  }
 
   const fileSizeMB = (glbBuffer.length / (1024 * 1024)).toFixed(2);
   console.log(`🎉 BERHASIL! File GLB "${presetId}" tersimpan:`);
-  console.log(`   📁 Server Path: ${outputGlbPath}`);
-  console.log(`   📁 Viewer Path: ${publicGlbPath}`);
+  console.log(`   📁 Output: ${outputGlbPath}`);
+  console.log(`   📁 Preset: ${presetGlbPath}`);
   console.log(`   📦 Ukuran: ${fileSizeMB} MB`);
 
   return outputGlbPath;
