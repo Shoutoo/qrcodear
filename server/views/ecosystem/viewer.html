@@ -37,24 +37,24 @@
       display: none;
     }
 
-    /* 3D Hotspot Species Labels — Elevated Floating Pin Style (Never Obscuring Models) */
+    /* 3D Hotspot Species Labels — Bold, Crisp & Elevated (SD Edu Legible) */
     .species-hotspot {
       position: absolute;
       transform: translate(-50%, -100%);
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 2px solid #632ce5;
       border-radius: 9999px;
-      padding: 3px 8px;
-      box-shadow: 0 6px 20px rgba(99, 44, 229, 0.18);
+      padding: 4px 10px;
+      box-shadow: 0 8px 24px rgba(99, 44, 229, 0.22);
       font-family: 'Quicksand', sans-serif;
-      font-size: 10px;
+      font-size: 12px;
       font-weight: 800;
-      color: #0d1e25;
+      color: #0f172a;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
       cursor: pointer;
       pointer-events: auto;
       white-space: nowrap;
@@ -64,18 +64,19 @@
     }
     @media (min-width: 640px) {
       .species-hotspot {
-        padding: 4px 12px;
-        font-size: 11px;
+        padding: 5px 14px;
+        font-size: 13px;
+        gap: 7px;
       }
     }
-    /* Sleek Anchor Pointer Pin */
+    /* Bold Downward Pointer Pin */
     .species-hotspot::after {
       content: '';
       position: absolute;
-      bottom: -5px;
+      bottom: -6px;
       left: 50%;
       transform: translateX(-50%);
-      border-width: 5px 4.5px 0;
+      border-width: 6px 5.5px 0;
       border-style: solid;
       border-color: #632ce5 transparent transparent;
     }
@@ -86,17 +87,18 @@
     }
     .species-role-badge {
       background: #fde047;
-      color: #0d1e25;
-      font-size: 8px;
+      color: #0f172a;
+      font-size: 9px;
       font-weight: 900;
-      padding: 1.5px 5px;
-      border-radius: 5px;
+      padding: 2px 6px;
+      border-radius: 6px;
       text-transform: uppercase;
+      letter-spacing: 0.2px;
     }
     @media (min-width: 640px) {
       .species-role-badge {
-        font-size: 9px;
-        padding: 2px 6px;
+        font-size: 10px;
+        padding: 2.5px 7px;
       }
     }
 
@@ -473,12 +475,12 @@
           el.style.left = `${x}px`;
           el.style.top = `${y}px`;
 
-          // Distance from camera for depth fading and scaling
+          // Distance from camera for gentle depth scaling (keeps labels bold and fully readable)
           const camDist = worldPos.distanceTo(camera.position);
-          const depthFactor = THREE.MathUtils.clamp(1.0 - (camDist - 4.5) / 6.0, 0.55, 1.0);
-          el.style.opacity = depthFactor.toFixed(2);
-          el.style.transform = `translate(-50%, -100%) scale(${depthFactor.toFixed(2)})`;
-          el.style.zIndex = Math.round(depthFactor * 30);
+          const scaleFactor = THREE.MathUtils.clamp(1.04 - (camDist - 4.5) * 0.03, 0.92, 1.06);
+          el.style.opacity = '0.98';
+          el.style.transform = `translate(-50%, -100%) scale(${scaleFactor.toFixed(2)})`;
+          el.style.zIndex = Math.round(scaleFactor * 30);
 
           el.classList.remove('hidden');
         } else {
