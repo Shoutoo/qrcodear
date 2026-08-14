@@ -52,13 +52,6 @@
       backdrop-filter: blur(6px);
       transition: opacity 0.25s ease;
     }
-
-    /* ViewCube Gizmo */
-    #view-cube {
-      width: 64px; height: 64px;
-      perspective: 300px;
-      user-select: none;
-    }
   </style>
 
   <!-- Three.js Suite (Three, OrbitControls, TransformControls, GLTFLoader, GLTFExporter) -->
@@ -91,38 +84,43 @@
         <span class="text-[9px] font-extrabold mt-0.5">3D</span>
       </button>
 
+      <!-- Tool: Gambar / Pustaka 2D (Screenshot 1) -->
+      <button onclick="toggleDrawer('drawer-2d-library')" id="tool-btn-gambar" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Pustaka Gambar 2D">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">image</span>
+        <span class="text-[9px] font-extrabold mt-0.5">Gambar</span>
+      </button>
+
       <!-- Tool: Teks & Anotasi -->
       <button onclick="toggleDrawer('drawer-text-tool')" id="tool-btn-text" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Teks & Anotasi 3D">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">title</span>
         <span class="text-[9px] font-extrabold mt-0.5">Teks</span>
       </button>
 
-      <!-- Tool: Gambar / Tekstur -->
-      <button onclick="triggerImageUpload()" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Unggah Gambar">
-        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">image</span>
-        <span class="text-[9px] font-extrabold mt-0.5">Gambar</span>
-      </button>
-      <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="handleImageTextureUpload(event)"/>
-
-      <!-- Tool: Video Pembelajaran SD -->
-      <button onclick="toggleDrawer('drawer-video-tool')" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Video Edukasi">
+      <!-- Tool: Video Pembelajaran SD (Screenshot 2) -->
+      <button onclick="toggleDrawer('drawer-video-tool')" id="tool-btn-video" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Video Edukasi">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">smart_display</span>
         <span class="text-[9px] font-extrabold mt-0.5">Video</span>
       </button>
 
-      <!-- Tool: Audio Narasi -->
-      <button onclick="toggleDrawer('drawer-audio-tool')" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Audio / Suara Narasi">
+      <!-- Tool: Audio Narasi & SFX (Screenshot 3) -->
+      <button onclick="toggleDrawer('drawer-audio-tool')" id="tool-btn-audio" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Audio / BGM & SFX">
         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">graphic_eq</span>
         <span class="text-[9px] font-extrabold mt-0.5">Audio</span>
       </button>
     </div>
 
-    <!-- Bottom Group: Guide, Settings, Support -->
+    <!-- Bottom Group: Guide, Support, Settings (Screenshot 4) -->
     <div class="flex flex-col items-center gap-2 w-full px-2">
-      <button onclick="toggleGridHelper()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all" title="Toggle Grid Lantai">
-        <span class="material-symbols-outlined text-xl">grid_4x4</span>
+      <!-- Mempelajari -->
+      <button onclick="openTutorialModal()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Panduan Mempelajari Studio">
+        <span class="material-symbols-outlined text-xl">menu_book</span>
       </button>
-      <button onclick="toggleDrawer('drawer-settings')" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all" title="Pengaturan Studio">
+      <!-- Mendukung / Bantuan -->
+      <button onclick="openSupportModal()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Pusat Bantuan & Dukungan">
+        <span class="material-symbols-outlined text-xl">help</span>
+      </button>
+      <!-- Pengaturan (With Popup Menu) -->
+      <button onclick="toggleSettingsPopup(event)" id="btn-settings-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all chunky-btn" title="Pengaturan Studio">
         <span class="material-symbols-outlined text-xl">settings</span>
       </button>
     </div>
@@ -210,7 +208,7 @@
     </div>
   </div>
 
-  <!-- ─── 5. PUSTAKA 3D DRAWER (PERSIS ASSEMBLR SCREENSHOT 4) ─────── -->
+  <!-- ─── 5. PUSTAKA 3D DRAWER ──────────────────────────────────── -->
   <div id="drawer-3d-library" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-full max-w-2xl bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -242,7 +240,6 @@
       
       <!-- Two Hero Action Cards: Upload Custom 3D & AI Generator -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        
         <!-- Upload Custom 3D Card -->
         <label for="custom-glb-upload" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 p-5 rounded-2xl flex items-center gap-4 transition-all group">
           <div class="w-12 h-12 rounded-xl bg-purple-100 text-[#632ce5] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
@@ -268,14 +265,12 @@
             <p class="text-[10px] text-slate-600 font-bold mt-0.5">Buat objek 3D dari teks deskripsi</p>
           </div>
         </div>
-
       </div>
 
       <!-- Presets & 3D Assets Grid -->
       <div>
         <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-3">Preset Rantai Makanan Lengkap</h4>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          
           <!-- Card: Preset Sawah -->
           <div onclick="loadEcosystemPreset('sawah'); closeAllDrawers();" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/30 p-3 rounded-2xl transition-all cursor-pointer group shadow-sm hover:shadow-md">
             <div class="w-full h-28 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-xl flex items-center justify-center overflow-hidden mb-2.5">
@@ -284,7 +279,7 @@
             <div class="flex items-start justify-between">
               <div>
                 <h5 class="text-xs font-black text-slate-800">Ekosistem Sawah</h5>
-                <p class="text-[10px] text-slate-400 font-bold mt-0.5">6 Slot · 2.4 MB</p>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">6 Slot · 1.49 MB</p>
               </div>
               <span class="material-symbols-outlined text-purple-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
             </div>
@@ -317,16 +312,276 @@
               <span class="material-symbols-outlined text-purple-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
             </div>
           </div>
-
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- ─── 6. TEKS & ANOTASI DRAWER (PERSIS ASSEMBLR SCREENSHOT 3) ─── -->
-  <div id="drawer-text-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-80 bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
+  <!-- ─── 6. PUSTAKA 2D / GAMBAR DRAWER (SCREENSHOT 1) ───────────── -->
+  <div id="drawer-2d-library" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-full max-w-2xl bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
     <!-- Header -->
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+        <h2 class="text-base font-black text-slate-800">Pustaka 2D & Stiker SD</h2>
+      </div>
+
+      <!-- Tabs: Pustaka vs Milik Anda -->
+      <div class="flex bg-slate-100 p-1 rounded-xl">
+        <button class="px-3.5 py-1 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Pustaka</button>
+        <button class="px-3.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Milik Anda</button>
+      </div>
+    </div>
+
+    <!-- 3 Action Cards (Screenshot 1) -->
+    <div class="p-6 border-b border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <!-- Terkini -->
+      <button onclick="alert('Menampilkan stiker terkini!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
+        <span class="material-symbols-outlined text-purple-600 text-lg">sync</span> Terkini
+      </button>
+
+      <!-- Unggah Gambar 2D Kustom -->
+      <label for="custom-img-upload" class="cursor-pointer border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/40 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-slate-700 chunky-btn shadow-sm">
+        <span class="material-symbols-outlined text-blue-600 text-lg">cloud_upload</span> Unggah Gambar 2D
+        <input type="file" id="custom-img-upload" accept="image/*" class="hidden" onchange="handleImageTextureUpload(event)"/>
+      </label>
+
+      <!-- Generate with AI -->
+      <button onclick="alert('Fitur AI Stiker 2D siap!')" class="border border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-purple-700 chunky-btn shadow-sm">
+        <span class="material-symbols-outlined text-pink-600 text-lg">auto_awesome</span> Generate AI
+      </button>
+    </div>
+
+    <!-- Category Grid with Cute Pastel Cards (Screenshot 1) -->
+    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+        <!-- Alphabet -->
+        <div onclick="insertStickerToScene('Alphabet')" class="bg-[#fef08a]/40 hover:bg-[#fef08a]/70 border border-yellow-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🔤 🅰️ 🅱️</div>
+          <span class="text-xs font-black text-slate-800">Alphabet</span>
+        </div>
+
+        <!-- Animal -->
+        <div onclick="insertStickerToScene('Animal')" class="bg-[#bbf7d0]/40 hover:bg-[#bbf7d0]/70 border border-emerald-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🦁 🐸 🐘</div>
+          <span class="text-xs font-black text-slate-800">Animal</span>
+        </div>
+
+        <!-- Arctic -->
+        <div onclick="insertStickerToScene('Arctic')" class="bg-[#bae6fd]/40 hover:bg-[#bae6fd]/70 border border-sky-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🐻‍❄️ 🐧 🧊</div>
+          <span class="text-xs font-black text-slate-800">Arctic</span>
+        </div>
+
+        <!-- Arrows -->
+        <div onclick="insertStickerToScene('Arrows')" class="bg-[#e9d5ff]/40 hover:bg-[#e9d5ff]/70 border border-purple-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🔄 ➔ ⬆️</div>
+          <span class="text-xs font-black text-slate-800">Arrows</span>
+        </div>
+
+        <!-- Autumn -->
+        <div onclick="insertStickerToScene('Autumn')" class="bg-[#fed7aa]/40 hover:bg-[#fed7aa]/70 border border-orange-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🍂 🍄 🎃</div>
+          <span class="text-xs font-black text-slate-800">Autumn</span>
+        </div>
+
+        <!-- Background -->
+        <div onclick="insertStickerToScene('Background')" class="bg-[#a7f3d0]/40 hover:bg-[#a7f3d0]/70 border border-teal-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🏞️ 🏡 🌅</div>
+          <span class="text-xs font-black text-slate-800">Background</span>
+        </div>
+
+        <!-- Coral & Ocean -->
+        <div onclick="insertStickerToScene('Coral')" class="bg-[#fbcfe8]/40 hover:bg-[#fbcfe8]/70 border border-pink-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🪸 🐠 🐬</div>
+          <span class="text-xs font-black text-slate-800">Coral & Sea</span>
+        </div>
+
+        <!-- Cute-Animal -->
+        <div onclick="insertStickerToScene('Cute-Animal')" class="bg-[#fef9c3]/50 hover:bg-[#fef9c3] border border-amber-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">🐥 🐱 🐶</div>
+          <span class="text-xs font-black text-slate-800">Cute Animal</span>
+        </div>
+
+        <!-- Education SD -->
+        <div onclick="insertStickerToScene('Education')" class="bg-[#e0e7ff]/40 hover:bg-[#e0e7ff]/70 border border-indigo-200 p-3.5 rounded-2xl cursor-pointer chunky-btn flex flex-col items-center justify-between h-28">
+          <div class="flex items-center gap-1 text-2xl">📚 🎓 ✏️</div>
+          <span class="text-xs font-black text-slate-800">Education SD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 7. VIDEO DRAWER (SCREENSHOT 2) ────────────────────────── -->
+  <div id="drawer-video-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-full max-w-2xl bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+        <h2 class="text-base font-black text-slate-800">Video Pembelajaran Edukasi</h2>
+      </div>
+
+      <!-- Quota / Storage Badge (Screenshot 2) -->
+      <div class="flex items-center gap-2 bg-purple-50 border border-purple-200 px-3 py-1 rounded-full">
+        <span class="text-[10px] font-black text-[#632ce5]">2.5 / 30.0 MB</span>
+        <span class="text-[9px] bg-[#632ce5] text-white font-black px-1.5 py-0.2 rounded-full">SD EDU</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+      
+      <!-- Big Video Dropzone (Screenshot 2) -->
+      <label for="video-upload-input" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/40 hover:bg-purple-50 p-8 rounded-3xl flex flex-col items-center justify-center text-center gap-3 transition-all group">
+        <div class="w-14 h-14 rounded-2xl bg-purple-100 text-[#632ce5] flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+          <span class="material-symbols-outlined text-3xl">smart_display</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-[#632ce5]">Telusuri File Video</h3>
+          <p class="text-xs text-slate-500 font-bold mt-1">Kami mendukung format video: <strong>MP4 H.264 (AVC)</strong> dengan ukuran file maksimum 30MB.</p>
+        </div>
+        <input type="file" id="video-upload-input" accept="video/mp4" class="hidden" onchange="handleVideoUpload(event)"/>
+      </label>
+
+      <!-- Video Embed from YouTube URL -->
+      <div class="glass-panel p-5 rounded-2xl space-y-3">
+        <h4 class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-red-600 text-base">play_circle</span> Sematkan Tautan Video YouTube
+        </h4>
+        <div class="flex gap-2">
+          <input type="text" id="video-youtube-url" placeholder="https://www.youtube.com/watch?v=..." class="flex-1 p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all"/>
+          <button onclick="insertVideoFromUrl()" class="px-4 py-2.5 rounded-xl bg-[#632ce5] text-white font-black text-xs chunky-btn shadow-md">
+            Sematkan
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── 8. AUDIO DRAWER (SCREENSHOT 3) ────────────────────────── -->
+  <div id="drawer-audio-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-full max-w-2xl bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+        <h2 class="text-base font-black text-slate-800">Pustaka Audio Narasi & Musik</h2>
+      </div>
+
+      <!-- Quota Badge (Screenshot 3) -->
+      <div class="flex items-center gap-2 bg-purple-50 border border-purple-200 px-3 py-1 rounded-full">
+        <span class="text-[10px] font-black text-[#632ce5]">2.5 / 30.0 MB</span>
+        <span class="text-[9px] bg-[#632ce5] text-white font-black px-1.5 py-0.2 rounded-full">SD EDU</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+      
+      <!-- Big Audio Dropzone (Screenshot 3) -->
+      <label for="audio-upload-input" class="cursor-pointer border-2 border-dashed border-amber-200 hover:border-amber-400 bg-amber-50/40 hover:bg-amber-50 p-6 rounded-3xl flex flex-col items-center justify-center text-center gap-2 transition-all group">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+          <span class="material-symbols-outlined text-2xl">graphic_eq</span>
+        </div>
+        <h3 class="text-xs font-black text-amber-900">👑 Unggah File Audio Kustom</h3>
+        <p class="text-[10px] text-slate-500 font-bold">Format audio: MP3, WAV, dan OGG</p>
+        <input type="file" id="audio-upload-input" accept="audio/*" class="hidden" onchange="handleAudioUpload(event)"/>
+      </label>
+
+      <!-- Section 1: BGM Gratis (Screenshot 3) -->
+      <div>
+        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-amber-500 text-base">music_note</span> BGM Gratis (Musik Latar)
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- Card 1 -->
+          <div onclick="playSampleAudio('theme')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              🎵
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">AlamVerse Theme</h5>
+              <p class="text-[10px] text-slate-400 font-bold">0.79 MB</p>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div onclick="playSampleAudio('underwater')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              🌊
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">Underwater Vibes</h5>
+              <p class="text-[10px] text-slate-400 font-bold">0.49 MB</p>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div onclick="playSampleAudio('nature')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              🌲
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">Nature Sound</h5>
+              <p class="text-[10px] text-slate-400 font-bold">2.65 MB</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: SFX Gratis (Screenshot 3) -->
+      <div>
+        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-amber-500 text-base">volume_up</span> SFX Gratis (Efek Suara)
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- SFX 1 -->
+          <div onclick="playSampleAudio('pop')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              🔔
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">Klik Pop Edu</h5>
+              <p class="text-[10px] text-slate-400 font-bold">0.04 MB</p>
+            </div>
+          </div>
+
+          <!-- SFX 2 -->
+          <div onclick="playSampleAudio('win')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              ⭐
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">Win Cheers</h5>
+              <p class="text-[10px] text-slate-400 font-bold">0.13 MB</p>
+            </div>
+          </div>
+
+          <!-- SFX 3 -->
+          <div onclick="playSampleAudio('start')" class="border border-slate-200 hover:border-amber-300 bg-white hover:bg-amber-50/40 p-3 rounded-2xl flex items-center gap-3 cursor-pointer chunky-btn shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
+              🚀
+            </div>
+            <div class="min-w-0 flex-1">
+              <h5 class="text-xs font-black text-slate-800 truncate">Start Voice</h5>
+              <p class="text-[10px] text-slate-400 font-bold">0.03 MB</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── 9. TEKS & ANOTASI DRAWER ──────────────────────────────── -->
+  <div id="drawer-text-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-80 bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
     <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
       <h2 class="text-sm font-black text-slate-800">Tambah Teks & Anotasi</h2>
       <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
@@ -334,30 +589,25 @@
       </button>
     </div>
 
-    <!-- Tool Selector: Teks 3D vs Anotasi Badges -->
     <div class="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4">
       <div class="flex bg-slate-100 p-1 rounded-xl">
-        <button id="tab-text-3d" onclick="switchTextMode('3d')" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm transition-all">Teks 3D</button>
-        <button id="tab-text-badge" onclick="switchTextMode('badge')" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">Anotasi Badges</button>
+        <button id="tab-text-3d" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm">Teks 3D</button>
+        <button id="tab-text-badge" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900">Anotasi Badges</button>
       </div>
 
-      <!-- Text Input -->
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Isi Teks</label>
         <textarea id="text-input-val" rows="3" class="w-full p-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all resize-none" placeholder="Ketik teks 3D di sini..."></textarea>
       </div>
 
-      <!-- Font Dropdown -->
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Pilihan Font</label>
         <select id="text-font-val" class="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all">
           <option value="quicksand" selected>Quicksand Bold (SD Edu)</option>
           <option value="montserrat">Montserrat Black</option>
-          <option value="helvetiker">Helvetiker Classic</option>
         </select>
       </div>
 
-      <!-- Extrude Thickness Slider -->
       <div>
         <div class="flex justify-between text-[11px] font-black text-slate-700 mb-1.5">
           <span>Ketebalan 3D (Extrude)</span>
@@ -366,7 +616,6 @@
         <input type="range" id="text-extrude-val" min="0.05" max="1.0" step="0.05" value="0.25" oninput="document.getElementById('text-extrude-val-display').textContent=this.value" class="w-full accent-purple-600"/>
       </div>
 
-      <!-- Color Picker -->
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Warna Teks</label>
         <div class="flex items-center gap-2">
@@ -375,18 +624,68 @@
         </div>
       </div>
 
-      <!-- Place Button -->
       <button onclick="insert3DTextToScene()" class="w-full py-3 rounded-xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white text-xs shadow-md transition-all mt-4 chunky-btn">
         Tempatkan di Scene
       </button>
     </div>
   </div>
 
-  <!-- ─── 7. MODAL BAGIKAN (PERSIS ASSEMBLR SCREENSHOT 2) ────────── -->
+  <!-- ─── 10. POPUP MENU PENGATURAN STUDIO (SCREENSHOT 4) ────────── -->
+  <div id="popup-settings-menu" class="hidden absolute bottom-14 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-2 w-64 space-y-1 select-none animate-in fade-in zoom-in-95 duration-150">
+    <button onclick="resetCameraView('iso'); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+      <span class="material-symbols-outlined text-base">videocam</span> Atur Ulang Kamera
+    </button>
+    <button onclick="toggleGridHelper(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+      <span class="material-symbols-outlined text-base">grid_4x4</span> Tampilkan/Sembunyikan Garis
+    </button>
+    <button onclick="toggleBoundingBox(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+      <span class="material-symbols-outlined text-base">deployed_code</span> Show / Hide Collider
+    </button>
+    <div class="h-[1px] bg-slate-100 my-1"></div>
+    <button onclick="openKeyboardShortcutsModal(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+      <span class="material-symbols-outlined text-base">keyboard</span> Keyboard Shortcut
+    </button>
+  </div>
+
+  <!-- ─── 11. MODAL KEYBOARD SHORTCUTS (SCREENSHOT 4) ────────────── -->
+  <div id="modal-shortcuts" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+          <span class="material-symbols-outlined text-purple-600">keyboard</span> Pintasan Keyboard Studio
+        </h3>
+        <button onclick="document.getElementById('modal-shortcuts').classList.add('hidden')" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+      <div class="space-y-2.5 text-xs">
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">Translasi (Geser Posisi)</span>
+          <kbd class="px-2 py-1 bg-white border border-slate-200 rounded-lg font-black text-[#632ce5]">W</kbd>
+        </div>
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">Rotasi (Putar Objek)</span>
+          <kbd class="px-2 py-1 bg-white border border-slate-200 rounded-lg font-black text-[#632ce5]">E</kbd>
+        </div>
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">Skala (Perbesar/Kecil)</span>
+          <kbd class="px-2 py-1 bg-white border border-slate-200 rounded-lg font-black text-[#632ce5]">R</kbd>
+        </div>
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">Hapus Objek Terpilih</span>
+          <kbd class="px-2 py-1 bg-white border border-slate-200 rounded-lg font-black text-rose-600">Delete / Backspace</kbd>
+        </div>
+        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">Putar Sudut Pandang Kamera</span>
+          <kbd class="px-2 py-1 bg-white border border-slate-200 rounded-lg font-black text-slate-600">Klik Kiri + Geser</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 12. MODAL BAGIKAN (SCREENSHOT 2 DARI REQUEST SEBELUMNYA) ── -->
   <div id="modal-share" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-6">
-      
-      <!-- Modal Header -->
       <div class="flex items-center justify-between pb-2 border-b border-slate-100">
         <h3 class="text-base font-black text-slate-800">Bagikan Projek AR</h3>
         <button onclick="closeShareModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
@@ -394,7 +693,6 @@
         </button>
       </div>
 
-      <!-- Project Card Header -->
       <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
         <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-sm flex-shrink-0">
           🌾
@@ -408,7 +706,6 @@
         </div>
       </div>
 
-      <!-- Direct URL Input with Copy -->
       <div>
         <label class="text-[11px] font-black text-slate-700 block mb-1.5">Tautan Langsung AR</label>
         <div class="flex items-center gap-2">
@@ -419,73 +716,43 @@
         </div>
       </div>
 
-      <!-- Akses Marker Grid (Screenshot 2) -->
       <div>
         <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Akses Marker & Presentasi</h4>
         <div class="grid grid-cols-3 gap-2.5">
-          <!-- QR Marker -->
-          <button onclick="openPrintQrModal()" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+          <button onclick="alert('Mengunduh QR Code Marker AR!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
             <span class="material-symbols-outlined text-purple-600 text-2xl">qr_code_scanner</span>
             <span class="text-[11px] font-black text-slate-700">QR Marker</span>
           </button>
-
-          <!-- Custom Marker -->
-          <button onclick="openCustomMarkerModal()" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+          <button onclick="alert('Mengunduh Target Kartu Gambar!')" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
             <span class="material-symbols-outlined text-indigo-600 text-2xl">crop_original</span>
             <span class="text-[11px] font-black text-slate-700">Kartu Fisik</span>
           </button>
-
-          <!-- Present Mode -->
           <a href="/ecosystem/view/sawah" target="_blank" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn text-center">
             <span class="material-symbols-outlined text-emerald-600 text-2xl">slideshow</span>
             <span class="text-[11px] font-black text-slate-700">Present</span>
           </a>
         </div>
       </div>
-
-      <!-- Embed Project Grid (Screenshot 2) -->
-      <div>
-        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Sematkan Projek</h4>
-        <div class="grid grid-cols-3 gap-2.5">
-          <button onclick="copyEmbedCode('website')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
-            <span class="material-symbols-outlined text-slate-700 text-xl">code</span>
-            <span class="text-[10px] font-bold text-slate-600">On Website</span>
-          </button>
-          <button onclick="copyEmbedCode('canva')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
-            <span class="text-xs font-black text-cyan-600">Canva</span>
-            <span class="text-[10px] font-bold text-slate-600">On Canva</span>
-          </button>
-          <button onclick="copyEmbedCode('quizizz')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
-            <span class="text-xs font-black text-purple-600">Quizizz</span>
-            <span class="text-[10px] font-bold text-slate-600">On Quizizz</span>
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <!-- ─── 8. CORE THREE.JS & STUDIO LOGIC SCRIPT ──────────────────── -->
+  <!-- ─── 13. CORE THREE.JS & STUDIO LOGIC SCRIPT ─────────────────── -->
   <script>
     let scene, camera, renderer, controls, transformControls, gridHelper;
     let ecosystemGroup = null;
     let selectedObject = null;
     let currentActivePresetId = 'sawah';
 
-    // ── Initialize Three.js Studio Scene ──
     function initStudio() {
       const container = document.getElementById('canvas-container');
 
-      // 1. Scene & Background
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xf8fafc); // Clean Soft Canvas
+      scene.background = new THREE.Color(0xf8fafc);
       scene.fog = new THREE.FogExp2(0xf8fafc, 0.03);
 
-      // 2. Camera Setup (Isometric 45° Angle)
       camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(4.5, 4.0, 5.5);
 
-      // 3. WebGL Renderer with High-Quality Antialiasing & Shadows
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -493,14 +760,12 @@
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       container.appendChild(renderer.domElement);
 
-      // 4. OrbitControls
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.target.set(0, 0.6, 0);
-      controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent dipping below ground
+      controls.maxPolarAngle = Math.PI / 2 - 0.05;
 
-      // 5. Transform Controls (Gizmo)
       transformControls = new THREE.TransformControls(camera, renderer.domElement);
       transformControls.size = 0.75;
       transformControls.addEventListener('dragging-changed', (e) => {
@@ -508,7 +773,6 @@
       });
       scene.add(transformControls);
 
-      // 6. Lighting Setup (Vivid PBR Materials)
       const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
       scene.add(ambientLight);
 
@@ -523,21 +787,32 @@
       fillLight.position.set(-5, 4, -4);
       scene.add(fillLight);
 
-      // 7. Grid Floor Helper
       gridHelper = new THREE.GridHelper(10, 20, 0xc4b5fd, 0xe2e8f0);
       gridHelper.position.y = 0;
       scene.add(gridHelper);
 
-      // Window Resize Listener
       window.addEventListener('resize', onWindowResize);
-
-      // Raycaster Selection Listener
       renderer.domElement.addEventListener('pointerdown', onPointerDown);
 
-      // Initial Preset Load
-      loadEcosystemPreset('sawah');
+      // Keyboard Shortcut Listeners (W, E, R, Del)
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (e.key === 'w' || e.key === 'W') setGizmoMode('translate');
+        if (e.key === 'e' || e.key === 'E') setGizmoMode('rotate');
+        if (e.key === 'r' || e.key === 'R') setGizmoMode('scale');
+        if (e.key === 'Delete' || e.key === 'Backspace') deleteSelectedObject();
+      });
 
-      // Animation Loop
+      // Close settings popup when clicking outside
+      window.addEventListener('click', (e) => {
+        const popup = document.getElementById('popup-settings-menu');
+        const btn = document.getElementById('btn-settings-toggle');
+        if (popup && !popup.contains(e.target) && !btn.contains(e.target)) {
+          popup.classList.add('hidden');
+        }
+      });
+
+      loadEcosystemPreset('sawah');
       animate();
     }
 
@@ -553,7 +828,6 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // ── Raycaster Pointer Selection ──
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
@@ -584,7 +858,6 @@
       }
     }
 
-    // ── Gizmo Modes (Translate / Rotate / Scale) ──
     function setGizmoMode(mode) {
       transformControls.setMode(mode);
       ['t', 'r', 's'].forEach(m => {
@@ -603,7 +876,6 @@
       }
     }
 
-    // ── Load Preset GLB Model ──
     function loadEcosystemPreset(presetId) {
       currentActivePresetId = presetId;
       document.getElementById('project-title-input').value = `Ekosistem ${presetId.charAt(0).toUpperCase() + presetId.slice(1)}`;
@@ -632,7 +904,6 @@
         ecosystemGroup.position.set(0, 0, 0);
         scene.add(ecosystemGroup);
       }, undefined, () => {
-        // Fallback to preset GLB if baked model not found
         loader.load(fallbackUrl, (gltf) => {
           ecosystemGroup = gltf.scene;
           ecosystemGroup.position.set(0, 0, 0);
@@ -641,11 +912,12 @@
       });
     }
 
-    // ── Drawer Toggle Functions ──
+    // ── Drawer Management ──
     function toggleDrawer(drawerId) {
       const drawer = document.getElementById(drawerId);
       const isAlreadyOpen = drawer && !drawer.classList.contains('drawer-hidden');
       closeAllDrawers();
+      closeSettingsPopup();
       if (drawer && !isAlreadyOpen) {
         drawer.classList.remove('drawer-hidden');
       }
@@ -655,7 +927,36 @@
       document.querySelectorAll('.drawer-slide').forEach(d => d.classList.add('drawer-hidden'));
     }
 
-    // ── Share & Preview Modal Functions ──
+    // ── Settings Popup Management ──
+    function toggleSettingsPopup(event) {
+      if (event) event.stopPropagation();
+      const popup = document.getElementById('popup-settings-menu');
+      if (popup) {
+        popup.classList.toggle('hidden');
+      }
+    }
+
+    function closeSettingsPopup() {
+      const popup = document.getElementById('popup-settings-menu');
+      if (popup) popup.classList.add('hidden');
+    }
+
+    function toggleBoundingBox() {
+      alert('Mode Bounding Box Collider diaktifkan!');
+    }
+
+    function openKeyboardShortcutsModal() {
+      document.getElementById('modal-shortcuts').classList.remove('hidden');
+    }
+
+    function openTutorialModal() {
+      alert('🎓 Panduan AlamVerse AR Studio:\n1. Pilih Preset di bawah untuk memuat rantai makanan.\n2. Klik ikon 3D/Gambar/Teks di kiri untuk menambah objek.\n3. Tekan "Bagikan" untuk mendapatkan QR Marker & Tautan AR!');
+    }
+
+    function openSupportModal() {
+      alert('❓ Butuh bantuan? Hubungi tim support AlamVerse SD Edu melalui WhatsApp atau email resmi!');
+    }
+
     function openShareModal() {
       document.getElementById('modal-share').classList.remove('hidden');
     }
@@ -675,13 +976,6 @@
       alert('Tautan langsung AR berhasil disalin! 🚀');
     }
 
-    function copyEmbedCode(type) {
-      const url = document.getElementById('share-direct-url').value;
-      const code = `<iframe src="${url}" width="100%" height="600" frameborder="0" allow="camera;gyroscope;accelerometer"></iframe>`;
-      navigator.clipboard.writeText(code);
-      alert(`Kode semat ${type} berhasil disalin! 🚀`);
-    }
-
     function toggleGridHelper() {
       if (gridHelper) gridHelper.visible = !gridHelper.visible;
     }
@@ -699,11 +993,19 @@
       }
     }
 
-    function undoAction() { console.log('Undo triggered'); }
-    function redoAction() { console.log('Redo triggered'); }
+    function playSampleAudio(name) {
+      alert(`Memutar audio: "${name}" ✨`);
+    }
+
+    function insertStickerToScene(name) {
+      alert(`Stiker "${name}" siap ditempatkan di posisi 3D!`);
+      closeAllDrawers();
+    }
+
+    function undoAction() { console.log('Undo'); }
+    function redoAction() { console.log('Redo'); }
     function saveProject() { alert('Projek berhasil disimpan! ✨'); }
 
-    // Start Studio on DOM Ready
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
 </body>
