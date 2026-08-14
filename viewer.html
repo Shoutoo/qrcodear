@@ -2,26 +2,45 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>{{ECOSYSTEM_NAME}} — AlamVerse AR & 3D Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>AlamVerse — Universal AR & 3D Web Viewer</title>
   
   <!-- Tailwind CSS & Material Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 
-  <!-- Three.js Engine for WebAR Camera Marker Tracking & 360 Ring Canvas -->
+  <!-- Three.js Suite (Three, OrbitControls, GLTFLoader) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-  <!-- Google <model-viewer> Library -->
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <style>
-    body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #f4faff; color: #0d1e25; }
-    model-viewer { width: 100vw; height: 100vh; position: absolute; inset: 0; background: radial-gradient(circle at center, #ffffff 0%, #dff1fb 100%); }
+    body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #0f172a; color: #0d1e25; touch-action: none; }
     
-    /* 3D Hotspot Species Labels — Clean Anti-Collision Styling */
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      touch-action: none;
+    }
+
+    #camera-video {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      z-index: 0;
+      display: none;
+    }
+
+    /* 3D Hotspot Species Labels */
     .species-hotspot {
+      position: absolute;
+      transform: translate(-50%, -50%);
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(14px);
       border: 2px solid #632ce5;
@@ -29,28 +48,27 @@
       padding: 4px 10px;
       box-shadow: 0 8px 24px rgba(99, 44, 229, 0.16);
       font-family: 'Quicksand', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       color: #0d1e25;
       display: flex;
       align-items: center;
       gap: 5px;
       cursor: pointer;
-      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s ease;
+      pointer-events: auto;
       white-space: nowrap;
       user-select: none;
-      z-index: 10;
+      z-index: 20;
+      transition: transform 0.15s ease, background 0.15s ease;
     }
     @media (min-width: 640px) {
       .species-hotspot {
-        padding: 6px 14px;
-        font-size: 13px;
-        border-radius: 18px;
+        padding: 5px 12px;
+        font-size: 12px;
       }
     }
     .species-hotspot:hover {
-      transform: scale(1.08);
-      border-color: #632ce5;
+      transform: translate(-50%, -50%) scale(1.08);
       background: #632ce5;
       color: #ffffff;
     }
@@ -62,324 +80,567 @@
       padding: 2px 6px;
       border-radius: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    @media (min-width: 640px) {
-      .species-role-badge {
-        font-size: 10px;
-        padding: 2.5px 8px;
-        border-radius: 8px;
-      }
     }
 
-    /* Floating Clean Glassmorphism Card HUD */
+    /* Glassmorphism Cards */
     .hud-card {
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border: 1.5px solid rgba(212, 229, 239, 0.9);
-      box-shadow: 0 12px 32px -4px rgba(99, 44, 229, 0.12);
+      border: 1.5px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.15);
       color: #0d1e25;
     }
 
     /* Modern Chunky Button */
     .chunky-btn {
-      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .chunky-btn:active {
-      transform: scale(0.96);
+    .chunky-btn:active { transform: scale(0.95); }
+
+    /* Placement Reticle Ring Pulse */
+    @keyframes reticle-pulse {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+      50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    }
+    .reticle-ring {
+      animation: reticle-pulse 1.8s infinite ease-in-out;
     }
   </style>
 </head>
-<body class="w-screen h-screen relative select-none overflow-hidden">
+<body class="w-screen h-screen relative select-none overflow-hidden bg-slate-900">
 
-  <!-- TOP NAVIGATION HEADER & MODE SWITCHER (Overflow-Proof Responsive Layout) -->
+  <!-- ─── 0. LIVE WEBRTC CAMERA STREAM (IN-BROWSER AR SURFACE) ───── -->
+  <video id="camera-video" autoplay playsinline muted></video>
+
+  <!-- ─── 1. THREE.JS 3D / AR CANVAS VIEWPORT ────────────────────── -->
+  <div id="canvas-container"></div>
+
+  <!-- ─── 2. SPECIES 3D FLOATING HOTSPOT BADGES OVERLAY ─────────── -->
+  <div id="hotspots-overlay" class="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+    <div id="hotspot-0" class="species-hotspot hidden" onclick="onHotspotClick(0)">
+      <span id="label-slot-0">Padi</span>
+      <span class="species-role-badge" id="role-slot-0">PRODUSEN</span>
+    </div>
+    <div id="hotspot-1" class="species-hotspot hidden" onclick="onHotspotClick(1)">
+      <span id="label-slot-1">Belalang</span>
+      <span class="species-role-badge" id="role-slot-1">KONSUMEN I</span>
+    </div>
+    <div id="hotspot-2" class="species-hotspot hidden" onclick="onHotspotClick(2)">
+      <span id="label-slot-2">Katak</span>
+      <span class="species-role-badge" id="role-slot-2">KONSUMEN II</span>
+    </div>
+    <div id="hotspot-3" class="species-hotspot hidden" onclick="onHotspotClick(3)">
+      <span id="label-slot-3">Ular</span>
+      <span class="species-role-badge" id="role-slot-3">KONSUMEN III</span>
+    </div>
+    <div id="hotspot-4" class="species-hotspot hidden" onclick="onHotspotClick(4)">
+      <span id="label-slot-4">Elang</span>
+      <span class="species-role-badge" id="role-slot-4">KONSUMEN FINAL</span>
+    </div>
+    <div id="hotspot-5" class="species-hotspot hidden" onclick="onHotspotClick(5)">
+      <span id="label-slot-5">Jamur</span>
+      <span class="species-role-badge" id="role-slot-5">PENGURAI</span>
+    </div>
+  </div>
+
+  <!-- ─── 3. TOP NAVIGATION HEADER & VIEW MODE SELECTOR ─────────── -->
   <header class="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 z-30 pointer-events-auto">
     <div class="max-w-4xl mx-auto hud-card px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl sm:rounded-3xl flex items-center justify-between gap-2 shadow-lg">
       
-      <!-- Left Brand Info with Logo -->
-      <div class="flex items-center gap-2 sm:gap-2.5 min-w-0">
+      <!-- Brand & Project Info -->
+      <a href="/" class="flex items-center gap-2 sm:gap-2.5 min-w-0 cursor-pointer" title="Kembali ke Beranda">
         <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white shadow-md flex items-center justify-center flex-shrink-0">
-          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse Logo" class="w-5 h-5 sm:w-6 sm:h-6 object-contain select-none"/>
+          <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" class="w-5 h-5 sm:w-6 sm:h-6 object-contain"/>
         </div>
         <div class="min-w-0">
           <h1 class="font-extrabold text-[#0d1e25] text-xs sm:text-base leading-tight flex items-center gap-1.5 truncate">
-            <span class="truncate">{{ECOSYSTEM_NAME}}</span>
+            <span class="truncate" id="header-eco-name">Rantai Makanan AR</span>
             <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full bg-purple-100 text-[#632ce5] font-black border border-purple-200 flex-shrink-0">SD Edu</span>
           </h1>
           <p class="text-[10px] sm:text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 truncate">
             <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
-            <span class="truncate">Ring Rantai Makanan 360°</span>
+            <span id="header-mode-status" class="truncate">3D Interaktif Studio</span>
           </p>
         </div>
-      </div>
+      </a>
 
-      <!-- Right Mode Viewing Selector Buttons -->
+      <!-- Right Action & Mode Switcher Buttons -->
       <div class="flex items-center gap-1 bg-[#f1f5f9] p-1 rounded-xl sm:rounded-2xl border border-[#e2e8f0] flex-shrink-0">
-        <button id="btn-mode-3d" onclick="switchViewMode('3d')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm">
+        <!-- 3D Studio Mode Button -->
+        <button id="btn-tab-3d" onclick="setViewerMode('3d')" class="chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white shadow-sm transition-all flex items-center gap-1">
           <span class="material-symbols-outlined text-sm sm:text-base">3d_rotation</span> 3D
         </button>
-        <button id="btn-mode-webar" onclick="switchViewMode('webar')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm sm:text-base">qr_code_scanner</span> Marker
-        </button>
-        <button id="btn-mode-world" onclick="switchViewMode('world')" class="chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
-          <span class="material-symbols-outlined text-sm sm:text-base">view_in_ar</span> AR World
+        <!-- In-Browser Tap-to-Place Camera AR Button -->
+        <button id="btn-tab-ar" onclick="setViewerMode('ar')" class="chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm sm:text-base">view_in_ar</span> AR Kamera
         </button>
       </div>
 
     </div>
   </header>
 
-  <!-- SUB-HEADER: CRISP CONTRAST CIRCULAR TEXT BANNER (Responsive Fit) -->
-  <div id="circular-text-hud" class="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-2 flex justify-center">
+  <!-- ─── 4. SUB-HEADER: FOOD CHAIN FLOW BANNER ──────────────────── -->
+  <div id="flow-banner-container" class="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-2 flex justify-center">
     <div class="bg-gradient-to-r from-amber-400 to-amber-300 border border-amber-200 text-slate-950 text-[10px] sm:text-xs font-black px-3.5 sm:px-5 py-1.5 rounded-full flex items-center gap-1.5 shadow-md truncate">
       <span class="material-symbols-outlined text-xs sm:text-sm text-slate-950 flex-shrink-0">autorenew</span>
-      <span id="circular-text-banner" class="tracking-tight sm:tracking-wide truncate">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
+      <span class="tracking-tight sm:tracking-wide truncate">PRODUSEN ➔ KONSUMEN I ➔ KONSUMEN II ➔ KONSUMEN III ➔ PENGURAI</span>
     </div>
   </div>
 
-  <!-- Google <model-viewer> 3D Engine with Instant Auto-Rotate -->
-  <model-viewer
-    id="eco-viewer"
-    src="{{ECOSYSTEM_GLB_URL}}"
-    ar
-    ar-modes="scene-viewer webxr quick-look"
-    camera-controls
-    camera-orbit="30deg 60deg 7.5m"
-    shadow-intensity="1.5"
-    shadow-softness="0.8"
-    ar-placement="floor"
-    alt="{{ECOSYSTEM_NAME}}"
-    loading="eager"
-    auto-rotate
-    auto-rotate-delay="0"
-    rotation-per-second="20deg"
-  >
-    <!-- Slot 0 Hotspot: Produsen -->
-    <button slot="hotspot-0" class="species-hotspot" data-position="2.65 1.35 0" data-normal="0 1 0">
-      <span>{{SLOT_0_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_0_ROLE}}</span>
-    </button>
+  <!-- ─── 5. IN-BROWSER AR TAP-TO-PLACE INSTRUCTION RETICLE ──────── -->
+  <div id="ar-placement-guide" class="hidden absolute inset-0 pointer-events-none z-30 flex flex-col items-center justify-between p-6">
+    <!-- Top Instruction Pill -->
+    <div class="bg-slate-950/85 backdrop-blur-md text-white border border-purple-400/50 px-4 py-2.5 rounded-2xl text-xs font-black shadow-2xl flex items-center gap-2 mt-20 animate-bounce">
+      <span class="material-symbols-outlined text-purple-400 text-lg">touch_app</span>
+      <span>Arahkan kamera ke meja/lantai lalu KETUK LAYAR</span>
+    </div>
 
-    <!-- Slot 1 Hotspot: Konsumen I -->
-    <button slot="hotspot-1" class="species-hotspot" data-position="1.32 1.45 2.29" data-normal="0 1 0">
-      <span>{{SLOT_1_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_1_ROLE}}</span>
-    </button>
+    <!-- Center Glowing Reticle Ring -->
+    <div class="reticle-ring w-36 h-36 rounded-full border-4 border-dashed border-purple-400 bg-purple-500/20 shadow-2xl flex items-center justify-center pointer-events-none">
+      <div class="w-4 h-4 rounded-full bg-amber-400 shadow-md"></div>
+    </div>
 
-    <!-- Slot 2 Hotspot: Konsumen II -->
-    <button slot="hotspot-2" class="species-hotspot" data-position="-1.32 1.35 2.29" data-normal="0 1 0">
-      <span>{{SLOT_2_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_2_ROLE}}</span>
-    </button>
+    <!-- Bottom Help Text -->
+    <div class="bg-slate-950/80 backdrop-blur-md text-slate-200 text-[11px] font-bold px-4 py-2 rounded-xl mb-24 border border-slate-700 text-center">
+      Ketuk sekali untuk mengunci model ekosistem 3D di ruangan nyata!
+    </div>
+  </div>
 
-    <!-- Slot 3 Hotspot: Konsumen III -->
-    <button slot="hotspot-3" class="species-hotspot" data-position="-2.65 1.45 0" data-normal="0 1 0">
-      <span>{{SLOT_3_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_3_ROLE}}</span>
-    </button>
-
-    <!-- Slot 4 Hotspot: Konsumen Final -->
-    <button slot="hotspot-4" class="species-hotspot" data-position="-1.32 1.35 -2.29" data-normal="0 1 0">
-      <span>{{SLOT_4_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_4_ROLE}}</span>
-    </button>
-
-    <!-- Slot 5 Hotspot: Decomposer -->
-    <button slot="hotspot-5" class="species-hotspot" data-position="1.32 1.45 -2.29" data-normal="0 1 0">
-      <span>{{SLOT_5_LABEL}}</span>
-      <span class="species-role-badge">{{SLOT_5_ROLE}}</span>
-    </button>
-
-    <!-- Center Ring Hotspot Badge -->
-    <button slot="hotspot-center" class="species-hotspot" data-position="0 2.6 0" data-normal="0 1 0" style="border-color: #705d00; background: #ffe170; color: #0d1e25;">
-      <span class="material-symbols-outlined text-secondary text-sm sm:text-base">cyclone</span>
-      <span class="font-extrabold text-[11px] sm:text-xs">RANTAI MAKANAN 360°</span>
-    </button>
-  </model-viewer>
-
-  <!-- BOTTOM FLOATING HUD: UNIFIED ROTATION CONTROLS & AR BUTTON (Sleek Compact Island) -->
+  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (3D & AR CONTROLS) ───────── -->
   <div class="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[94vw] sm:max-w-md px-2">
     <div class="hud-card p-3 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 sm:space-y-2.5 shadow-2xl">
       
-      <!-- Top Row: Rotational Controls -->
+      <!-- Top Row: Controls (Rotate, Reset View, Audio Narration) -->
       <div class="flex items-center justify-between gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold text-slate-700">
-        <button onclick="toggleRotation()" id="btn-toggle-rotation" class="chunky-btn flex-1 py-1.5 px-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
+        <!-- Auto Rotate Toggle -->
+        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn flex-1 py-1.5 px-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
           <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">pause_circle</span>
           <span id="rot-text">Hentikan Putaran</span>
         </button>
 
-        <button onclick="reverseRotation()" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Balik Arah Rotasi">
-          <span class="material-symbols-outlined text-sm sm:text-base">screen_rotation</span> Arah
+        <!-- Reset Camera View -->
+        <button type="button" onclick="resetCameraView()" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Atur Ulang Kamera">
+          <span class="material-symbols-outlined text-sm sm:text-base">center_focus_strong</span> Reset
         </button>
 
-        <div class="flex items-center gap-1 bg-[#f1f5f9] px-2 py-1 rounded-xl border border-[#e2e8f0]">
-          <span class="text-[10px] sm:text-[11px] text-slate-500 font-semibold">Speed:</span>
-          <select onchange="changeSpeed(this.value)" class="bg-transparent text-[11px] sm:text-xs font-extrabold text-[#632ce5] outline-none cursor-pointer p-0 border-none focus:ring-0">
-            <option value="10deg">0.5x</option>
-            <option value="20deg" selected>1.0x</option>
-            <option value="45deg">2.0x</option>
-          </select>
+        <!-- Toggle Hotspot Labels -->
+        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
+          <span class="material-symbols-outlined text-sm sm:text-base">label</span> Label
+        </button>
+
+        <!-- Audio BGM -->
+        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center gap-1 transition-colors" title="Audio Suara">
+          <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
+        </button>
+      </div>
+
+      <!-- Bottom Row: Primary AR Trigger / Placement Control CTA -->
+      <div id="ar-cta-container">
+        <!-- In 3D Mode: Big "Mulai AR Kamera" CTA -->
+        <button type="button" onclick="setViewerMode('ar')" id="btn-main-ar-start" class="chunky-btn w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide cursor-pointer">
+          <span class="material-symbols-outlined text-base sm:text-lg">view_in_ar</span> Lihat di AR (Kamera Browser)
+        </button>
+
+        <!-- In AR Mode: Re-position & Exit AR Bar -->
+        <div id="ar-active-bar" class="hidden flex items-center gap-2">
+          <button type="button" onclick="resetArPlacement()" class="chunky-btn flex-1 py-2.5 rounded-xl font-black bg-purple-100 hover:bg-purple-200 text-[#632ce5] text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-sm">filter_center_focus</span> Pindah Posisi Meja
+          </button>
+          <button type="button" onclick="setViewerMode('3d')" class="chunky-btn py-2.5 px-4 rounded-xl font-black bg-slate-900 hover:bg-black text-white text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-sm">close</span> Tutup AR
+          </button>
         </div>
       </div>
 
-      <!-- Bottom Row: Solid Main AR Trigger Button -->
-      <button onclick="triggerArExperience()" id="ar-main-btn" class="chunky-btn w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide">
-        <span class="material-symbols-outlined text-base sm:text-lg">view_in_ar</span> Mulai AR Permukaan Dunia Nyata
-      </button>
-
     </div>
   </div>
 
-  <!-- WEBAR CAMERA MARKER MODAL -->
-  <div id="webar-camera-modal" class="hidden fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col justify-between p-4">
-    <!-- Camera Header -->
-    <div class="flex items-center justify-between text-white z-10">
-      <div class="flex items-center gap-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-        <span class="text-xs font-extrabold">WebAR Kamera Scan Marker</span>
+  <!-- ─── 7. SPECIES DETAIL MODAL SHEET ─────────────────────────── -->
+  <div id="species-info-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+    <div class="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <div id="modal-species-icon" class="w-10 h-10 rounded-2xl bg-purple-100 text-[#632ce5] flex items-center justify-center text-xl font-black">
+            🌱
+          </div>
+          <div>
+            <h3 id="modal-species-name" class="text-base font-black text-slate-900">Nama Spesies</h3>
+            <span id="modal-species-role" class="text-[10px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-md uppercase">PRODUSEN</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeSpeciesModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
       </div>
-      <button onclick="closeWebarCamera()" class="p-2 rounded-full bg-white/10 text-white hover:bg-white/20">
-        <span class="material-symbols-outlined text-xl">close</span>
+
+      <div class="space-y-2 text-xs font-semibold text-slate-600">
+        <p id="modal-species-desc">Deskripsi peran organisme dalam rantai makanan ekosistem SD Edu.</p>
+        <div class="bg-purple-50 p-3 rounded-2xl border border-purple-100 text-[#632ce5] font-bold">
+          💡 <strong>Fakta Sains:</strong> Organisme ini sangat penting untuk menjaga keseimbangan alam!
+        </div>
+      </div>
+
+      <button type="button" onclick="closeSpeciesModal()" class="w-full py-2.5 rounded-xl font-black bg-[#632ce5] text-white text-xs shadow-md chunky-btn">
+        Tutup & Lanjut Belajar
       </button>
-    </div>
-
-    <!-- Live Video Feed -->
-    <div class="relative w-full h-full flex items-center justify-center overflow-hidden my-2 rounded-3xl border-2 border-primary/40 bg-black">
-      <video id="webar-video" autoplay playsinline muted class="w-full h-full object-cover"></video>
-      
-      <!-- Target QR Frame Alignment Box -->
-      <div class="absolute w-64 h-64 border-4 border-dashed border-primary rounded-3xl pointer-events-none flex flex-col items-center justify-between p-4 bg-primary/10">
-        <span class="text-xs font-extrabold text-white bg-primary px-3 py-1 rounded-full shadow">Scan Kartu / QR Marker</span>
-        <span class="material-symbols-outlined text-4xl text-amber-300 animate-pulse">center_focus_weak</span>
-        <span class="text-[10px] text-white/90 font-bold bg-black/60 px-2 py-0.5 rounded">AlamVerse Universal WebAR</span>
-      </div>
-    </div>
-
-    <!-- Camera Instruction Bar -->
-    <div class="text-center text-xs text-white font-semibold p-2">
-      Arahkan kamera ke Kartu QR Ekosistem yang sudah dicetak. Objek 3D akan diproyeksikan langsung di layar HP Anda!
     </div>
   </div>
 
-  <!-- Clean Single Script Block with Instant Auto-Rotate Trigger -->
+  <!-- ─── 8. IN-APP TOAST NOTIFICATION ──────────────────────────── -->
+  <div id="viewer-toast" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-700/80 pointer-events-none transition-all">
+    <span id="toast-icon" class="material-symbols-outlined text-base text-amber-400">info</span>
+    <span id="toast-message">Notifikasi</span>
+  </div>
+
+  <!-- ─── 9. CORE THREE.JS & IN-BROWSER AR ENGINE SCRIPT ────────── -->
   <script>
-    const viewer = document.getElementById('eco-viewer');
-    let isRotating = true;
-    let rotationSpeed = '20deg';
-    let isReversed = false;
+    // Extract preset or URL from query params if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const presetParam = urlParams.get('preset') || 'sawah';
+    const GLB_URL = urlParams.get('glb') || `/uploads/ekosistem_${presetParam}_lengkap.glb`;
+    const fallbackGLB = `/uploads/preset-${presetParam}.glb`;
+
+    let scene, camera, renderer, controls;
+    let ecosystemGroup = null;
+    let isAutoRotating = true;
+    let currentMode = '3d'; // '3d' or 'ar'
     let cameraStream = null;
+    let showHotspotLabels = true;
+    let isModelPlacedInAR = false;
+    let audioPlaying = false;
 
-    // ─── Force Instant Auto-Rotate on Initial Page Load ──────────
-    function forceStartAutoRotate() {
-      if (isRotating && viewer) {
-        viewer.setAttribute('auto-rotate', '');
-        viewer.setAttribute('auto-rotate-delay', '0');
-        let numericSpeed = parseInt(rotationSpeed) || 20;
-        if (isReversed) numericSpeed = -Math.abs(numericSpeed);
-        else numericSpeed = Math.abs(numericSpeed);
-        viewer.setAttribute('rotation-per-second', `${numericSpeed}deg`);
-      }
+    // Slot positions on 3D ring for hotspot tracking
+    const slotPositions = [
+      new THREE.Vector3(2.65, 0.8, 0),       // Slot 0: Produsen
+      new THREE.Vector3(1.32, 0.8, 2.29),    // Slot 1: Konsumen I
+      new THREE.Vector3(-1.32, 0.8, 2.29),   // Slot 2: Konsumen II
+      new THREE.Vector3(-2.65, 0.8, 0),      // Slot 3: Konsumen III
+      new THREE.Vector3(-1.32, 0.8, -2.29),  // Slot 4: Konsumen IV
+      new THREE.Vector3(1.32, 0.8, -2.29)    // Slot 5: Pengurai
+    ];
+
+    function initEngine() {
+      const container = document.getElementById('canvas-container');
+
+      // 1. Scene Setup
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf4faff);
+
+      // 2. Camera Setup
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(4.5, 3.8, 5.5);
+
+      // 3. Renderer Setup (with Alpha for live camera pass-through)
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // 4. Orbit Controls (for 3D studio inspection)
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.target.set(0, 0.5, 0);
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+
+      // 5. Lighting Setup (Soft Studio + Direct Key Light)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+      dirLight.position.set(5, 10, 7);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      const fillLight = new THREE.DirectionalLight(0xa5b4fc, 0.6);
+      fillLight.position.set(-5, 4, -4);
+      scene.add(fillLight);
+
+      // 6. Ground Shadow Receiver Mesh
+      const shadowGeo = new THREE.PlaneGeometry(16, 16);
+      const shadowMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+      const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+      shadowMesh.rotation.x = -Math.PI / 2;
+      shadowMesh.receiveShadow = true;
+      scene.add(shadowMesh);
+
+      // 7. Load GLB Model
+      loadModel(GLB_URL);
+
+      // 8. Event Listeners
+      window.addEventListener('resize', onWindowResize);
+      container.addEventListener('pointerdown', onCanvasPointerDown);
+
+      animate();
     }
 
-    // Bind instant rotation triggers across lifecycle
-    window.addEventListener('DOMContentLoaded', forceStartAutoRotate);
-    if (viewer) {
-      viewer.addEventListener('load', forceStartAutoRotate);
-      viewer.addEventListener('poster-dismissed', forceStartAutoRotate);
-      viewer.addEventListener('load-error', (e) => console.warn('Model load warning:', e));
-    }
+    function loadModel(url) {
+      const loader = new THREE.GLTFLoader();
+      loader.load(url, (gltf) => {
+        if (ecosystemGroup) scene.remove(ecosystemGroup);
+        ecosystemGroup = gltf.scene;
+        ecosystemGroup.position.set(0, 0, 0);
 
-    // ─── 3 Mode Viewing Switcher ───────────────────────────────
-    function switchViewMode(mode) {
-      const btn3d = document.getElementById('btn-mode-3d');
-      const btnWebar = document.getElementById('btn-mode-webar');
-      const btnWorld = document.getElementById('btn-mode-world');
+        // Compute optimal scale
+        const box = new THREE.Box3().setFromObject(ecosystemGroup);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        if (maxDim > 8) {
+          const s = 6.0 / maxDim;
+          ecosystemGroup.scale.set(s, s, s);
+        }
 
-      const inactiveClass = "chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1";
-      const activeClass = "chunky-btn px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white transition-all flex items-center gap-1 shadow-sm";
+        ecosystemGroup.traverse((node) => {
+          if (node.isMesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+          }
+        });
 
-      [btn3d, btnWebar, btnWorld].forEach(btn => {
-        if (btn) btn.className = inactiveClass;
+        scene.add(ecosystemGroup);
+        showToast(`Model 3D berhasil dimuat! ✨`, 'check_circle');
+      }, undefined, () => {
+        loader.load(fallbackGLB, (gltf) => {
+          if (ecosystemGroup) scene.remove(ecosystemGroup);
+          ecosystemGroup = gltf.scene;
+          ecosystemGroup.position.set(0, 0, 0);
+          scene.add(ecosystemGroup);
+        });
       });
+    }
 
-      if (mode === '3d') {
-        if (btn3d) btn3d.className = activeClass;
-        closeWebarCamera();
-      } else if (mode === 'webar') {
-        if (btnWebar) btnWebar.className = activeClass;
-        openWebarCamera();
-      } else if (mode === 'world') {
-        if (btnWorld) btnWorld.className = activeClass;
-        triggerArExperience();
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (controls && controls.enabled) {
+        controls.update();
+      }
+
+      // Auto-rotation in 3D studio mode
+      if (isAutoRotating && ecosystemGroup && currentMode === '3d') {
+        ecosystemGroup.rotation.y += 0.005;
+      }
+
+      // Update 2D Hotspot Coordinates based on 3D Object Rotation
+      if (showHotspotLabels && ecosystemGroup) {
+        updateHotspots2D();
+      }
+
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
       }
     }
 
-    // ─── Rotation Control Handlers ────────────────────────────
-    function toggleRotation() {
+    function updateHotspots2D() {
+      const rotY = ecosystemGroup.rotation.y;
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById(`hotspot-${i}`);
+        if (!el) continue;
+
+        const worldPos = slotPositions[i].clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
+        worldPos.add(ecosystemGroup.position);
+
+        const screenVector = worldPos.clone().project(camera);
+        if (screenVector.z < 1) {
+          const x = (screenVector.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-(screenVector.y * 0.5) + 0.5) * window.innerHeight;
+          el.style.left = `${x}px`;
+          el.style.top = `${y}px`;
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      }
+    }
+
+    function onWindowResize() {
+      if (!camera || !renderer) return;
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // ─── Mode Switching: 3D vs In-Browser Camera AR ───────────────
+    async function setViewerMode(mode) {
+      currentMode = mode;
+      const btn3d = document.getElementById('btn-tab-3d');
+      const btnAr = document.getElementById('btn-tab-ar');
+      const video = document.getElementById('camera-video');
+      const headerStatus = document.getElementById('header-mode-status');
+      const arGuide = document.getElementById('ar-placement-guide');
+      const mainArStart = document.getElementById('btn-main-ar-start');
+      const arActiveBar = document.getElementById('ar-active-bar');
+
+      const inactiveTabClass = "chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold text-slate-600 hover:text-[#632ce5] hover:bg-white transition-all flex items-center gap-1";
+      const activeTabClass = "chunky-btn px-2.5 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-[#632ce5] text-white shadow-sm transition-all flex items-center gap-1";
+
+      if (mode === 'ar') {
+        btn3d.className = inactiveTabClass;
+        btnAr.className = activeTabClass;
+        headerStatus.textContent = 'Mode AR Kamera Nyata (Tap-to-Place)';
+        mainArStart.classList.add('hidden');
+        arActiveBar.classList.remove('hidden');
+        scene.background = null;
+
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+          });
+          video.srcObject = cameraStream;
+          video.style.display = 'block';
+
+          isModelPlacedInAR = false;
+          if (ecosystemGroup) ecosystemGroup.visible = false;
+          arGuide.classList.remove('hidden');
+
+          showToast('Kamera aktif! Ketuk layar untuk menaruh objek di meja.', 'view_in_ar');
+        } catch (err) {
+          showToast('Izin kamera ditolak atau tidak didukung pada browser ini.', 'error');
+          setViewerMode('3d');
+        }
+      } else {
+        btn3d.className = activeTabClass;
+        btnAr.className = inactiveTabClass;
+        headerStatus.textContent = '3D Interaktif Studio';
+        mainArStart.classList.remove('hidden');
+        arActiveBar.classList.add('hidden');
+        arGuide.classList.add('hidden');
+        scene.background = new THREE.Color(0xf4faff);
+
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(t => t.stop());
+          cameraStream = null;
+        }
+        video.style.display = 'none';
+
+        if (ecosystemGroup) {
+          ecosystemGroup.visible = true;
+          ecosystemGroup.position.set(0, 0, 0);
+          ecosystemGroup.scale.set(1, 1, 1);
+        }
+        controls.enabled = true;
+        resetCameraView();
+      }
+    }
+
+    // ─── Screen Tap-to-Place Handler in In-Browser AR ─────────────
+    function onCanvasPointerDown(event) {
+      if (currentMode !== 'ar') return;
+
+      if (!isModelPlacedInAR && ecosystemGroup) {
+        ecosystemGroup.visible = true;
+        ecosystemGroup.position.set(0, -0.4, -2.2);
+        ecosystemGroup.scale.set(0.45, 0.45, 0.45);
+        isModelPlacedInAR = true;
+
+        document.getElementById('ar-placement-guide').classList.add('hidden');
+        showToast('Ekosistem 3D berhasil ditempatkan di ruangan nyata! ✨', 'check_circle');
+      }
+    }
+
+    function resetArPlacement() {
+      isModelPlacedInAR = false;
+      if (ecosystemGroup) ecosystemGroup.visible = false;
+      document.getElementById('ar-placement-guide').classList.remove('hidden');
+      showToast('Arahkan kamera ke titik baru lalu ketuk layar.', 'filter_center_focus');
+    }
+
+    // ─── Control Buttons Handlers ─────────────────────────────────
+    function toggleAutoRotate() {
+      isAutoRotating = !isAutoRotating;
       const btnText = document.getElementById('rot-text');
       const btnIcon = document.getElementById('rot-icon');
-      if (isRotating) {
-        viewer.removeAttribute('auto-rotate');
-        isRotating = false;
-        if (btnText) btnText.innerText = 'Mulai Putaran';
-        if (btnIcon) btnIcon.innerText = 'play_circle';
+      if (isAutoRotating) {
+        btnText.textContent = 'Hentikan Putaran';
+        btnIcon.textContent = 'pause_circle';
       } else {
-        viewer.setAttribute('auto-rotate', '');
-        viewer.setAttribute('auto-rotate-delay', '0');
-        isRotating = true;
-        if (btnText) btnText.innerText = 'Hentikan Putaran';
-        if (btnIcon) btnIcon.innerText = 'pause_circle';
-        forceStartAutoRotate();
+        btnText.textContent = 'Mulai Putaran';
+        btnIcon.textContent = 'play_circle';
       }
     }
 
-    function reverseRotation() {
-      isReversed = !isReversed;
-      forceStartAutoRotate();
+    function resetCameraView() {
+      camera.position.set(4.5, 3.8, 5.5);
+      controls.target.set(0, 0.5, 0);
+      showToast('Sudut kamera diatur ulang', 'center_focus_strong');
     }
 
-    function changeSpeed(val) {
-      rotationSpeed = val;
-      forceStartAutoRotate();
-    }
-
-    // ─── WebAR Standalone Camera Launcher ─────────────────────
-    async function openWebarCamera() {
-      const modal = document.getElementById('webar-camera-modal');
-      const video = document.getElementById('webar-video');
-      if (modal) modal.classList.remove('hidden');
-
-      try {
-        cameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false
-        });
-        if (video) video.srcObject = cameraStream;
-      } catch (err) {
-        alert('Gagal mengaktifkan kamera browser. Izinkan akses kamera pada browser Anda.');
-        closeWebarCamera();
+    function toggleLabels() {
+      showHotspotLabels = !showHotspotLabels;
+      for (let i = 0; i < 6; i++) {
+        const el = document.getElementById(`hotspot-${i}`);
+        if (el) {
+          if (showHotspotLabels) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
       }
+      showToast(showHotspotLabels ? 'Label Spesies Ditampilkan' : 'Label Spesies Disembunyikan', 'label');
     }
 
-    function closeWebarCamera() {
-      const modal = document.getElementById('webar-camera-modal');
-      if (modal) modal.classList.add('hidden');
-      if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
-      }
-    }
-
-    // ─── World Tracking AR Trigger with Fallback ──────────────
-    function triggerArExperience() {
-      if (viewer && viewer.canActivateAR) {
-        viewer.activateAR();
+    function toggleAudioNarration() {
+      audioPlaying = !audioPlaying;
+      const icon = document.getElementById('audio-icon');
+      if (audioPlaying) {
+        icon.textContent = 'volume_up';
+        showToast('Memutar audio narasi rantai makanan 🎵', 'music_note');
       } else {
-        alert('🌐 Perangkat Anda tidak memiliki Google Play Services for AR (ARCore).\n\nSistem otomatis mengaktifkan Mode 3D Interaktif & Marker Kamera agar dapat diakses di device ini!');
-        switchViewMode('webar');
+        icon.textContent = 'volume_off';
+        showToast('Audio narasi dihentikan', 'volume_off');
       }
     }
+
+    // ─── Hotspot Click & Detail Modal ────────────────────────────
+    const speciesDescriptions = [
+      "Produsen: Menghasilkan energi sendiri melalui fotosintesis dengan bantuan sinar matahari.",
+      "Konsumen I (Herbivora): Hewan pemakan tumbuhan yang memakan produsen secara langsung.",
+      "Konsumen II (Karnivora/Insektivora): Hewan pemangsa yang memakan konsumen primer.",
+      "Konsumen III (Karnivora Menengah): Pemangsa tingkat lanjutan dalam siklus jaring makanan.",
+      "Konsumen Final (Apex Predator): Predator puncak yang tidak memiliki pemangsa alami.",
+      "Pengurai (Dekomposer): Menguraikan sisa organisme mati menjadi nutrisi tanah penyubur produsen."
+    ];
+
+    const speciesIcons = ['🌾', '🦗', '🐸', '🐍', '🦅', '🍄'];
+
+    function onHotspotClick(index) {
+      const label = document.getElementById(`label-slot-${index}`).textContent;
+      const role = document.getElementById(`role-slot-${index}`).textContent;
+
+      document.getElementById('modal-species-name').textContent = label;
+      document.getElementById('modal-species-role').textContent = role;
+      document.getElementById('modal-species-desc').textContent = speciesDescriptions[index] || "Spesies anggota ekosistem pembelajaran SD.";
+      document.getElementById('modal-species-icon').textContent = speciesIcons[index] || '🐾';
+
+      document.getElementById('species-info-modal').classList.remove('hidden');
+    }
+
+    function closeSpeciesModal() {
+      document.getElementById('species-info-modal').classList.add('hidden');
+    }
+
+    // ─── In-App Toast Engine ─────────────────────────────────────
+    function showToast(message, icon = 'info') {
+      const toast = document.getElementById('viewer-toast');
+      const msgEl = document.getElementById('toast-message');
+      const iconEl = document.getElementById('toast-icon');
+      if (toast && msgEl) {
+        msgEl.textContent = message;
+        if (iconEl) iconEl.textContent = icon;
+        toast.classList.remove('hidden');
+        clearTimeout(window._toastTimeout);
+        window._toastTimeout = setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 2800);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initEngine);
   </script>
 </body>
 </html>
