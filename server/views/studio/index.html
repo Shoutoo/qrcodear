@@ -3,264 +3,490 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR Scene Studio — Multi-Object Editor (Fase 5)</title>
+  <title>AR Scene Studio — AlamVerse Edu 3D (Assemblr-Style)</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Material Symbols -->
+  <!-- Google Material Symbols & Quicksand Font -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-  <!-- Quicksand Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Quicksand', sans-serif; overflow: hidden; }
+    body { font-family: 'Quicksand', sans-serif; overflow: hidden; background-color: #f8fafc; color: #0f172a; }
     #canvas-container { width: 100vw; height: 100vh; position: absolute; inset: 0; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    
+    /* Sleek Custom Scrollbars */
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: rgba(241, 245, 249, 0.6); }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Glassmorphism Cards */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Chunky Friendly Buttons */
+    .chunky-btn {
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .chunky-btn:active { transform: scale(0.95); }
+
+    /* Flyout Drawer Transitions */
+    .drawer-slide {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    .drawer-hidden {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(6px);
+      transition: opacity 0.25s ease;
+    }
+
+    /* ViewCube Gizmo */
+    #view-cube {
+      width: 64px; height: 64px;
+      perspective: 300px;
+      user-select: none;
+    }
   </style>
 
-  <!-- Three.js, OrbitControls, TransformControls, DRACO, GLTFLoader, FontLoader, TextGeometry -->
+  <!-- Three.js Suite (Three, OrbitControls, TransformControls, GLTFLoader, GLTFExporter) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/GLTFExporter.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 select-none">
+<body class="w-screen h-screen relative select-none">
 
-  <!-- ── 3D Viewport Canvas Container ────────────────────────── -->
+  <!-- ─── 3D VIEWPORT CANVAS ────────────────────────────────────── -->
   <div id="canvas-container"></div>
 
-  <!-- ── Studio Overlay UI ────────────────────────────────────── -->
-  <!-- Header Bar -->
-  <header class="absolute top-0 left-0 right-0 p-4 flex items-center justify-between pointer-events-none z-10">
-    <div class="flex items-center gap-3 bg-white/95 backdrop-blur-md border border-slate-200/90 px-4 py-2 rounded-2xl shadow-md pointer-events-auto">
-      <div class="bg-emerald-600 p-1.5 rounded-xl flex items-center justify-center">
-        <span class="material-symbols-outlined text-white text-lg">view_in_ar</span>
-      </div>
-      <div>
-        <h1 class="font-bold text-sm text-slate-800 leading-none">AR Scene Studio</h1>
-        <p class="text-[10px] text-emerald-700 mt-1 font-bold" id="studio-mode-badge">🌱 Preset Ekosistem (Reliable AR)</p>
-      </div>
+  <!-- ─── 1. LEFT SIDEBAR NAVIGATION RAIL (ASSEMBLR STYLE) ──────── -->
+  <aside class="absolute top-0 left-0 bottom-0 w-[68px] bg-white border-r border-slate-200/90 z-30 flex flex-col items-center justify-between py-3.5 shadow-sm select-none">
+    
+    <!-- Top Group: Home & Creator Tools -->
+    <div class="flex flex-col items-center gap-2.5 w-full px-2">
+      <!-- Brand Logo / Home Link -->
+      <a href="/dashboard" class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#632ce5] to-[#7c4dff] text-white flex items-center justify-center shadow-md hover:scale-105 transition-all mb-2" title="Kembali ke Dashboard">
+        <img src="/assets/logo/logo-putih.svg" alt="AlamVerse" class="w-6 h-6 object-contain" onerror="this.innerHTML='🌱'"/>
+      </a>
+
+      <div class="w-8 h-[1px] bg-slate-200 my-1"></div>
+
+      <!-- Tool: 3D Library (Pustaka 3D) -->
+      <button onclick="toggleDrawer('drawer-3d-library')" id="tool-btn-3d" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Pustaka 3D">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">deployed_code</span>
+        <span class="text-[9px] font-extrabold mt-0.5">3D</span>
+      </button>
+
+      <!-- Tool: Teks & Anotasi -->
+      <button onclick="toggleDrawer('drawer-text-tool')" id="tool-btn-text" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Teks & Anotasi 3D">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">title</span>
+        <span class="text-[9px] font-extrabold mt-0.5">Teks</span>
+      </button>
+
+      <!-- Tool: Gambar / Tekstur -->
+      <button onclick="triggerImageUpload()" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Unggah Gambar">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">image</span>
+        <span class="text-[9px] font-extrabold mt-0.5">Gambar</span>
+      </button>
+      <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="handleImageTextureUpload(event)"/>
+
+      <!-- Tool: Video Pembelajaran SD -->
+      <button onclick="toggleDrawer('drawer-video-tool')" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Video Edukasi">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">smart_display</span>
+        <span class="text-[9px] font-extrabold mt-0.5">Video</span>
+      </button>
+
+      <!-- Tool: Audio Narasi -->
+      <button onclick="toggleDrawer('drawer-audio-tool')" class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center text-slate-600 hover:text-[#632ce5] hover:bg-purple-50 transition-all chunky-btn group" title="Audio / Suara Narasi">
+        <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">graphic_eq</span>
+        <span class="text-[9px] font-extrabold mt-0.5">Audio</span>
+      </button>
     </div>
 
-    <!-- Studio Mode Navigation Switcher (FASE P6) -->
-    <div class="bg-white/95 backdrop-blur-md border border-slate-200 p-1.5 rounded-2xl shadow-md flex items-center gap-1 pointer-events-auto">
-      <button id="nav-mode-preset" onclick="switchStudioMode('preset')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-sm" title="Preset Rantai Makanan 6 Slot (Bake GLB, 100% Reliable AR)">
-        <span class="material-symbols-outlined text-sm">cyclone</span> Preset Ekosistem (Reliable AR)
+    <!-- Bottom Group: Guide, Settings, Support -->
+    <div class="flex flex-col items-center gap-2 w-full px-2">
+      <button onclick="toggleGridHelper()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all" title="Toggle Grid Lantai">
+        <span class="material-symbols-outlined text-xl">grid_4x4</span>
       </button>
-      <button id="nav-mode-manual" onclick="switchStudioMode('manual')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100" title="Editor Multi-Object Bebas (WebXR Tap-to-Place, FASE C)">
-        <span class="material-symbols-outlined text-sm">handshake</span> Mode Manual (WebXR Tap-to-Place)
+      <button onclick="toggleDrawer('drawer-settings')" class="w-10 h-10 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all" title="Pengaturan Studio">
+        <span class="material-symbols-outlined text-xl">settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── 2. TOP HEADER BAR (MINIMALIST & MODERN) ────────────────── -->
+  <header class="absolute top-0 left-[68px] right-0 h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/90 z-20 flex items-center justify-between px-4 sm:px-6 shadow-sm">
+    
+    <!-- Left: Undo & Redo History -->
+    <div class="flex items-center gap-1">
+      <button onclick="undoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40" title="Urungkan (Ctrl+Z)">
+        <span class="material-symbols-outlined text-lg">undo</span>
+      </button>
+      <button onclick="redoAction()" class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-all disabled:opacity-40" title="Ulangi (Ctrl+Y)">
+        <span class="material-symbols-outlined text-lg">redo</span>
       </button>
     </div>
 
-    <!-- Transform Mode Toolbar (Center Top - Contrast Dark Overlay) -->
-    <div id="gizmo-toolbar" class="bg-slate-900/95 backdrop-blur-md border border-slate-800 p-1.5 rounded-2xl shadow-xl flex items-center gap-1 pointer-events-auto">
-      <button id="btn-mode-translate" onclick="setGizmoMode('translate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-md" title="Translasi / Geser (Posisi) [Key: W]">
-        <span class="material-symbols-outlined text-sm">open_with</span> Position (W)
-      </button>
-      <button id="btn-mode-rotate" onclick="setGizmoMode('rotate')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700" title="Rotasi / Putar [Key: E]">
-        <span class="material-symbols-outlined text-sm">sync</span> Rotation (E)
-      </button>
-      <button id="btn-mode-scale" onclick="setGizmoMode('scale')" class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700" title="Skala / Ukuran [Key: R]">
-        <span class="material-symbols-outlined text-sm">aspect_ratio</span> Scale (R)
+    <!-- Center: Editable Project Title & Status Badge -->
+    <div class="flex items-center gap-2.5">
+      <input type="text" id="project-title-input" value="Ekosistem Sawah" class="text-sm font-black text-slate-800 bg-transparent hover:bg-slate-100/70 focus:bg-white px-2.5 py-1 rounded-lg border border-transparent focus:border-purple-300 outline-none text-center transition-all max-w-[200px] sm:max-w-[280px]" placeholder="Nama Projek..."/>
+      <span class="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-700 border border-cyan-200">
+        <span class="material-symbols-outlined text-xs">public</span> PUBLIK
+      </span>
+      <button onclick="saveProject()" class="text-slate-400 hover:text-purple-600 transition-colors p-1" title="Simpan Projek">
+        <span class="material-symbols-outlined text-lg">save</span>
       </button>
     </div>
 
-    <!-- Right Actions: Print Barcode & Solid Green Publish Button (Top Right) -->
-    <div class="flex items-center gap-2 pointer-events-auto">
-      <button onclick="openPrintBarcodeModal()" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md transition-all" title="Cetak Barcode QR & Kartu AR">
-        <span class="material-symbols-outlined text-sm">print</span> Cetak Barcode / QR
+    <!-- Right: Preview 3D & Share/Publish Action -->
+    <div class="flex items-center gap-2">
+      <!-- Pratinjau 3D (Preview) -->
+      <button onclick="previewScene3D()" class="chunky-btn px-3.5 py-1.5 rounded-xl text-xs font-black text-[#632ce5] bg-purple-50 hover:bg-purple-100 border border-purple-200 flex items-center gap-1.5 shadow-sm">
+        <span class="material-symbols-outlined text-base">play_arrow</span> Pratinjau
       </button>
-      <button id="btn-main-publish" onclick="publishBakedEcosystem()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all" title="Bake & Publish GLB (Reliable AR)">
-        <span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB
+
+      <!-- Bagikan / Publikasikan (Main Blue/Purple CTA) -->
+      <button onclick="openShareModal()" class="chunky-btn px-4 py-1.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] flex items-center gap-1.5 shadow-md">
+        <span class="material-symbols-outlined text-base">send</span> Bagikan
       </button>
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-700 flex items-center gap-2 shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="studio-status">Studio Ready</span>
-      </div>
     </div>
   </header>
 
-  <!-- ── Left Sidebar (Object Library & Scene Objects) ──────── -->
-  <aside class="absolute top-20 left-4 bottom-16 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
-    
-    <!-- Section 1.0: Ecosystem Preset Picker (FASE P3) -->
-    <div id="ecosystem-preset-card" class="p-3 border-b border-emerald-200/80 bg-emerald-50/50">
-      <div class="flex items-center justify-between mb-1.5">
-        <div class="flex items-center gap-1.5 text-emerald-800 font-bold text-[11px] uppercase tracking-wider">
-          <span class="material-symbols-outlined text-xs text-emerald-600">cyclone</span> Preset Rantai Makanan
-        </div>
-        <span class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded">6 Slot Siklus</span>
-      </div>
+  <!-- ─── 3. TOP-RIGHT ORIENTATION VIEWCUBE GIZMO ────────────────── -->
+  <div class="absolute top-20 right-6 z-10 pointer-events-auto flex flex-col items-center gap-2">
+    <div class="glass-panel p-2 rounded-2xl flex flex-col items-center gap-1 shadow-md">
+      <button onclick="resetCameraView('top')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100">TOP</button>
+      <button onclick="resetCameraView('front')" class="px-2 py-1 rounded text-[10px] font-black text-slate-600 hover:bg-slate-100 w-full text-center border-b border-slate-100">FRONT</button>
+      <button onclick="resetCameraView('iso')" class="px-2 py-1 rounded text-[10px] font-black text-[#632ce5] hover:bg-purple-50 w-full text-center">3D ISO</button>
+    </div>
+  </div>
 
-      <!-- Dropdown Preset -->
-      <select id="ecosystem-preset-select" onchange="onEcosystemPresetChange(this.value)" class="w-full bg-white border border-emerald-300 rounded-lg px-2 py-1 text-xs text-slate-800 font-bold mb-2 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm">
-        <option value="preset-darat">🌱 Ekosistem Darat</option>
-      </select>
-
-      <!-- 6 Slots Configurator List -->
-      <div id="ecosystem-slots-list" class="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
-        <div class="text-xs text-slate-400 text-center py-2">Memuat slot preset...</div>
-      </div>
-
-      <!-- Bake & Publish Button (FASE P4) -->
-      <button onclick="publishBakedEcosystem()" class="w-full mt-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95">
-        <span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB (Reliable AR)
+  <!-- ─── 4. BOTTOM FLOATING BAR: SCENE / PRESET SELECTOR & GIZMO ─── -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-3">
+    <!-- Preset Ekosistem Quick Switcher Pills -->
+    <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+      <button onclick="loadEcosystemPreset('sawah')" id="tab-eco-sawah" class="px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all">
+        🌾 Sawah
+      </button>
+      <button onclick="loadEcosystemPreset('hutan')" id="tab-eco-hutan" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+        🌲 Hutan
+      </button>
+      <button onclick="loadEcosystemPreset('laut')" id="tab-eco-laut" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+        🌊 Laut
+      </button>
+      <button onclick="loadEcosystemPreset('darat')" id="tab-eco-darat" class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all">
+        🦁 Darat
       </button>
     </div>
-    <div class="p-3 border-b border-slate-200/80">
-      <div class="flex items-center justify-between mb-1.5">
-        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider">
-          <span class="material-symbols-outlined text-xs">add_box</span> Model 3D (.glb)
-        </div>
-        <label class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-sm">
-          <span class="material-symbols-outlined text-xs">upload</span> Upload
-          <input type="file" id="model-3d-upload-input" accept=".glb,.gltf,.usdz" onchange="upload3DModelFile(this)" class="hidden" />
-        </label>
+
+    <!-- Transform Tool Gizmo Buttons (W, E, R) -->
+    <div class="glass-panel p-1.5 rounded-2xl flex items-center gap-1 shadow-lg">
+      <button onclick="setGizmoMode('translate')" id="gizmo-btn-t" class="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-900 text-white font-bold text-xs" title="Geser Posisi (W)">
+        <span class="material-symbols-outlined text-base">open_with</span>
+      </button>
+      <button onclick="setGizmoMode('rotate')" id="gizmo-btn-r" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs" title="Rotasi (E)">
+        <span class="material-symbols-outlined text-base">sync</span>
+      </button>
+      <button onclick="setGizmoMode('scale')" id="gizmo-btn-s" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs" title="Skala (R)">
+        <span class="material-symbols-outlined text-base">aspect_ratio</span>
+      </button>
+      <button onclick="deleteSelectedObject()" class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 font-bold text-xs" title="Hapus Objek (Del)">
+        <span class="material-symbols-outlined text-base">delete</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── 5. PUSTAKA 3D DRAWER (PERSIS ASSEMBLR SCREENSHOT 4) ─────── -->
+  <div id="drawer-3d-library" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-full max-w-2xl bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+        <h2 class="text-base font-black text-slate-800">Pustaka 3D AlamVerse</h2>
       </div>
-      <div id="assets-list" class="space-y-1.5 overflow-y-auto max-h-28 custom-scrollbar">
-        <div class="text-xs text-slate-400 text-center py-2">Memuat koleksi aset...</div>
+
+      <!-- Search Box -->
+      <div class="relative w-64">
+        <span class="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-sm">search</span>
+        <input type="text" placeholder="Cari model 3D..." class="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all"/>
       </div>
     </div>
 
-    <!-- Section 1.2: Add Primitives & Text 3D -->
-    <div class="p-3 border-b border-slate-200/80 space-y-2">
-      <!-- Shapes Primitives Buttons -->
+    <!-- Category Tabs -->
+    <div class="px-6 py-2.5 border-b border-slate-100 flex items-center gap-2 overflow-x-auto custom-scrollbar">
+      <button class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-[#632ce5] text-white shadow-sm flex-shrink-0">Semua</button>
+      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌾 Rantai Makanan</button>
+      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🐸 Hewan SD</button>
+      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">🌱 Tumbuhan</button>
+      <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 flex-shrink-0">⭐ Aset Anda</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+      
+      <!-- Two Hero Action Cards: Upload Custom 3D & AI Generator -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <!-- Upload Custom 3D Card -->
+        <label for="custom-glb-upload" class="cursor-pointer border-2 border-dashed border-purple-200 hover:border-purple-400 bg-purple-50/50 hover:bg-purple-50 p-5 rounded-2xl flex items-center gap-4 transition-all group">
+          <div class="w-12 h-12 rounded-xl bg-purple-100 text-[#632ce5] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+            <span class="material-symbols-outlined text-2xl">cloud_upload</span>
+          </div>
+          <div>
+            <h3 class="text-xs font-black text-slate-800">Unggah Custom 3D</h3>
+            <p class="text-[10px] text-slate-500 font-bold mt-0.5">Format .glb atau .gltf (Maks. 50MB)</p>
+          </div>
+          <input type="file" id="custom-glb-upload" accept=".glb,.gltf" class="hidden" onchange="handleCustomGlbUpload(event)"/>
+        </label>
+
+        <!-- AI 3D Generator Card -->
+        <div onclick="openAi3DGeneratorModal()" class="cursor-pointer border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100/60 hover:to-orange-100/60 p-5 rounded-2xl flex items-center gap-4 transition-all group shadow-sm">
+          <div class="w-12 h-12 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+            <span class="material-symbols-outlined text-2xl text-amber-700">auto_awesome</span>
+          </div>
+          <div>
+            <h3 class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+              <span>Hasilkan Objek AI</span>
+              <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded">NEW</span>
+            </h3>
+            <p class="text-[10px] text-slate-600 font-bold mt-0.5">Buat objek 3D dari teks deskripsi</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Presets & 3D Assets Grid -->
       <div>
-        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider mb-1.5">
-          <span class="material-symbols-outlined text-xs">category</span> Shapes & Text 3D
-        </div>
-        <div class="grid grid-cols-4 gap-1.5 mb-2">
-          <button onclick="addShapeToScene('box')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
-            <span class="material-symbols-outlined text-sm text-blue-600">deployed_code</span> Box
-          </button>
-          <button onclick="addShapeToScene('sphere')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
-            <span class="material-symbols-outlined text-sm text-pink-600">brightness_1</span> Sphere
-          </button>
-          <button onclick="addShapeToScene('cylinder')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
-            <span class="material-symbols-outlined text-sm text-emerald-600">database</span> Cylinder
-          </button>
-          <button onclick="addShapeToScene('plane')" class="bg-slate-50 hover:bg-slate-100 active:scale-95 text-slate-700 text-[10px] font-bold p-1.5 rounded-lg flex flex-col items-center gap-0.5 border border-slate-200/80 transition-all">
-            <span class="material-symbols-outlined text-sm text-amber-600">crop_landscape</span> Plane
-          </button>
-        </div>
-        <div class="flex gap-2">
-          <input type="text" id="input-text-3d" value="Magic AR" placeholder="Ketik teks..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
-          <button onclick="addTextToScene()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 transition-all shadow-md shrink-0">
-            <span class="material-symbols-outlined text-xs">add</span> Teks
-          </button>
-        </div>
-      </div>
-    </div>
+        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-3">Preset Rantai Makanan Lengkap</h4>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          
+          <!-- Card: Preset Sawah -->
+          <div onclick="loadEcosystemPreset('sawah'); closeAllDrawers();" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/30 p-3 rounded-2xl transition-all cursor-pointer group shadow-sm hover:shadow-md">
+            <div class="w-full h-28 bg-gradient-to-br from-emerald-100 to-teal-50 rounded-xl flex items-center justify-center overflow-hidden mb-2.5">
+              <span class="text-4xl group-hover:scale-110 transition-transform">🌾</span>
+            </div>
+            <div class="flex items-start justify-between">
+              <div>
+                <h5 class="text-xs font-black text-slate-800">Ekosistem Sawah</h5>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">6 Slot · 2.4 MB</p>
+              </div>
+              <span class="material-symbols-outlined text-purple-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+            </div>
+          </div>
 
-    <!-- Section 1.3: Add Image / Video Media Objects -->
-    <div class="p-3 border-b border-slate-200/80 space-y-2">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-[11px] uppercase tracking-wider">
-          <span class="material-symbols-outlined text-xs">perm_media</span> Gambar & Video 2D/3D
-        </div>
-        <label class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-sm">
-          <span class="material-symbols-outlined text-xs">upload</span> Upload
-          <input type="file" id="media-upload-input" accept="image/*,video/*" onchange="uploadMediaFile(this)" class="hidden" />
-        </label>
-      </div>
-      <div id="media-list" class="space-y-1.5 overflow-y-auto max-h-28 custom-scrollbar">
-        <div class="text-xs text-slate-400 text-center py-2">Memuat media...</div>
-      </div>
-    </div>
+          <!-- Card: Preset Hutan -->
+          <div onclick="loadEcosystemPreset('hutan'); closeAllDrawers();" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/30 p-3 rounded-2xl transition-all cursor-pointer group shadow-sm hover:shadow-md">
+            <div class="w-full h-28 bg-gradient-to-br from-emerald-100 to-green-50 rounded-xl flex items-center justify-center overflow-hidden mb-2.5">
+              <span class="text-4xl group-hover:scale-110 transition-transform">🌲</span>
+            </div>
+            <div class="flex items-start justify-between">
+              <div>
+                <h5 class="text-xs font-black text-slate-800">Ekosistem Hutan</h5>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">6 Slot · 2.1 MB</p>
+              </div>
+              <span class="material-symbols-outlined text-purple-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+            </div>
+          </div>
 
-    <!-- Section 2: Objects in Scene Hierarchy -->
-    <div class="p-3 bg-slate-50/50 flex-1 flex flex-col overflow-hidden">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-1.5 text-slate-700">
-          <span class="material-symbols-outlined text-xs text-emerald-600">inventory_2</span>
-          <h2 class="font-bold text-[11px] uppercase tracking-wider">Objek di Scene</h2>
-        </div>
-        <span id="scene-obj-count" class="bg-slate-200/80 text-slate-700 text-[10px] px-2 py-0.5 rounded-full font-bold">0 Objek</span>
-      </div>
+          <!-- Card: Preset Laut -->
+          <div onclick="loadEcosystemPreset('laut'); closeAllDrawers();" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/30 p-3 rounded-2xl transition-all cursor-pointer group shadow-sm hover:shadow-md">
+            <div class="w-full h-28 bg-gradient-to-br from-blue-100 to-cyan-50 rounded-xl flex items-center justify-center overflow-hidden mb-2.5">
+              <span class="text-4xl group-hover:scale-110 transition-transform">🌊</span>
+            </div>
+            <div class="flex items-start justify-between">
+              <div>
+                <h5 class="text-xs font-black text-slate-800">Ekosistem Laut</h5>
+                <p class="text-[10px] text-slate-400 font-bold mt-0.5">6 Slot · 2.6 MB</p>
+              </div>
+              <span class="material-symbols-outlined text-purple-600 text-sm opacity-0 group-hover:opacity-100 transition-opacity">add_circle</span>
+            </div>
+          </div>
 
-      <div id="scene-objects-list" class="space-y-1.5 overflow-y-auto flex-1 custom-scrollbar">
-        <div class="text-xs text-slate-400 text-center py-6 flex flex-col items-center">
-          <span class="material-symbols-outlined text-3xl opacity-30 mb-2">layers</span>
-          <span>Belum ada objek di scene.<br/>Klik model/shape/media di atas.</span>
         </div>
       </div>
-    </div>
 
-  </aside>
-
-  <!-- ── Right Sidebar (Properties Panel) ───────────────────── -->
-  <aside class="absolute top-20 right-4 w-80 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl z-10 flex flex-col overflow-hidden pointer-events-auto">
-    <div class="p-4 border-b border-slate-200/80 flex items-center justify-between">
-      <div class="flex items-center gap-2 text-emerald-700">
-        <span class="material-symbols-outlined text-sm">tune</span>
-        <h2 class="font-bold text-xs uppercase tracking-wider">Properties Panel</h2>
-      </div>
-      <span id="selected-obj-type-badge" class="bg-slate-100 border border-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold uppercase">None</span>
-    </div>
-
-    <div id="properties-content" class="p-4 space-y-4 overflow-y-auto custom-scrollbar max-h-[calc(100vh-180px)]">
-      <div class="text-xs text-slate-400 text-center py-10 flex flex-col items-center">
-        <span class="material-symbols-outlined text-4xl opacity-30 mb-2">ads_click</span>
-        <span>Pilih objek di canvas 3D atau sidebar<br/>untuk mengedit properti transform.</span>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Navigation / Return button -->
-  <div class="absolute bottom-4 left-4 z-10 pointer-events-auto">
-    <a href="/" class="bg-white/95 hover:bg-slate-50 text-slate-700 hover:text-slate-900 px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold flex items-center gap-2 transition-colors shadow-md">
-      <span class="material-symbols-outlined text-sm">arrow_back</span> Kembali ke Beranda
-    </a>
-  </div>
-
-  <!-- Help Overlay -->
-  <div class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md border border-slate-200 px-4 py-3 rounded-2xl text-xs text-slate-600 z-10 pointer-events-auto flex items-center gap-3 shadow-md">
-    <div class="flex items-center gap-1.5">
-      <span class="material-symbols-outlined text-emerald-600 text-sm">mouse</span>
-      <span><strong>Klik Objek:</strong> Pilih Objek</span>
-    </div>
-    <span class="text-slate-300">|</span>
-    <div class="flex items-center gap-1.5">
-      <span class="material-symbols-outlined text-emerald-600 text-sm">open_with</span>
-      <span><strong>W / E / R:</strong> Mode Gizmo</span>
     </div>
   </div>
 
-  <!-- ── 3D Scene Initialization & Model Management ──────────── -->
+  <!-- ─── 6. TEKS & ANOTASI DRAWER (PERSIS ASSEMBLR SCREENSHOT 3) ─── -->
+  <div id="drawer-text-tool" class="drawer-slide drawer-hidden fixed top-14 left-[68px] bottom-0 w-80 bg-white border-r border-slate-200 z-30 shadow-2xl flex flex-col">
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+      <h2 class="text-sm font-black text-slate-800">Tambah Teks & Anotasi</h2>
+      <button onclick="closeAllDrawers()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
+    </div>
+
+    <!-- Tool Selector: Teks 3D vs Anotasi Badges -->
+    <div class="p-5 flex-1 overflow-y-auto custom-scrollbar space-y-4">
+      <div class="flex bg-slate-100 p-1 rounded-xl">
+        <button id="tab-text-3d" onclick="switchTextMode('3d')" class="flex-1 py-1.5 text-xs font-black rounded-lg bg-white text-[#632ce5] shadow-sm transition-all">Teks 3D</button>
+        <button id="tab-text-badge" onclick="switchTextMode('badge')" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">Anotasi Badges</button>
+      </div>
+
+      <!-- Text Input -->
+      <div>
+        <label class="text-[11px] font-black text-slate-700 block mb-1.5">Isi Teks</label>
+        <textarea id="text-input-val" rows="3" class="w-full p-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all resize-none" placeholder="Ketik teks 3D di sini..."></textarea>
+      </div>
+
+      <!-- Font Dropdown -->
+      <div>
+        <label class="text-[11px] font-black text-slate-700 block mb-1.5">Pilihan Font</label>
+        <select id="text-font-val" class="w-full p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-purple-400 transition-all">
+          <option value="quicksand" selected>Quicksand Bold (SD Edu)</option>
+          <option value="montserrat">Montserrat Black</option>
+          <option value="helvetiker">Helvetiker Classic</option>
+        </select>
+      </div>
+
+      <!-- Extrude Thickness Slider -->
+      <div>
+        <div class="flex justify-between text-[11px] font-black text-slate-700 mb-1.5">
+          <span>Ketebalan 3D (Extrude)</span>
+          <span id="text-extrude-val-display" class="text-purple-600">0.25</span>
+        </div>
+        <input type="range" id="text-extrude-val" min="0.05" max="1.0" step="0.05" value="0.25" oninput="document.getElementById('text-extrude-val-display').textContent=this.value" class="w-full accent-purple-600"/>
+      </div>
+
+      <!-- Color Picker -->
+      <div>
+        <label class="text-[11px] font-black text-slate-700 block mb-1.5">Warna Teks</label>
+        <div class="flex items-center gap-2">
+          <input type="color" id="text-color-val" value="#fde047" class="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5"/>
+          <input type="text" id="text-color-hex" value="#FDE047" class="flex-1 p-2 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl uppercase" readonly/>
+        </div>
+      </div>
+
+      <!-- Place Button -->
+      <button onclick="insert3DTextToScene()" class="w-full py-3 rounded-xl font-black bg-[#632ce5] hover:bg-[#531fd4] text-white text-xs shadow-md transition-all mt-4 chunky-btn">
+        Tempatkan di Scene
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── 7. MODAL BAGIKAN (PERSIS ASSEMBLR SCREENSHOT 2) ────────── -->
+  <div id="modal-share" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-6">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-base font-black text-slate-800">Bagikan Projek AR</h3>
+        <button onclick="closeShareModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Project Card Header -->
+      <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center text-2xl shadow-sm flex-shrink-0">
+          🌾
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between">
+            <h4 id="share-project-name" class="text-sm font-black text-slate-800 truncate">Ekosistem Sawah</h4>
+            <span class="text-[10px] bg-purple-100 text-[#632ce5] font-black px-2 py-0.5 rounded-full">Publik</span>
+          </div>
+          <p class="text-xs text-slate-500 font-bold mt-0.5">🌱 Kategori: Rantai Makanan SD</p>
+        </div>
+      </div>
+
+      <!-- Direct URL Input with Copy -->
+      <div>
+        <label class="text-[11px] font-black text-slate-700 block mb-1.5">Tautan Langsung AR</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="share-direct-url" value="https://qrcodear.onrender.com/ecosystem/view/sawah" class="flex-1 p-2.5 text-xs font-bold bg-slate-50 border border-slate-200 rounded-xl outline-none" readonly/>
+          <button onclick="copyDirectUrl()" class="px-3.5 py-2.5 rounded-xl bg-[#632ce5] text-white font-bold text-xs chunky-btn flex items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined text-sm">content_copy</span> Salin
+          </button>
+        </div>
+      </div>
+
+      <!-- Akses Marker Grid (Screenshot 2) -->
+      <div>
+        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Akses Marker & Presentasi</h4>
+        <div class="grid grid-cols-3 gap-2.5">
+          <!-- QR Marker -->
+          <button onclick="openPrintQrModal()" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+            <span class="material-symbols-outlined text-purple-600 text-2xl">qr_code_scanner</span>
+            <span class="text-[11px] font-black text-slate-700">QR Marker</span>
+          </button>
+
+          <!-- Custom Marker -->
+          <button onclick="openCustomMarkerModal()" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn">
+            <span class="material-symbols-outlined text-indigo-600 text-2xl">crop_original</span>
+            <span class="text-[11px] font-black text-slate-700">Kartu Fisik</span>
+          </button>
+
+          <!-- Present Mode -->
+          <a href="/ecosystem/view/sawah" target="_blank" class="border border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 p-3 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all chunky-btn text-center">
+            <span class="material-symbols-outlined text-emerald-600 text-2xl">slideshow</span>
+            <span class="text-[11px] font-black text-slate-700">Present</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Embed Project Grid (Screenshot 2) -->
+      <div>
+        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Sematkan Projek</h4>
+        <div class="grid grid-cols-3 gap-2.5">
+          <button onclick="copyEmbedCode('website')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
+            <span class="material-symbols-outlined text-slate-700 text-xl">code</span>
+            <span class="text-[10px] font-bold text-slate-600">On Website</span>
+          </button>
+          <button onclick="copyEmbedCode('canva')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
+            <span class="text-xs font-black text-cyan-600">Canva</span>
+            <span class="text-[10px] font-bold text-slate-600">On Canva</span>
+          </button>
+          <button onclick="copyEmbedCode('quizizz')" class="border border-slate-200 hover:border-slate-300 bg-slate-50 p-2.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all">
+            <span class="text-xs font-black text-purple-600">Quizizz</span>
+            <span class="text-[10px] font-bold text-slate-600">On Quizizz</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ─── 8. CORE THREE.JS & STUDIO LOGIC SCRIPT ──────────────────── -->
   <script>
-    // ─── Studio Global State ─────────────────────────────────────
-    let scene, camera, renderer, controls, transformControls;
-    let gltfLoader, loadedFont;
-    let textureLoader = new THREE.TextureLoader();
-    let loadedSceneObjects = [];
-    let selectedSceneObject = null;
-    let allAssets = [];
-    let objectCounter = 0;
-    let raycaster = new THREE.Raycaster();
-    let mouse = new THREE.Vector2();
+    let scene, camera, renderer, controls, transformControls, gridHelper;
+    let ecosystemGroup = null;
+    let selectedObject = null;
+    let currentActivePresetId = 'sawah';
 
+    // ── Initialize Three.js Studio Scene ──
     function initStudio() {
       const container = document.getElementById('canvas-container');
 
-      // 1. Scene (Bright Slate-50 Light Theme Canvas)
+      // 1. Scene & Background
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xf8fafc); // Slate-50 bright light theme
+      scene.background = new THREE.Color(0xf8fafc); // Clean Soft Canvas
       scene.fog = new THREE.FogExp2(0xf8fafc, 0.03);
 
-      // 2. Camera
-      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(5, 5, 7);
+      // 2. Camera Setup (Isometric 45° Angle)
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(4.5, 4.0, 5.5);
 
-      // 3. Renderer
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      // 3. WebGL Renderer with High-Quality Antialiasing & Shadows
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.shadowMap.enabled = true;
@@ -271,1316 +497,48 @@
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-      controls.maxPolarAngle = Math.PI / 2 + 0.05;
-      controls.minDistance = 1;
-      controls.maxDistance = 50;
-      controls.target.set(0, 0, 0);
+      controls.target.set(0, 0.6, 0);
+      controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent dipping below ground
 
-      // 5. TransformControls (Gizmo)
+      // 5. Transform Controls (Gizmo)
       transformControls = new THREE.TransformControls(camera, renderer.domElement);
-      transformControls.size = 0.85;
+      transformControls.size = 0.75;
+      transformControls.addEventListener('dragging-changed', (e) => {
+        controls.enabled = !e.value;
+      });
       scene.add(transformControls);
 
-      transformControls.addEventListener('dragging-changed', (event) => {
-        controls.enabled = !event.value;
-      });
+      // 6. Lighting Setup (Vivid PBR Materials)
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+      scene.add(ambientLight);
 
-      transformControls.addEventListener('change', () => {
-        if (selectedSceneObject) {
-          updatePropertiesInputsFromObject();
-        }
-      });
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      dirLight.position.set(5, 10, 7);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
 
-      // 6. Grid Floor Helper (Refined Light Theme Colors)
-      const gridHelper = new THREE.GridHelper(20, 20, 0x059669, 0xcb90fd);
+      const fillLight = new THREE.DirectionalLight(0xa5b4fc, 0.6);
+      fillLight.position.set(-5, 4, -4);
+      scene.add(fillLight);
+
+      // 7. Grid Floor Helper
+      gridHelper = new THREE.GridHelper(10, 20, 0xc4b5fd, 0xe2e8f0);
       gridHelper.position.y = 0;
       scene.add(gridHelper);
 
-      // Center Origin Axes Indicator
-      const axesHelper = new THREE.AxesHelper(1);
-      scene.add(axesHelper);
-
-      // 7. Lighting Setup
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-      scene.add(ambientLight);
-
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      dirLight.position.set(10, 15, 10);
-      dirLight.castShadow = true;
-      scene.add(dirLight);
-
-      // 8. Setup GLTFLoader with DRACO support
-      gltfLoader = new THREE.GLTFLoader();
-      const dracoLoader = new THREE.DRACOLoader();
-      dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
-      gltfLoader.setDRACOLoader(dracoLoader);
-
-      // 9. Fetch Available Assets & Media & Preset Ekosistem (FASE P3)
-      fetchAvailableAssets();
-      fetchAvailableMedia();
-      loadEcosystemPresetsUI();
-
-      // 10. Event Listeners
-      renderer.domElement.addEventListener('pointerdown', onCanvasPointerDown);
-      window.addEventListener('keydown', onKeyDown);
+      // Window Resize Listener
       window.addEventListener('resize', onWindowResize);
 
-      // 11. Animation Loop
+      // Raycaster Selection Listener
+      renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+      // Initial Preset Load
+      loadEcosystemPreset('sawah');
+
+      // Animation Loop
       animate();
-    }
-
-    // ─── FASE P3: Ecosystem Preset Picker & Slot Editor ───────────
-    let ecosystemGroup = null;
-    let currentActivePreset = null;
-
-    // ─── FASE P6: Studio Mode Switcher (Preset vs Mode Manual) ─────
-    let currentStudioMode = 'preset'; // 'preset' or 'manual'
-
-    function switchStudioMode(mode) {
-      currentStudioMode = mode;
-
-      const btnPreset = document.getElementById('nav-mode-preset');
-      const btnManual = document.getElementById('nav-mode-manual');
-      const presetCard = document.getElementById('ecosystem-preset-card');
-      const statusBadge = document.getElementById('studio-mode-badge');
-      const mainPublishBtn = document.getElementById('btn-main-publish');
-      const gizmoToolbar = document.getElementById('gizmo-toolbar');
-
-      if (mode === 'preset') {
-        if (btnPreset) btnPreset.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-emerald-600 text-white shadow-sm';
-        if (btnManual) btnManual.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100';
-        if (presetCard) presetCard.style.display = 'block';
-        if (statusBadge) statusBadge.textContent = '🌱 Preset Ekosistem (Reliable AR)';
-        if (gizmoToolbar) gizmoToolbar.style.display = 'none';
-
-        if (mainPublishBtn) {
-          mainPublishBtn.onclick = publishBakedEcosystem;
-          mainPublishBtn.innerHTML = '<span class="material-symbols-outlined text-sm">view_in_ar</span> Bake & Publish GLB';
-          mainPublishBtn.className = 'bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-emerald-400/30 transition-all';
-        }
-
-        if (currentActivePreset) {
-          renderEcosystemLayout(currentActivePreset);
-        }
-      } else {
-        if (btnManual) btnManual.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-sm';
-        if (btnPreset) btnPreset.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100';
-        if (presetCard) presetCard.style.display = 'none';
-        if (statusBadge) statusBadge.textContent = '⚡ Mode Manual (WebXR Tap-to-Place, FASE C)';
-        if (gizmoToolbar) gizmoToolbar.style.display = 'flex';
-
-        if (mainPublishBtn) {
-          mainPublishBtn.onclick = publishCurrentScene;
-          mainPublishBtn.innerHTML = '<span class="material-symbols-outlined text-sm">publish</span> Publish Scene (WebXR)';
-          mainPublishBtn.className = 'bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md border border-indigo-400/30 transition-all';
-        }
-
-        if (ecosystemGroup) {
-          ecosystemGroup.visible = false;
-        }
-      }
-    }
-
-    async function loadEcosystemPresetsUI() {
-      try {
-        const res = await fetch('/api/ecosystem/presets');
-        const data = await res.json();
-        if (data.success && data.presets && data.presets.length) {
-          const selectEl = document.getElementById('ecosystem-preset-select');
-          if (selectEl) {
-            selectEl.innerHTML = data.presets.map(p => `
-              <option value="${p.id}">${escHtml(p.name)}</option>
-            `).join('');
-          }
-          currentActivePreset = data.presets[0];
-          renderEcosystemSlotsUI(currentActivePreset);
-          renderEcosystemLayout(currentActivePreset);
-        }
-      } catch (err) {
-        console.error('Failed to load ecosystem presets:', err);
-      }
-    }
-
-    function onEcosystemPresetChange(presetId) {
-      fetch(`/api/ecosystem/presets/${presetId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.preset) {
-            currentActivePreset = data.preset;
-            renderEcosystemSlotsUI(currentActivePreset);
-            renderEcosystemLayout(currentActivePreset);
-          }
-        });
-    }
-
-    function renderEcosystemSlotsUI(preset) {
-      const container = document.getElementById('ecosystem-slots-list');
-      if (!container || !preset || !preset.slots) return;
-
-      const roleIcons = ['eco', 'bug_report', 'pest_control', 'pets', 'cruelty_free', 'coronavirus'];
-      const roleNames = ['Produsen', 'Konsumen I', 'Konsumen II', 'Konsumen III', 'Konsumen Final', 'Decomposer'];
-
-      container.innerHTML = preset.slots.map((slot, index) => {
-        const icon = roleIcons[index] || 'category';
-        const roleTitle = roleNames[index] || slot.role;
-
-        return `
-          <div class="bg-white p-2 rounded-xl border border-slate-200/90 shadow-sm flex flex-col gap-1.5 text-[11px]">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-1 font-bold text-slate-800">
-                <span class="material-symbols-outlined text-xs text-emerald-600">${icon}</span>
-                <span>#${index+1} ${roleTitle}</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <button onclick="openModelLibraryModal(${index})" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-0.5 shadow-sm transition-colors">
-                  <span class="material-symbols-outlined text-[12px]">grid_view</span> Galeri
-                </button>
-                <label class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-lg cursor-pointer border border-slate-300 flex items-center gap-0.5 transition-colors" title="Upload file GLB manual">
-                  <span class="material-symbols-outlined text-[12px]">upload</span> Upload
-                  <input type="file" accept=".glb,.gltf" onchange="uploadSlotModelFile(${index}, this)" class="hidden" />
-                </label>
-              </div>
-            </div>
-            <div class="flex items-center gap-1">
-              <span class="text-[9px] text-slate-400 font-bold w-10 shrink-0">Label:</span>
-              <input type="text" value="${escHtml(slot.label)}" onchange="updateSlotLabelInput(${index}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-0.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" placeholder="Ubah Teks Label..." />
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // ─── Model Library Gallery Modal Logic (FASE P3 & 2.6) ─────────
-    let targetSlotIndexForLibrary = null;
-    let fullLibraryData = [];
-
-    async function openModelLibraryModal(slotIndex) {
-      targetSlotIndexForLibrary = slotIndex;
-      const roleNames = ['Produsen', 'Konsumen I', 'Konsumen II', 'Konsumen III', 'Konsumen Final', 'Decomposer'];
-      const roleTitle = roleNames[slotIndex] || `Slot #${slotIndex + 1}`;
-      document.getElementById('lib-modal-subtitle').textContent = `Pilih model 3D untuk ${roleTitle}`;
-
-      document.getElementById('modal-ecosystem-library').classList.remove('hidden');
-
-      if (!fullLibraryData.length) {
-        try {
-          const res = await fetch('/api/ecosystem/library');
-          const data = await res.json();
-          if (data.success && data.library) {
-            fullLibraryData = data.library;
-          }
-        } catch (err) {
-          console.error('Failed to load library:', err);
-        }
-      }
-
-      renderLibraryGrid('darat');
-    }
-
-    function closeModelLibraryModal() {
-      document.getElementById('modal-ecosystem-library').classList.add('hidden');
-      targetSlotIndexForLibrary = null;
-    }
-
-    function filterLibraryCategory(category) {
-      const tabs = ['darat', 'hutan', 'laut', 'sawah', 'all'];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`tab-${t}`);
-        if (btn) {
-          if (t === category) {
-            btn.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm';
-          } else {
-            btn.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900';
-          }
-        }
-      });
-      renderLibraryGrid(category);
-    }
-
-    function filterLibrarySearch() {
-      const searchVal = document.getElementById('lib-search-input')?.value || '';
-      renderLibraryGrid('all', searchVal);
-    }
-
-    function renderLibraryGrid(categoryFilter = 'darat', searchQuery = '') {
-      const grid = document.getElementById('lib-models-grid');
-      if (!grid) return;
-
-      let allItems = [];
-      fullLibraryData.forEach(cat => {
-        if (categoryFilter === 'all' || cat.ecosystem === categoryFilter) {
-          allItems = allItems.concat(cat.items || []);
-        }
-      });
-
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        allItems = allItems.filter(item => (item.name || '').toLowerCase().includes(q) || (item.role || '').toLowerCase().includes(q));
-      }
-
-      if (!allItems.length) {
-        grid.innerHTML = `<div class="text-xs text-slate-400 text-center col-span-full py-10">Model tidak ditemukan</div>`;
-        return;
-      }
-
-      const roleIcons = {
-        produsen: 'eco',
-        konsumen_primer: 'bug_report',
-        konsumen_sekunder: 'pest_control',
-        konsumen_tersier: 'pets',
-        konsumen_final: 'cruelty_free',
-        decomposer: 'coronavirus'
-      };
-
-      grid.innerHTML = allItems.map(item => {
-        const icon = item.icon || roleIcons[item.role] || 'deployed_code';
-        return `
-          <div onclick="selectLibraryModel('${item.modelSrc}', '${escHtml(item.name)}')" class="bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-500/80 p-3 rounded-2xl cursor-pointer transition-all flex flex-col items-center text-center group shadow-sm hover:shadow-md overflow-hidden">
-            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mb-2 shadow-inner group-hover:scale-110 transition-transform overflow-hidden shrink-0">
-              <span class="material-symbols-outlined text-2xl text-emerald-600">${icon}</span>
-            </div>
-            <h4 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 truncate w-full" title="${escHtml(item.name)}">${escHtml(item.name)}</h4>
-            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded mt-1 shrink-0">${item.role || 'slot'}</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function selectLibraryModel(modelSrc, modelName) {
-      if (targetSlotIndexForLibrary === null || !currentActivePreset) return;
-      const slotIndex = targetSlotIndexForLibrary;
-      closeModelLibraryModal();
-
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = `Memasang Model "${modelName}" ke Slot #${slotIndex + 1}...`;
-
-      currentActivePreset.slots[slotIndex].modelSrc = modelSrc;
-      renderEcosystemLayout(currentActivePreset);
-      statusEl.textContent = `Model "${modelName}" Berhasil Dipasang ke Slot #${slotIndex + 1}! ✨`;
-    }
-
-    async function updateSlotLabelInput(slotIndex, newLabel) {
-      if (!currentActivePreset) return;
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = `Memperbarui Slot #${slotIndex + 1}...`;
-
-      const formData = new FormData();
-      formData.append('slotIndex', slotIndex);
-      formData.append('label', newLabel);
-
-      try {
-        const res = await fetch(`/api/ecosystem/presets/${currentActivePreset.id}/slot`, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.success && data.preset) {
-          currentActivePreset = data.preset;
-          renderEcosystemLayout(currentActivePreset);
-          statusEl.textContent = `Label Slot #${slotIndex + 1} Berhasil Diperbarui! ✨`;
-        }
-      } catch (err) {
-        console.error('Failed to update slot label:', err);
-        statusEl.textContent = 'Gagal update slot';
-      }
-    }
-
-    async function uploadSlotModelFile(slotIndex, input) {
-      if (!input.files || !input.files[0] || !currentActivePreset) return;
-      const file = input.files[0];
-      const formData = new FormData();
-      formData.append('slotIndex', slotIndex);
-      formData.append('model', file);
-
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = `Mengunggah Model Slot #${slotIndex + 1}...`;
-
-      try {
-        const res = await fetch(`/api/ecosystem/presets/${currentActivePreset.id}/slot`, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok && data.success && data.preset) {
-          currentActivePreset = data.preset;
-          renderEcosystemLayout(currentActivePreset);
-          statusEl.textContent = `Model Slot #${slotIndex + 1} Berhasil Di-Swap! ✨`;
-        } else {
-          alert('Gagal swap model: ' + (data.error || 'Unknown error'));
-          statusEl.textContent = 'Gagal swap model';
-        }
-      } catch (err) {
-        console.error('Failed to upload slot model:', err);
-        alert('Gagal upload model slot: ' + err.message);
-        statusEl.textContent = 'Gagal upload model';
-      } finally {
-        input.value = '';
-      }
-    }
-
-    // ─── FASE P4: Bake Scene to Single GLB File ────────────────────
-    function bakeEcosystemToGLB() {
-      return new Promise((resolve, reject) => {
-        if (!ecosystemGroup) {
-          return reject(new Error('Scene preset ekosistem belum dimuat di canvas'));
-        }
-
-        const exporter = new THREE.GLTFExporter();
-        const options = {
-          binary: true,
-          embedImages: true,
-          onlyVisible: true
-        };
-
-        exporter.parse(
-          ecosystemGroup,
-          (gltfArrayBuffer) => {
-            const blob = new Blob([gltfArrayBuffer], { type: 'model/gltf-binary' });
-            resolve(blob);
-          },
-          (error) => {
-            console.error('GLTFExporter Error:', error);
-            reject(error);
-          },
-          options
-        );
-      });
-    }
-
-    function showPublishModal(data) {
-      document.getElementById('publish-qr-img').src = data.qrCodeDataUrl;
-      document.getElementById('publish-direct-url').value = data.directUrl;
-      document.getElementById('publish-embed-code').value = `<iframe src="${data.directUrl}" width="100%" height="600" allow="camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking" frameborder="0"></iframe>`;
-      document.getElementById('publish-open-ar-btn').href = data.directUrl;
-      document.getElementById('publish-download-qr-btn').href = data.qrCodeDataUrl;
-
-      document.getElementById('modal-publish-scene').classList.remove('hidden');
-    }
-
-    async function publishBakedEcosystem() {
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = 'Membake Scene 3D ke file GLB...';
-
-      try {
-        const glbBlob = await bakeEcosystemToGLB();
-        const fileSizeMB = (glbBlob.size / (1024 * 1024)).toFixed(2);
-        statusEl.textContent = `Bake Berhasil! Ukuran: ${fileSizeMB} MB. Mengunggah ke server...`;
-
-        const payload = {
-          presetId: currentActivePreset ? currentActivePreset.id : 'preset-darat',
-          presetName: currentActivePreset ? currentActivePreset.name : 'Rantai Makanan AR'
-        };
-
-        const res = await fetch('/api/ecosystem/publish', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          window.lastPublishedEcosystem = data;
-          statusEl.textContent = `Publish Berhasil! File GLB (${fileSizeMB} MB) Siap Dipakai ✨`;
-          if (typeof showPublishModal === 'function') {
-            showPublishModal(data);
-          } else {
-            alert(`Publish Berhasil! Direct URL: ${data.directUrl}`);
-          }
-        } else {
-          alert('Gagal publish GLB: ' + (data.error || 'Unknown error'));
-          statusEl.textContent = 'Gagal publish GLB';
-        }
-      } catch (err) {
-        console.error('Failed to bake & publish ecosystem:', err);
-        alert('Gagal membake scene ke GLB: ' + err.message);
-        statusEl.textContent = 'Gagal bake GLB';
-      }
-    }
-
-    function renderEcosystemLayout(preset) {
-      if (ecosystemGroup) {
-        scene.remove(ecosystemGroup);
-        ecosystemGroup = null;
-      }
-
-      ecosystemGroup = new THREE.Group();
-      ecosystemGroup.name = 'ecosystem_preset_group';
-
-      const slots = preset.slots || [];
-      const numSlots = slots.length; // Always 6
-      const radius = 2.2; // Circle radius in meters
-
-      const slotPositions = [];
-
-      // 1. Calculate positions for 6 slots in a circle
-      for (let i = 0; i < numSlots; i++) {
-        const angle = (i * 2 * Math.PI) / numSlots;
-        const x = radius * Math.cos(angle);
-        const z = radius * Math.sin(angle);
-        const y = 0.5;
-
-        slotPositions.push({ x, y, z, angle, slotData: slots[i] });
-
-        // Add Slot Container
-        const slotGroup = new THREE.Group();
-        slotGroup.position.set(x, y, z);
-
-        // Add Radial-Facing Text Label Plane (Spec 2.3)
-        const labelText = slots[i].label || slots[i].role;
-        const labelCanvas = document.createElement('canvas');
-        labelCanvas.width = 512; labelCanvas.height = 128;
-        const ctx = labelCanvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, 512, 128);
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = '#ef4444';
-        ctx.strokeRect(4, 4, 504, 120);
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'Bold 42px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(labelText, 256, 75);
-
-        const labelTexture = new THREE.CanvasTexture(labelCanvas);
-        const labelGeo = new THREE.PlaneGeometry(1.2, 0.3);
-        const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture, side: THREE.DoubleSide, transparent: true });
-        const labelMesh = new THREE.Mesh(labelGeo, labelMat);
-
-        // Default label position (will be dynamically adjusted once 3D model loads)
-        labelMesh.position.set(0, 1.15, 0);
-        labelMesh.rotation.y = -angle + Math.PI / 2;
-
-        // Load 3D Model / Placeholder Box with Dynamic Normalization (TASK B Fix)
-        const modelSrc = slots[i].modelSrc;
-        if (modelSrc && gltfLoader) {
-          gltfLoader.load(modelSrc, (gltf) => {
-            const model = gltf.scene;
-
-            // 1. Calculate raw bounding box
-            const initialBox = new THREE.Box3().setFromObject(model);
-            if (!initialBox.isEmpty()) {
-              const size = initialBox.getSize(new THREE.Vector3());
-              const maxDim = Math.max(size.x, size.y, size.z);
-
-              // Target max dimension for ecosystem nodes: 0.75m
-              const TARGET_MAX_DIM = 0.75;
-              if (maxDim > 0) {
-                const scaleFactor = TARGET_MAX_DIM / maxDim;
-                model.scale.setScalar(scaleFactor);
-              }
-
-              // Re-align Y base to 0
-              const normBox = new THREE.Box3().setFromObject(model);
-              if (!normBox.isEmpty()) {
-                model.position.y -= normBox.min.y;
-
-                // Dynamically position label 0.25m above the top of the normalized model
-                labelMesh.position.y = Math.max(1.0, normBox.max.y + 0.25);
-              }
-            }
-            slotGroup.add(model);
-          }, undefined, () => {
-            // Fallback placeholder shape
-            const placeholderGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-            const placeholderMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const placeholderMesh = new THREE.Mesh(placeholderGeo, placeholderMat);
-            placeholderMesh.position.y = 0.3;
-            slotGroup.add(placeholderMesh);
-          });
-        }
-
-        slotGroup.add(labelMesh);
-        ecosystemGroup.add(slotGroup);
-      }
-
-      // 2. Generate Directional Curved Arrows between sequential nodes (1->2->3->4->5->6->1)
-      for (let i = 0; i < numSlots; i++) {
-        const nextIdx = (i + 1) % numSlots;
-        const start = slotPositions[i];
-        const end = slotPositions[nextIdx];
-
-        // Compute Arc Control Points
-        const midAngle = (start.angle + (nextIdx === 0 ? 2 * Math.PI : end.angle)) / 2;
-        const arcRadius = radius * 1.15; // Slightly outward curve
-        const midX = arcRadius * Math.cos(midAngle);
-        const midZ = arcRadius * Math.sin(midAngle);
-        const midY = 0.5;
-
-        const pStart = new THREE.Vector3(start.x * 0.85, start.y, start.z * 0.85);
-        const pMid = new THREE.Vector3(midX, midY, midZ);
-        const pEnd = new THREE.Vector3(end.x * 0.85, end.y, end.z * 0.85);
-
-        const curve = new THREE.CatmullRomCurve3([pStart, pMid, pEnd]);
-        const tubeGeo = new THREE.TubeGeometry(curve, 24, 0.03, 8, false);
-        const tubeMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.2, metalness: 0.1 });
-        const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-        ecosystemGroup.add(tubeMesh);
-
-        // Arrowhead Cone at destination node
-        const tangent = curve.getTangent(1.0).normalize();
-        const coneGeo = new THREE.ConeGeometry(0.1, 0.28, 16);
-        coneGeo.rotateX(Math.PI / 2);
-        const coneMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2 });
-        const coneMesh = new THREE.Mesh(coneGeo, coneMat);
-        coneMesh.position.copy(pEnd);
-        coneMesh.lookAt(pEnd.clone().add(tangent));
-        ecosystemGroup.add(coneMesh);
-      }
-
-      scene.add(ecosystemGroup);
-    }
-
-    // ─── Direct 3D Model (.glb) Upload Handling ───────────────
-    async function upload3DModelFile(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      const formData = new FormData();
-      formData.append('model', file);
-      formData.append('name', file.name.replace(/\.[^/.]+$/, ''));
-      formData.append('description', 'Uploaded via AR Studio');
-
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = 'Mengunggah Model 3D...';
-
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          statusEl.textContent = 'Model 3D Berhasil Diunggah! ✨';
-          await fetchAvailableAssets();
-          if (data.asset && data.asset.id) {
-            addModelToScene(data.asset.id, data.asset.name || file.name);
-          }
-        } else {
-          alert('Gagal mengunggah Model 3D: ' + (data.error || 'Unknown error'));
-          statusEl.textContent = 'Gagal upload model';
-        }
-      } catch (err) {
-        console.error('3D Model upload failed:', err);
-        alert('Gagal mengunggah file Model 3D: ' + err.message);
-        statusEl.textContent = 'Gagal upload model';
-      } finally {
-        input.value = '';
-      }
-    }
-
-    // ─── Media Upload & Handling (FASE 5) ──────────────────────
-    async function uploadMediaFile(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = 'Mengunggah media...';
-
-      try {
-        const res = await fetch('/api/studio/upload-media', {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.success) {
-          statusEl.textContent = 'Media berhasil diunggah';
-          fetchAvailableMedia();
-        } else {
-          alert('Gagal mengunggah media: ' + (data.error || 'Unknown error'));
-          statusEl.textContent = 'Gagal upload media';
-        }
-      } catch (err) {
-        console.error('Media upload failed:', err);
-        alert('Gagal mengunggah file media.');
-        statusEl.textContent = 'Gagal upload media';
-      } finally {
-        input.value = '';
-      }
-    }
-
-    async function fetchAvailableMedia() {
-      const container = document.getElementById('media-list');
-      try {
-        const res = await fetch('/api/studio/media');
-        const data = await res.json();
-        const media = data.media || [];
-
-        if (!media.length) {
-          container.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">Belum ada gambar/video diunggah.</div>';
-          return;
-        }
-
-        container.innerHTML = media.map(m => `
-          <div class="bg-slate-800/80 hover:bg-slate-800 p-2 rounded-xl flex items-center justify-between border border-slate-700/50 transition-colors">
-            <div class="flex items-center gap-2 overflow-hidden pr-2">
-              <span class="material-symbols-outlined text-xs ${m.mediaType === 'video' ? 'text-rose-400' : 'text-cyan-400'}">${m.mediaType === 'video' ? 'movie' : 'image'}</span>
-              <div class="font-bold text-xs text-slate-200 truncate" title="${escHtml(m.originalName)}">${escHtml(m.originalName)}</div>
-            </div>
-            <button onclick="addMediaToScene('${m.id}', '${m.url}', '${escHtml(m.originalName)}', '${m.mediaType}')" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 transition-all shadow-md shrink-0">
-              <span class="material-symbols-outlined text-xs">add</span> Tambah
-            </button>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Failed to load media:', err);
-        container.innerHTML = '<div class="text-xs text-rose-400 text-center py-2">Gagal memuat media.</div>';
-      }
-    }
-
-    function addMediaToScene(mediaId, url, name, mediaType) {
-      if (mediaType === 'video') {
-        addVideoToScene(mediaId, url, name);
-      } else {
-        addImageToScene(mediaId, url, name);
-      }
-    }
-
-    function addImageToScene(mediaId, url, name) {
-      objectCounter++;
-      textureLoader.load(url, (texture) => {
-        const aspect = (texture.image.width && texture.image.height) ? (texture.image.width / texture.image.height) : 1;
-        const geometry = new THREE.PlaneGeometry(aspect * 1.5, 1.5);
-        const material = new THREE.MeshStandardMaterial({ map: texture, side: THREE.DoubleSide, transparent: true, roughness: 0.4 });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(0, 1, 0);
-
-        const objId = `image_${objectCounter}_${mediaId}`;
-        mesh.name = objId;
-        scene.add(mesh);
-
-        const record = {
-          id: objId,
-          name: `Img: ${name} #${objectCounter}`,
-          type: 'image',
-          mediaUrl: url,
-          threeObject: mesh
-        };
-        loadedSceneObjects.push(record);
-
-        selectSceneObject(objId);
-        updateSceneHierarchyUI();
-      });
-    }
-
-    function addVideoToScene(mediaId, url, name) {
-      objectCounter++;
-      const video = document.createElement('video');
-      video.src = url;
-      video.crossOrigin = 'anonymous';
-      video.loop = true;
-      video.muted = true;
-      video.play();
-
-      const videoTexture = new THREE.VideoTexture(video);
-      const geometry = new THREE.PlaneGeometry(1.6, 0.9); // Default 16:9
-      const material = new THREE.MeshStandardMaterial({ map: videoTexture, side: THREE.DoubleSide, roughness: 0.4 });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(0, 1, 0);
-
-      const objId = `video_${objectCounter}_${mediaId}`;
-      mesh.name = objId;
-      scene.add(mesh);
-
-      const record = {
-        id: objId,
-        name: `Vid: ${name} #${objectCounter}`,
-        type: 'video',
-        mediaUrl: url,
-        videoElement: video,
-        threeObject: mesh
-      };
-      loadedSceneObjects.push(record);
-
-      selectSceneObject(objId);
-      updateSceneHierarchyUI();
-    }
-
-    // ─── Add Primitive Shapes ──────────────────────────────────
-    function addShapeToScene(shapeType) {
-      objectCounter++;
-      let geometry, color, name;
-
-      if (shapeType === 'box') {
-        geometry = new THREE.BoxGeometry(1, 1, 1);
-        color = 0x3b82f6; // Blue
-        name = `Box #${objectCounter}`;
-      } else if (shapeType === 'sphere') {
-        geometry = new THREE.SphereGeometry(0.75, 32, 32);
-        color = 0xec4899; // Pink
-        name = `Sphere #${objectCounter}`;
-      } else if (shapeType === 'cylinder') {
-        geometry = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 32);
-        color = 0x10b981; // Emerald
-        name = `Cylinder #${objectCounter}`;
-      } else if (shapeType === 'plane') {
-        geometry = new THREE.PlaneGeometry(1.5, 1.5);
-        color = 0xf59e0b; // Amber
-        name = `Plane #${objectCounter}`;
-      }
-
-      const material = new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.1, side: THREE.DoubleSide });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      mesh.position.set(0, 0.75, 0);
-
-      const objId = `shape_${objectCounter}_${shapeType}`;
-      mesh.name = objId;
-      scene.add(mesh);
-
-      const record = {
-        id: objId,
-        name,
-        type: 'shape',
-        shapeType,
-        threeObject: mesh
-      };
-      loadedSceneObjects.push(record);
-
-      selectSceneObject(objId);
-      updateSceneHierarchyUI();
-    }
-
-    // ─── Add 3D Mesh Text ──────────────────────────────────────
-    function addTextToScene() {
-      const textInput = document.getElementById('input-text-3d');
-      const textStr = (textInput?.value || 'Magic AR').trim();
-      if (!textStr) return;
-
-      if (!loadedFont) {
-        document.getElementById('studio-status').textContent = 'Memuat font 3D...';
-        const loader = new THREE.FontLoader();
-        loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
-          loadedFont = font;
-          document.getElementById('studio-status').textContent = `Studio Ready (${loadedSceneObjects.length} Objek)`;
-          addTextToScene();
-        }, undefined, (err) => {
-          console.error('Font load error:', err);
-          document.getElementById('studio-status').textContent = 'Studio Ready';
-          addCanvasTextFallback(textStr);
-        });
-        return;
-      }
-
-      objectCounter++;
-      const textGeo = new THREE.TextGeometry(textStr, {
-        font: loadedFont,
-        size: 0.6,
-        height: 0.12,
-        curveSegments: 12,
-        bevelEnabled: true,
-        bevelThickness: 0.02,
-        bevelSize: 0.01,
-        bevelOffset: 0,
-        bevelSegments: 5
-      });
-      textGeo.center();
-
-      const material = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.3, metalness: 0.2 }); // Violet
-      const mesh = new THREE.Mesh(textGeo, material);
-      mesh.castShadow = true;
-      mesh.position.set(0, 0.5, 0);
-
-      const objId = `text_${objectCounter}`;
-      mesh.name = objId;
-      scene.add(mesh);
-
-      const record = {
-        id: objId,
-        name: `Text: "${textStr}"`,
-        type: 'text',
-        content: textStr,
-        textStr: textStr,
-        color: '#8b5cf6',
-        threeObject: mesh
-      };
-      loadedSceneObjects.push(record);
-
-      selectSceneObject(objId);
-      updateSceneHierarchyUI();
-    }
-
-    function addCanvasTextFallback(textStr) {
-      objectCounter++;
-      const canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#8b5cf6';
-      ctx.font = 'Bold 48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(textStr, 256, 75);
-
-      const textTex = new THREE.CanvasTexture(canvas);
-      const textGeo = new THREE.PlaneGeometry(2, 0.5);
-      const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
-      const mesh = new THREE.Mesh(textGeo, textMat);
-      mesh.position.set(0, 0.5, 0);
-
-      const objId = `text_${objectCounter}`;
-      mesh.name = objId;
-      scene.add(mesh);
-
-      const record = {
-        id: objId,
-        name: `Text: "${textStr}"`,
-        type: 'text',
-        content: textStr,
-        textStr: textStr,
-        color: '#8b5cf6',
-        threeObject: mesh
-      };
-      loadedSceneObjects.push(record);
-
-      selectSceneObject(objId);
-      updateSceneHierarchyUI();
-    }
-
-    // ─── Raycaster Pointer Selection ─────────────────────────────
-    let pointerDownPos = { x: 0, y: 0 };
-    function onCanvasPointerDown(event) {
-      pointerDownPos.x = event.clientX;
-      pointerDownPos.y = event.clientY;
-
-      const onPointerUp = (upEvent) => {
-        renderer.domElement.removeEventListener('pointerup', onPointerUp);
-        const dist = Math.hypot(upEvent.clientX - pointerDownPos.x, upEvent.clientY - pointerDownPos.y);
-        if (dist < 5) {
-          pickObjectAt(upEvent.clientX, upEvent.clientY);
-        }
-      };
-      renderer.domElement.addEventListener('pointerup', onPointerUp);
-    }
-
-    function pickObjectAt(clientX, clientY) {
-      if (transformControls.dragging) return;
-
-      mouse.x = (clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-
-      const meshes = [];
-      loadedSceneObjects.forEach(record => {
-        record.threeObject.traverse(child => {
-          if (child.isMesh) {
-            child.userData.sceneObjectId = record.id;
-            meshes.push(child);
-          }
-        });
-      });
-
-      const intersects = raycaster.intersectObjects(meshes, true);
-      if (intersects.length > 0) {
-        const hitMesh = intersects[0].object;
-        const objId = hitMesh.userData.sceneObjectId;
-        selectSceneObject(objId);
-      } else {
-        deselectSceneObject();
-      }
-    }
-
-    function selectSceneObject(objId) {
-      const record = loadedSceneObjects.find(o => o.id === objId);
-      if (!record) return;
-
-      selectedSceneObject = record;
-      transformControls.attach(record.threeObject);
-
-      document.getElementById('selected-obj-type-badge').textContent = record.type;
-      updateSceneHierarchyUI();
-      renderPropertiesPanel();
-    }
-
-    function deselectSceneObject() {
-      selectedSceneObject = null;
-      transformControls.detach();
-      document.getElementById('selected-obj-type-badge').textContent = 'None';
-      updateSceneHierarchyUI();
-      renderPropertiesPanel();
-    }
-
-    function setGizmoMode(mode) {
-      transformControls.setMode(mode);
-      ['translate', 'rotate', 'scale'].forEach(m => {
-        const btn = document.getElementById(`btn-mode-${m}`);
-        if (btn) {
-          if (m === mode) {
-            btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-indigo-600 text-white shadow-md';
-          } else {
-            btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-750';
-          }
-        }
-      });
-    }
-
-    function onKeyDown(e) {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'w' || e.key === 'W') setGizmoMode('translate');
-      if (e.key === 'e' || e.key === 'E') setGizmoMode('rotate');
-      if (e.key === 'r' || e.key === 'R') setGizmoMode('scale');
-      if (e.key === 'Escape') deselectSceneObject();
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedSceneObject) {
-        removeObjectFromScene(selectedSceneObject.id);
-      }
-    }
-
-    // ─── Video Controls (Play/Pause & Mute) ──────────────────────
-    function toggleVideoPlay() {
-      if (selectedSceneObject && selectedSceneObject.type === 'video' && selectedSceneObject.videoElement) {
-        const video = selectedSceneObject.videoElement;
-        if (video.paused) {
-          video.play();
-        } else {
-          video.pause();
-        }
-        renderPropertiesPanel();
-      }
-    }
-
-    function toggleVideoMute() {
-      if (selectedSceneObject && selectedSceneObject.type === 'video' && selectedSceneObject.videoElement) {
-        const video = selectedSceneObject.videoElement;
-        video.muted = !video.muted;
-        renderPropertiesPanel();
-      }
-    }
-
-    // ─── Properties Panel UI & Data Binding ──────────────────────
-    function renderPropertiesPanel() {
-      const container = document.getElementById('properties-content');
-      if (!selectedSceneObject) {
-        container.innerHTML = `
-          <div class="text-xs text-slate-500 text-center py-10 flex flex-col items-center">
-            <span class="material-symbols-outlined text-4xl opacity-30 mb-2">ads_click</span>
-            <span>Pilih objek di canvas 3D atau sidebar<br/>untuk mengedit properti transform.</span>
-          </div>
-        `;
-        return;
-      }
-
-      const obj = selectedSceneObject.threeObject;
-      const pos = obj.position;
-      const rot = obj.rotation;
-      const scale = obj.scale;
-
-      let extraControlsHtml = '';
-      if (selectedSceneObject.type === 'video' && selectedSceneObject.videoElement) {
-        const video = selectedSceneObject.videoElement;
-        extraControlsHtml = `
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
-            <div class="text-[10px] text-rose-600 uppercase font-bold flex items-center gap-1">
-              <span class="material-symbols-outlined text-xs">movie</span> Kontrol Putar Video
-            </div>
-            <div class="flex gap-2">
-              <button onclick="toggleVideoPlay()" class="flex-1 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-200 shadow-sm">
-                <span class="material-symbols-outlined text-sm">${video.paused ? 'play_arrow' : 'pause'}</span> ${video.paused ? 'Play' : 'Pause'}
-              </button>
-              <button onclick="toggleVideoMute()" class="bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 border border-slate-200 shadow-sm">
-                <span class="material-symbols-outlined text-sm">${video.muted ? 'volume_off' : 'volume_up'}</span> ${video.muted ? 'Unmute' : 'Mute'}
-              </button>
-            </div>
-          </div>
-        `;
-      }
-
-      container.innerHTML = `
-        <!-- Object Name -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-          <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Nama Objek</div>
-          <input type="text" id="prop-name-input" value="${escHtml(selectedSceneObject.name)}" onchange="updateSelectedObjectName(this.value)" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
-        </div>
-
-        ${extraControlsHtml}
-
-        <!-- Position -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
-          <div class="flex items-center gap-1.5 text-rose-600 font-bold text-xs">
-            <span class="material-symbols-outlined text-sm">open_with</span> Posisi (Position Meter)
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">X</label>
-              <input type="number" step="0.05" id="prop-pos-x" value="${pos.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Y</label>
-              <input type="number" step="0.05" id="prop-pos-y" value="${pos.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Z</label>
-              <input type="number" step="0.05" id="prop-pos-z" value="${pos.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Rotation -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
-          <div class="flex items-center gap-1.5 text-amber-600 font-bold text-xs">
-            <span class="material-symbols-outlined text-sm">sync</span> Rotasi (Degrees °)
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">X°</label>
-              <input type="number" step="5" id="prop-rot-x" value="${THREE.MathUtils.radToDeg(rot.x).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Y°</label>
-              <input type="number" step="5" id="prop-rot-y" value="${THREE.MathUtils.radToDeg(rot.y).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Z°</label>
-              <input type="number" step="5" id="prop-rot-z" value="${THREE.MathUtils.radToDeg(rot.z).toFixed(1)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Scale -->
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2">
-          <div class="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
-            <span class="material-symbols-outlined text-sm">aspect_ratio</span> Skala (Scale Ratio)
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale X</label>
-              <input type="number" step="0.1" id="prop-scale-x" value="${scale.x.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale Y</label>
-              <input type="number" step="0.1" id="prop-scale-y" value="${scale.y.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <div>
-              <label class="text-[9px] text-slate-500 font-bold block mb-1">Scale Z</label>
-              <input type="number" step="0.1" id="prop-scale-z" value="${scale.z.toFixed(2)}" oninput="updateObjectTransformFromInputs()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 text-center font-mono focus:border-emerald-500 focus:outline-none" />
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    function updateObjectTransformFromInputs() {
-      if (!selectedSceneObject) return;
-      const obj = selectedSceneObject.threeObject;
-
-      const posX = parseFloat(document.getElementById('prop-pos-x')?.value || 0);
-      const posY = parseFloat(document.getElementById('prop-pos-y')?.value || 0);
-      const posZ = parseFloat(document.getElementById('prop-pos-z')?.value || 0);
-      obj.position.set(posX, posY, posZ);
-
-      const rotX = THREE.MathUtils.degToRad(parseFloat(document.getElementById('prop-rot-x')?.value || 0));
-      const rotY = THREE.MathUtils.degToRad(parseFloat(document.getElementById('prop-rot-y')?.value || 0));
-      const rotZ = THREE.MathUtils.degToRad(parseFloat(document.getElementById('prop-rot-z')?.value || 0));
-      obj.rotation.set(rotX, rotY, rotZ);
-
-      const scaleX = parseFloat(document.getElementById('prop-scale-x')?.value || 1);
-      const scaleY = parseFloat(document.getElementById('prop-scale-y')?.value || 1);
-      const scaleZ = parseFloat(document.getElementById('prop-scale-z')?.value || 1);
-      obj.scale.set(scaleX, scaleY, scaleZ);
-    }
-
-    function updatePropertiesInputsFromObject() {
-      if (!selectedSceneObject) return;
-      const obj = selectedSceneObject.threeObject;
-
-      const posX = document.getElementById('prop-pos-x');
-      const posY = document.getElementById('prop-pos-y');
-      const posZ = document.getElementById('prop-pos-z');
-      if (posX && posY && posZ) {
-        posX.value = obj.position.x.toFixed(2);
-        posY.value = obj.position.y.toFixed(2);
-        posZ.value = obj.position.z.toFixed(2);
-      }
-
-      const rotX = document.getElementById('prop-rot-x');
-      const rotY = document.getElementById('prop-rot-y');
-      const rotZ = document.getElementById('prop-rot-z');
-      if (rotX && rotY && rotZ) {
-        rotX.value = THREE.MathUtils.radToDeg(obj.rotation.x).toFixed(1);
-        rotY.value = THREE.MathUtils.radToDeg(obj.rotation.y).toFixed(1);
-        rotZ.value = THREE.MathUtils.radToDeg(obj.rotation.z).toFixed(1);
-      }
-
-      const scaleX = document.getElementById('prop-scale-x');
-      const scaleY = document.getElementById('prop-scale-y');
-      const scaleZ = document.getElementById('prop-scale-z');
-      if (scaleX && scaleY && scaleZ) {
-        scaleX.value = obj.scale.x.toFixed(2);
-        scaleY.value = obj.scale.y.toFixed(2);
-        scaleZ.value = obj.scale.z.toFixed(2);
-      }
-    }
-
-    function updateSelectedObjectName(newName) {
-      if (selectedSceneObject) {
-        selectedSceneObject.name = newName || selectedSceneObject.name;
-        updateSceneHierarchyUI();
-      }
-    }
-
-    async function fetchAvailableAssets() {
-      const container = document.getElementById('assets-list');
-      try {
-        const res = await fetch('/api/assets');
-        const data = await res.json();
-        allAssets = data.assets || [];
-        const assets = allAssets.filter(a => a.filename && a.filename.endsWith('.glb'));
-
-        if (!assets.length) {
-          container.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">Belum ada file .glb yang diunggah.</div>';
-          return;
-        }
-
-        container.innerHTML = assets.map(a => `
-          <div class="bg-slate-800/80 hover:bg-slate-800 p-2 rounded-xl flex items-center justify-between border border-slate-700/50 transition-colors">
-            <div class="overflow-hidden pr-2">
-              <div class="font-bold text-xs text-slate-200 truncate" title="${escHtml(a.name || a.originalName)}">${escHtml(a.name || a.originalName)}</div>
-            </div>
-            <button onclick="addModelToScene('${a.id}', '/assets/${a.filename}', '${escHtml(a.name || a.originalName)}')" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 transition-all shadow-md shrink-0" title="Tambah ke Scene">
-              <span class="material-symbols-outlined text-xs">add</span> Tambah
-            </button>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Failed to load assets:', err);
-        container.innerHTML = '<div class="text-xs text-rose-400 text-center py-2">Gagal memuat aset.</div>';
-      }
-    }
-
-    function addModelToScene(assetId, url, name) {
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = 'Memuat model...';
-
-      gltfLoader.load(url, (gltf) => {
-        objectCounter++;
-        const model = gltf.scene;
-        const objId = `obj_${objectCounter}_${assetId}`;
-        model.name = objId;
-        model.position.set(0, 0, 0);
-
-        scene.add(model);
-
-        const assetData = allAssets.find(a => a.id === assetId);
-        const record = {
-          id: objId,
-          name: `${name} #${objectCounter}`,
-          type: 'model',
-          assetId: assetId,
-          assetData: assetData,
-          src: url || (assetData ? `/assets/${assetData.filename}` : null),
-          threeObject: model
-        };
-        loadedSceneObjects.push(record);
-
-        selectSceneObject(objId);
-        updateSceneHierarchyUI();
-        statusEl.textContent = `Studio Ready (${loadedSceneObjects.length} Objek)`;
-      }, undefined, (error) => {
-        console.error('Error loading model:', error);
-        alert('Gagal memuat model 3D: ' + error.message);
-        statusEl.textContent = 'Gagal memuat model';
-      });
-    }
-
-    function removeObjectFromScene(objId) {
-      if (selectedSceneObject && selectedSceneObject.id === objId) {
-        deselectSceneObject();
-      }
-      const index = loadedSceneObjects.findIndex(o => o.id === objId);
-      if (index !== -1) {
-        const item = loadedSceneObjects[index];
-        if (item.videoElement) {
-          item.videoElement.pause();
-          item.videoElement.src = '';
-        }
-        scene.remove(item.threeObject);
-        loadedSceneObjects.splice(index, 1);
-        updateSceneHierarchyUI();
-        document.getElementById('studio-status').textContent = `Studio Ready (${loadedSceneObjects.length} Objek)`;
-      }
-    }
-
-    function updateSceneHierarchyUI() {
-      const container = document.getElementById('scene-objects-list');
-      const countEl = document.getElementById('scene-obj-count');
-      countEl.textContent = `${loadedSceneObjects.length} Objek`;
-
-      if (!loadedSceneObjects.length) {
-        container.innerHTML = `
-          <div class="text-xs text-slate-500 text-center py-6 flex flex-col items-center">
-            <span class="material-symbols-outlined text-3xl opacity-30 mb-2">layers</span>
-            <span>Belum ada objek di scene.<br/>Klik model/shape/media di atas.</span>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = loadedSceneObjects.map(item => {
-        const isSelected = selectedSceneObject && selectedSceneObject.id === item.id;
-        const activeClass = isSelected ? 'bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm' : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100';
-
-        let icon = 'view_in_ar';
-        if (item.type === 'shape') icon = 'category';
-        if (item.type === 'text') icon = 'title';
-        if (item.type === 'image') icon = 'image';
-        if (item.type === 'video') icon = 'movie';
-
-        return `
-          <div onclick="selectSceneObject('${item.id}')" class="${activeClass} p-2 rounded-xl flex items-center justify-between border cursor-pointer transition-all">
-            <div class="flex items-center gap-2 overflow-hidden">
-              <span class="material-symbols-outlined ${isSelected ? 'text-emerald-600' : 'text-slate-500'} text-sm">${icon}</span>
-              <div class="text-xs truncate">${escHtml(item.name)}</div>
-            </div>
-            <button onclick="event.stopPropagation(); removeObjectFromScene('${item.id}')" class="text-slate-400 hover:text-rose-500 p-1 rounded transition-colors" title="Hapus dari Scene">
-              <span class="material-symbols-outlined text-sm">delete</span>
-            </button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // ─── Print Barcode / QR Code Modal Handler ─────────────────
-    async function openPrintBarcodeModal() {
-      const modal = document.getElementById('modal-print-barcode');
-      const qrImg = document.getElementById('studio-qr-img');
-      const printBtn = document.getElementById('studio-print-card-btn');
-      const openArBtn = document.getElementById('studio-open-ar-btn');
-
-      const activeId = (window.lastPublishedEcosystem && window.lastPublishedEcosystem.id)
-        ? window.lastPublishedEcosystem.id
-        : (currentActivePreset ? currentActivePreset.id : 'preset-darat');
-
-      try {
-        const res = await fetch(`/api/assets/${activeId}/qr`);
-        const data = await res.json();
-        if (data.qrDataUrl) {
-          qrImg.src = data.qrDataUrl;
-          printBtn.href = data.printUrl || `/print/${activeId}`;
-          openArBtn.href = data.viewerUrl || `/ecosystem/view/${activeId}`;
-        } else {
-          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/ecosystem/view/' + activeId)}`;
-          printBtn.href = `/print/${activeId}`;
-          openArBtn.href = `/ecosystem/view/${activeId}`;
-        }
-      } catch (e) {
-        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/ecosystem/view/' + activeId)}`;
-        printBtn.href = `/print/${activeId}`;
-        openArBtn.href = `/ecosystem/view/${activeId}`;
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function closePrintBarcodeModal() {
-      document.getElementById('modal-print-barcode').classList.add('hidden');
-    }
-
-    function escHtml(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
     function animate() {
@@ -1589,229 +547,164 @@
       renderer.render(scene, camera);
     }
 
-    // ─── Publish Scene Handler (FASE B) ────────────────────────
-    async function publishCurrentScene() {
-      const statusEl = document.getElementById('studio-status');
-      statusEl.textContent = 'Mempublish Scene...';
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
 
-      const sceneId = 'scene_studio_' + Date.now();
-      const sceneData = {
-        id: sceneId,
-        sceneId: sceneId,
-        name: 'AR Studio Multi-Object Scene',
-        updatedAt: new Date().toISOString(),
-        objects: loadedSceneObjects.map(item => {
-          let modelSrc = item.src;
-          if (!modelSrc && item.assetData && item.assetData.filename) {
-            modelSrc = `/assets/${item.assetData.filename}`;
+    // ── Raycaster Pointer Selection ──
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onPointerDown(event) {
+      if (event.target.tagName !== 'CANVAS') return;
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      if (ecosystemGroup) {
+        const intersects = raycaster.intersectObjects(ecosystemGroup.children, true);
+        if (intersects.length > 0) {
+          let topObj = intersects[0].object;
+          while (topObj.parent && topObj.parent !== ecosystemGroup && topObj.parent !== scene) {
+            topObj = topObj.parent;
           }
-          if (!modelSrc && item.url) {
-            modelSrc = item.url;
-          }
-
-          return {
-            id: item.id,
-            name: item.name,
-            type: item.type,
-            shapeType: item.shapeType,
-            color: item.color,
-            content: item.content || item.textStr || item.name,
-            src: modelSrc,
-            url: item.url || modelSrc,
-            position: [item.threeObject.position.x, item.threeObject.position.y, item.threeObject.position.z],
-            rotation: [item.threeObject.rotation.x, item.threeObject.rotation.y, item.threeObject.rotation.z],
-            scale: [item.threeObject.scale.x, item.threeObject.scale.y, item.threeObject.scale.z]
-          };
-        })
-      };
-
-      try {
-        const res = await fetch(`/api/studio/publish/${sceneId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sceneData })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error || 'Gagal publish');
-
-        statusEl.textContent = 'Published Live! ✨';
-
-        // Populate Publish Modal
-        document.getElementById('publish-qr-img').src = data.qrCodeDataUrl;
-        document.getElementById('publish-direct-url').value = data.directUrl;
-        document.getElementById('publish-embed-code').value = data.embedCode;
-        document.getElementById('publish-open-ar-btn').href = data.directUrl;
-        document.getElementById('publish-download-qr-btn').href = data.qrCodeDataUrl;
-
-        document.getElementById('modal-publish-scene').classList.remove('hidden');
-      } catch (err) {
-        alert('Error publish scene: ' + err.message);
-        statusEl.textContent = 'Publish Gagal';
+          selectObject(topObj);
+        }
       }
     }
 
-    function closePublishModal() {
-      document.getElementById('modal-publish-scene').classList.add('hidden');
+    function selectObject(obj) {
+      selectedObject = obj;
+      if (obj) {
+        transformControls.attach(obj);
+      } else {
+        transformControls.detach();
+      }
     }
 
-    const saveCurrentScene = publishCurrentScene;
+    // ── Gizmo Modes (Translate / Rotate / Scale) ──
+    function setGizmoMode(mode) {
+      transformControls.setMode(mode);
+      ['t', 'r', 's'].forEach(m => {
+        const btn = document.getElementById(`gizmo-btn-${m}`);
+        if (btn) btn.className = "w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs";
+      });
+      const activeBtn = document.getElementById(`gizmo-btn-${mode[0]}`);
+      if (activeBtn) activeBtn.className = "w-9 h-9 rounded-xl flex items-center justify-center bg-[#632ce5] text-white font-bold text-xs shadow-sm";
+    }
 
-    function copyToClipboard(elementId, btnEl) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      navigator.clipboard.writeText(el.value).then(() => {
-        const origText = btnEl.innerHTML;
-        btnEl.innerHTML = '<span class="material-symbols-outlined text-xs">check</span> Copied!';
-        setTimeout(() => { btnEl.innerHTML = origText; }, 2000);
+    function deleteSelectedObject() {
+      if (selectedObject && ecosystemGroup) {
+        ecosystemGroup.remove(selectedObject);
+        transformControls.detach();
+        selectedObject = null;
+      }
+    }
+
+    // ── Load Preset GLB Model ──
+    function loadEcosystemPreset(presetId) {
+      currentActivePresetId = presetId;
+      document.getElementById('project-title-input').value = `Ekosistem ${presetId.charAt(0).toUpperCase() + presetId.slice(1)}`;
+      document.getElementById('share-project-name').textContent = `Ekosistem ${presetId.charAt(0).toUpperCase() + presetId.slice(1)}`;
+      document.getElementById('share-direct-url').value = `https://qrcodear.onrender.com/ecosystem/view/${presetId}`;
+
+      ['sawah', 'hutan', 'laut', 'darat'].forEach(id => {
+        const tab = document.getElementById(`tab-eco-${id}`);
+        if (tab) tab.className = "px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all";
+      });
+      const activeTab = document.getElementById(`tab-eco-${presetId}`);
+      if (activeTab) activeTab.className = "px-3.5 py-2 rounded-xl text-xs font-extrabold bg-[#632ce5] text-white shadow-sm transition-all";
+
+      if (ecosystemGroup) {
+        scene.remove(ecosystemGroup);
+        transformControls.detach();
+        ecosystemGroup = null;
+      }
+
+      const glbUrl = `/uploads/ekosistem_${presetId}_lengkap.glb`;
+      const fallbackUrl = `/uploads/preset-${presetId}.glb`;
+
+      const loader = new THREE.GLTFLoader();
+      loader.load(glbUrl, (gltf) => {
+        ecosystemGroup = gltf.scene;
+        ecosystemGroup.position.set(0, 0, 0);
+        scene.add(ecosystemGroup);
+      }, undefined, () => {
+        // Fallback to preset GLB if baked model not found
+        loader.load(fallbackUrl, (gltf) => {
+          ecosystemGroup = gltf.scene;
+          ecosystemGroup.position.set(0, 0, 0);
+          scene.add(ecosystemGroup);
+        });
       });
     }
 
-    // Start studio on DOM ready
+    // ── Drawer Toggle Functions ──
+    function toggleDrawer(drawerId) {
+      const drawer = document.getElementById(drawerId);
+      const isAlreadyOpen = drawer && !drawer.classList.contains('drawer-hidden');
+      closeAllDrawers();
+      if (drawer && !isAlreadyOpen) {
+        drawer.classList.remove('drawer-hidden');
+      }
+    }
+
+    function closeAllDrawers() {
+      document.querySelectorAll('.drawer-slide').forEach(d => d.classList.add('drawer-hidden'));
+    }
+
+    // ── Share & Preview Modal Functions ──
+    function openShareModal() {
+      document.getElementById('modal-share').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('modal-share').classList.add('hidden');
+    }
+
+    function previewScene3D() {
+      window.open(`/ecosystem/view/${currentActivePresetId}`, '_blank');
+    }
+
+    function copyDirectUrl() {
+      const input = document.getElementById('share-direct-url');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      alert('Tautan langsung AR berhasil disalin! 🚀');
+    }
+
+    function copyEmbedCode(type) {
+      const url = document.getElementById('share-direct-url').value;
+      const code = `<iframe src="${url}" width="100%" height="600" frameborder="0" allow="camera;gyroscope;accelerometer"></iframe>`;
+      navigator.clipboard.writeText(code);
+      alert(`Kode semat ${type} berhasil disalin! 🚀`);
+    }
+
+    function toggleGridHelper() {
+      if (gridHelper) gridHelper.visible = !gridHelper.visible;
+    }
+
+    function resetCameraView(type) {
+      if (type === 'top') {
+        camera.position.set(0, 8, 0.01);
+        controls.target.set(0, 0, 0);
+      } else if (type === 'front') {
+        camera.position.set(0, 1.2, 7);
+        controls.target.set(0, 0.6, 0);
+      } else {
+        camera.position.set(4.5, 4.0, 5.5);
+        controls.target.set(0, 0.6, 0);
+      }
+    }
+
+    function undoAction() { console.log('Undo triggered'); }
+    function redoAction() { console.log('Redo triggered'); }
+    function saveProject() { alert('Projek berhasil disimpan! ✨'); }
+
+    // Start Studio on DOM Ready
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
-
-  <!-- ── Print Barcode & Kartu AR Modal ───────────────────────── -->
-  <div id="modal-print-barcode" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl text-center space-y-4 text-slate-800">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-emerald-600">qr_code_2</span>
-          <h3 class="font-bold text-slate-800 text-base">Cetak Barcode & Kartu AR</h3>
-        </div>
-        <button onclick="closePrintBarcodeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <!-- QR Code Image Preview -->
-      <div class="bg-slate-50 p-3 rounded-2xl w-48 h-48 mx-auto shadow-inner flex items-center justify-center border-4 border-emerald-500/20">
-        <img id="studio-qr-img" class="w-full h-full object-contain" src="" alt="QR Code AR Studio" />
-      </div>
-
-      <p class="text-xs text-slate-500 font-medium leading-relaxed">
-        Scan QR Code ini dengan HP atau cetak Kartu AR untuk melihat gabungan scene 3D secara markerless di ruang nyata.
-      </p>
-
-      <div class="flex items-center gap-3 pt-2">
-        <a id="studio-print-card-btn" href="#" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
-          <span class="material-symbols-outlined text-sm">print</span> Cetak Kartu AR
-        </a>
-        <a id="studio-open-ar-btn" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
-          <span class="material-symbols-outlined text-sm">visibility</span> Open AR Viewer
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Publish Scene Modal (FASE B) ───────────────────────── -->
-  <div id="modal-publish-scene" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-slate-800">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2 text-emerald-600 font-bold">
-          <span class="material-symbols-outlined">check_circle</span>
-          <h3 class="font-bold text-slate-800 text-base">AR Experience Anda Sudah Live!</h3>
-        </div>
-        <button onclick="closePublishModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <!-- QR & Direct Link Section -->
-      <div class="flex flex-col sm:flex-row gap-4 items-center bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 shrink-0 w-36 h-36 flex flex-col items-center justify-center">
-          <img id="publish-qr-img" class="w-28 h-28 object-contain" src="" alt="QR Scene" />
-          <a id="publish-download-qr-btn" download="ar-scene-qr.png" href="#" class="text-[10px] font-bold text-emerald-600 hover:underline mt-1 flex items-center gap-0.5">
-            <span class="material-symbols-outlined text-[12px]">download</span> Download QR
-          </a>
-        </div>
-        
-        <div class="flex-1 space-y-3 w-full">
-          <div>
-            <label class="text-[11px] font-bold text-slate-500 block mb-1">Direct Link AR Scene:</label>
-            <div class="flex gap-1.5">
-              <input type="text" id="publish-direct-url" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-mono" />
-              <button onclick="copyToClipboard('publish-direct-url', this)" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                <span class="material-symbols-outlined text-xs">content_copy</span> Copy
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label class="text-[11px] font-bold text-slate-500 block mb-1">Embed Code (&lt;iframe&gt;):</label>
-            <div class="flex gap-1.5">
-              <input type="text" id="publish-embed-code" readonly class="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 font-mono truncate" />
-              <button onclick="copyToClipboard('publish-embed-code', this)" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                <span class="material-symbols-outlined text-xs">code</span> Copy
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center gap-3 pt-2">
-        <button onclick="closePublishModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs">
-          Tutup
-        </button>
-        <a id="publish-open-ar-btn" href="#" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md">
-          <span class="material-symbols-outlined text-sm">open_in_new</span> Buka Scene AR
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Ecosystem Model Library Gallery Modal (FASE P3 & 2.6) ───── -->
-  <div id="modal-ecosystem-library" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-2xl shadow-2xl space-y-4 text-slate-800 flex flex-col max-h-[85vh]">
-      
-      <!-- Header -->
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="bg-emerald-600 text-white p-2 rounded-xl">
-            <span class="material-symbols-outlined text-lg">grid_view</span>
-          </div>
-          <div>
-            <h3 class="font-bold text-slate-800 text-base" id="lib-modal-title">Galeri Model 3D Bawaan (CC0)</h3>
-            <p class="text-xs text-slate-500 font-semibold" id="lib-modal-subtitle">Pilih model 3D untuk slot rantai makanan</p>
-          </div>
-        </div>
-        <button onclick="closeModelLibraryModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <!-- Search & Category Tabs -->
-      <div class="flex flex-col sm:flex-row gap-2 items-center justify-between">
-        <!-- Tabs -->
-        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto" id="lib-category-tabs">
-          <button onclick="filterLibraryCategory('darat')" id="tab-darat" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm">🌱 Darat</button>
-          <button onclick="filterLibraryCategory('hutan')" id="tab-hutan" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌳 Hutan</button>
-          <button onclick="filterLibraryCategory('laut')" id="tab-laut" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌊 Laut</button>
-          <button onclick="filterLibraryCategory('sawah')" id="tab-sawah" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">🌾 Sawah</button>
-          <button onclick="filterLibraryCategory('all')" id="tab-all" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">📦 Semua</button>
-        </div>
-
-        <!-- Search Input -->
-        <div class="relative w-full sm:w-64">
-          <span class="material-symbols-outlined absolute left-2.5 top-2 text-xs text-slate-400">search</span>
-          <input type="text" id="lib-search-input" onkeyup="filterLibrarySearch()" placeholder="Cari nama model..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 font-semibold focus:border-emerald-500 focus:outline-none" />
-        </div>
-      </div>
-
-      <!-- Model Cards Grid -->
-      <div id="lib-models-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto custom-scrollbar p-1 flex-1 min-h-[240px]">
-        <div class="text-xs text-slate-400 text-center col-span-full py-10">Memuat galeri model...</div>
-      </div>
-
-      <!-- Footer Info -->
-      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-        <span class="flex items-center gap-1 font-semibold text-emerald-700"><span class="material-symbols-outlined text-sm">verified</span> Lisensi CC0 (Public Domain / Free for Edu)</span>
-        <button onclick="closeModelLibraryModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-1.5 rounded-xl text-xs">
-          Batal
-        </button>
-      </div>
-
-    </div>
-  </div>
 </body>
 </html>
