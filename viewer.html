@@ -249,30 +249,24 @@
   <div class="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-[calc(100%-2rem)] max-w-[400px]" style="bottom: max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.75rem));">
     <div class="hud-card p-3 sm:p-4 rounded-3xl space-y-2.5 sm:space-y-3 shadow-2xl border border-slate-200/90">
       
-      <!-- Top Row: Controls (Rotate, Reset View, Audio Narration) -->
-      <div class="grid grid-cols-4 gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-slate-700">
-        <!-- Auto Rotate Toggle -->
-        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn py-2 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
-          <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">pause_circle</span>
-          <span id="rot-text" class="hidden sm:inline">Putar</span>
-        </button>
-
-        <!-- Reset Camera View -->
-        <button type="button" onclick="resetCameraView()" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Atur Ulang Kamera">
-          <span class="material-symbols-outlined text-sm sm:text-base">center_focus_strong</span>
-          <span>Reset</span>
+      <!-- Top Row: 3 Controls (Rotation Speeds, Toggle Labels, Audio Narration) -->
+      <div class="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-slate-700">
+        <!-- 3-Speed Rotation Cycler Button -->
+        <button type="button" onclick="cycleRotateSpeed()" id="btn-toggle-rotate" class="chunky-btn py-2 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors cursor-pointer" title="Ubah Kecepatan Putaran">
+          <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">sync</span>
+          <span id="rot-text">Putar: 1.0x</span>
         </button>
 
         <!-- Toggle Hotspot Labels -->
-        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
+        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors cursor-pointer" title="Sembunyikan/Tampilkan Label">
           <span class="material-symbols-outlined text-sm sm:text-base">label</span>
-          <span>Label</span>
+          <span id="label-btn-text">Label</span>
         </button>
 
-        <!-- Audio BGM -->
-        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Audio Suara">
+        <!-- Audio Voice Narration & SFX -->
+        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors cursor-pointer" title="Suara Narasi Pembelajaran">
           <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
-          <span class="hidden sm:inline">Audio</span>
+          <span id="audio-btn-text">Suara</span>
         </button>
       </div>
 
@@ -463,9 +457,9 @@
         controls.update();
       }
 
-      // Auto-rotation in 3D studio or AR mode when enabled
-      if (isAutoRotating && ecosystemGroup && (currentMode === '3d' || (currentMode === 'ar' && isModelPlacedInAR))) {
-        ecosystemGroup.rotation.y += 0.005;
+      // Auto-rotation in 3D studio or AR mode using selected speed (1.0x, 2.0x, 0.5x, Jeda)
+      if (ecosystemGroup && speedConfigs[speedIndex] && speedConfigs[speedIndex].speed > 0 && (currentMode === '3d' || (currentMode === 'ar' && isModelPlacedInAR))) {
+        ecosystemGroup.rotation.y += speedConfigs[speedIndex].speed;
       }
 
       // Update 2D Hotspot Coordinates based on 3D Object Rotation & AR placement
@@ -677,28 +671,28 @@
       showToast('Arahkan kamera ke titik baru lalu ketuk layar.', 'filter_center_focus');
     }
 
-    // ─── Control Buttons Handlers ─────────────────────────────────
-    function toggleAutoRotate() {
-      isAutoRotating = !isAutoRotating;
+    // ─── 3-Speed Rotation Cycler & Audio Narration Handlers ──────
+    let speedIndex = 0;
+    const speedConfigs = [
+      { label: 'Putar: 1.0x', speed: 0.006, desc: 'Kecepatan Normal (1.0x)', icon: 'sync' },
+      { label: 'Putar: 2.0x', speed: 0.014, desc: 'Kecepatan Cepat (2.0x)', icon: 'fast_forward' },
+      { label: 'Putar: 0.5x', speed: 0.0025, desc: 'Kecepatan Lambat (0.5x)', icon: 'slow_motion_video' },
+      { label: 'Jeda',        speed: 0.0,   desc: 'Putaran Dijeda', icon: 'pause_circle' }
+    ];
+
+    function cycleRotateSpeed() {
+      speedIndex = (speedIndex + 1) % speedConfigs.length;
+      const cfg = speedConfigs[speedIndex];
       const btnText = document.getElementById('rot-text');
       const btnIcon = document.getElementById('rot-icon');
-      if (isAutoRotating) {
-        btnText.textContent = 'Hentikan Putaran';
-        btnIcon.textContent = 'pause_circle';
-      } else {
-        btnText.textContent = 'Mulai Putaran';
-        btnIcon.textContent = 'play_circle';
-      }
-    }
-
-    function resetCameraView() {
-      camera.position.set(4.5, 3.8, 5.5);
-      controls.target.set(0, 0.5, 0);
-      showToast('Sudut kamera diatur ulang', 'center_focus_strong');
+      if (btnText) btnText.textContent = cfg.label;
+      if (btnIcon) btnIcon.textContent = cfg.icon;
+      showToast(cfg.desc, cfg.icon);
     }
 
     function toggleLabels() {
       showHotspotLabels = !showHotspotLabels;
+      const btnText = document.getElementById('label-btn-text');
       for (let i = 0; i < 6; i++) {
         const el = document.getElementById(`hotspot-${i}`);
         if (el) {
@@ -706,17 +700,70 @@
           else el.classList.add('hidden');
         }
       }
+      if (btnText) btnText.textContent = showHotspotLabels ? 'Label' : 'Tutup';
       showToast(showHotspotLabels ? 'Label Spesies Ditampilkan' : 'Label Spesies Disembunyikan', 'label');
+    }
+
+    let audioContext = null;
+
+    function playTone(freq, type = 'triangle', duration = 0.22) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!audioContext) audioContext = new AudioCtx();
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function speakIndonesian(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'id-ID';
+      utter.rate = 1.0;
+      utter.pitch = 1.05;
+      window.speechSynthesis.speak(utter);
     }
 
     function toggleAudioNarration() {
       audioPlaying = !audioPlaying;
       const icon = document.getElementById('audio-icon');
+      const btn = document.getElementById('btn-audio-narrate');
+      const btnText = document.getElementById('audio-btn-text');
+
       if (audioPlaying) {
-        icon.textContent = 'volume_up';
-        showToast('Memutar audio narasi rantai makanan 🎵', 'music_note');
+        if (icon) icon.textContent = 'volume_up';
+        if (btnText) btnText.textContent = 'Suara: On';
+        if (btn) {
+          btn.classList.remove('bg-slate-100', 'text-slate-700');
+          btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+        }
+        // Play melodic chime chords
+        playTone(523.25, 'triangle', 0.18);
+        setTimeout(() => playTone(659.25, 'triangle', 0.18), 100);
+        setTimeout(() => playTone(783.99, 'triangle', 0.28), 200);
+
+        showToast('Memutar audio narasi rantai makanan 🎵', 'volume_up');
+        speakIndonesian('Selamat datang di pembelajaran ekosistem rantai makanan. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!');
       } else {
-        icon.textContent = 'volume_off';
+        if (icon) icon.textContent = 'volume_off';
+        if (btnText) btnText.textContent = 'Suara';
+        if (btn) {
+          btn.classList.add('bg-slate-100', 'text-slate-700');
+          btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+        }
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
         showToast('Audio narasi dihentikan', 'volume_off');
       }
     }
@@ -743,6 +790,12 @@
       document.getElementById('modal-species-icon').textContent = speciesIcons[index] || '🐾';
 
       document.getElementById('species-info-modal').classList.remove('hidden');
+
+      // Play chime feedback & voice narration
+      playTone(587.33, 'sine', 0.16);
+      if (audioPlaying) {
+        speakIndonesian(`${label}, berperan sebagai ${role}. ${speciesDescriptions[index] || ''}`);
+      }
     }
 
     function closeSpeciesModal() {
