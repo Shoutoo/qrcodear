@@ -245,32 +245,32 @@
     </div>
   </div>
 
-  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (ZERO-OVERFLOW SAFE AREA) ─── -->
-  <div class="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[92vw] sm:max-w-md px-1" style="bottom: max(1.1rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));">
-    <div class="hud-card p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl space-y-2 shadow-2xl">
+  <!-- ─── 6. BOTTOM FLOATING HUD ISLAND (ELEVATED ZERO-OVERFLOW) ─── -->
+  <div class="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-[90vw] sm:max-w-md px-1" style="bottom: max(1.75rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem));">
+    <div class="hud-card p-3 sm:p-4 rounded-3xl space-y-2.5 sm:space-y-3 shadow-2xl border border-slate-200/90">
       
       <!-- Top Row: Controls (Rotate, Reset View, Audio Narration) -->
-      <div class="grid grid-cols-4 gap-1.5 text-[10px] sm:text-xs font-bold text-slate-700">
+      <div class="grid grid-cols-4 gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-slate-700">
         <!-- Auto Rotate Toggle -->
-        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn py-1.5 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
+        <button type="button" onclick="toggleAutoRotate()" id="btn-toggle-rotate" class="chunky-btn py-2 px-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-[#632ce5] font-extrabold flex items-center justify-center gap-1 transition-colors">
           <span id="rot-icon" class="material-symbols-outlined text-sm sm:text-base">pause_circle</span>
           <span id="rot-text" class="hidden sm:inline">Putar</span>
         </button>
 
         <!-- Reset Camera View -->
-        <button type="button" onclick="resetCameraView()" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Atur Ulang Kamera">
+        <button type="button" onclick="resetCameraView()" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Atur Ulang Kamera">
           <span class="material-symbols-outlined text-sm sm:text-base">center_focus_strong</span>
           <span>Reset</span>
         </button>
 
         <!-- Toggle Hotspot Labels -->
-        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
+        <button type="button" onclick="toggleLabels()" id="btn-toggle-labels" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Sembunyikan/Tampilkan Label">
           <span class="material-symbols-outlined text-sm sm:text-base">label</span>
           <span>Label</span>
         </button>
 
         <!-- Audio BGM -->
-        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Audio Suara">
+        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors" title="Audio Suara">
           <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
           <span class="hidden sm:inline">Audio</span>
         </button>
@@ -279,16 +279,16 @@
       <!-- Bottom Row: Primary AR Trigger / Placement Control CTA -->
       <div id="ar-cta-container">
         <!-- In 3D Mode: Big "Mulai AR Kamera" CTA -->
-        <button type="button" onclick="setViewerMode('ar')" id="btn-main-ar-start" class="chunky-btn w-full h-11 sm:h-12 rounded-xl sm:rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide cursor-pointer">
+        <button type="button" onclick="setViewerMode('ar')" id="btn-main-ar-start" class="chunky-btn w-full h-11 sm:h-12 rounded-2xl font-black bg-gradient-to-r from-[#632ce5] to-[#7c4dff] hover:from-[#531fd4] hover:to-[#6d3ae6] text-white flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md active:scale-98 transition-all tracking-wide cursor-pointer">
           <span class="material-symbols-outlined text-base sm:text-lg">view_in_ar</span> Lihat di AR (Kamera Browser)
         </button>
 
         <!-- In AR Mode: Re-position & Exit AR Bar -->
         <div id="ar-active-bar" class="hidden flex items-center gap-2">
-          <button type="button" onclick="resetArPlacement()" class="chunky-btn flex-1 h-10 sm:h-11 rounded-xl font-black bg-purple-100 hover:bg-purple-200 text-[#632ce5] text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <button type="button" onclick="resetArPlacement()" class="chunky-btn flex-1 h-11 rounded-2xl font-black bg-purple-100 hover:bg-purple-200 text-[#632ce5] text-xs flex items-center justify-center gap-1.5 shadow-sm">
             <span class="material-symbols-outlined text-base">filter_center_focus</span> Pindah Posisi
           </button>
-          <button type="button" onclick="setViewerMode('3d')" class="chunky-btn h-10 sm:h-11 px-4 rounded-xl font-black bg-slate-900 hover:bg-black text-white text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <button type="button" onclick="setViewerMode('3d')" class="chunky-btn h-11 px-4 rounded-2xl font-black bg-slate-900 hover:bg-black text-white text-xs flex items-center justify-center gap-1.5 shadow-sm">
             <span class="material-symbols-outlined text-base">close</span> Tutup AR
           </button>
         </div>
