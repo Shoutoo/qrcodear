@@ -263,10 +263,10 @@
           <span id="label-btn-text">Label</span>
         </button>
 
-        <!-- Audio Voice Narration & SFX -->
-        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors cursor-pointer" title="Suara Narasi Pembelajaran">
-          <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">volume_up</span>
-          <span id="audio-btn-text">Suara</span>
+        <!-- Audio Nature Ambiance Soundscape -->
+        <button type="button" onclick="toggleAudioNarration()" id="btn-audio-narrate" class="chunky-btn py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold flex items-center justify-center gap-1 transition-colors cursor-pointer" title="Suasana Alam Ekosistem">
+          <span id="audio-icon" class="material-symbols-outlined text-sm sm:text-base">spa</span>
+          <span id="audio-btn-text">Suasana</span>
         </button>
       </div>
 
@@ -721,7 +721,7 @@
 
     let audioContext = null;
 
-    function playTone(freq, type = 'triangle', duration = 0.22) {
+    function playTone(freq, type = 'sine', duration = 0.20) {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
@@ -732,7 +732,7 @@
         const gain = audioContext.createGain();
         osc.type = type;
         osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-        gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.12, audioContext.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
         osc.connect(gain);
         gain.connect(audioContext.destination);
@@ -741,17 +741,7 @@
       } catch (e) {}
     }
 
-    function speakIndonesian(text) {
-      if (!window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = 'id-ID';
-      utter.rate = 1.0;
-      utter.pitch = 1.05;
-      window.speechSynthesis.speak(utter);
-    }
-
-    let narrationAudio = null;
+    let ambianceAudio = null;
 
     function toggleAudioNarration() {
       audioPlaying = !audioPlaying;
@@ -760,56 +750,47 @@
       const btnText = document.getElementById('audio-btn-text');
 
       if (audioPlaying) {
-        if (icon) icon.textContent = 'volume_up';
-        if (btnText) btnText.textContent = 'Suara: On';
+        if (icon) icon.textContent = 'spa';
+        if (btnText) btnText.textContent = 'Suasana: On';
         if (btn) {
           btn.classList.remove('bg-slate-100', 'text-slate-700');
-          btn.classList.add('bg-purple-100', 'text-[#632ce5]');
+          btn.classList.add('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-300');
         }
 
         const ecoKey = presetParam || 'sawah';
-        showToast(`Memutar audio narasi: Ekosistem ${ecoKey} 🎵`, 'volume_up');
+        showToast(`Memutar Suasana Alam: Ekosistem ${ecoKey} 🍃🎵`, 'spa');
 
         const audioSrc = `/audio/ecosystems/${ecoKey}.mp3`;
 
-        if (!narrationAudio) {
-          narrationAudio = new Audio(audioSrc);
-          narrationAudio.addEventListener('ended', () => {
-            audioPlaying = false;
-            if (icon) icon.textContent = 'volume_off';
-            if (btnText) btnText.textContent = 'Suara';
-            if (btn) {
-              btn.classList.add('bg-slate-100', 'text-slate-700');
-              btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
-            }
-          });
-          narrationAudio.addEventListener('error', () => {
-            speakIndonesian('Selamat datang di pembelajaran ekosistem rantai makanan. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!');
+        if (!ambianceAudio) {
+          ambianceAudio = new Audio(audioSrc);
+          ambianceAudio.loop = true;
+          ambianceAudio.volume = 0.85;
+          ambianceAudio.addEventListener('error', () => {
+            playTone(523.25, 'sine', 0.3);
           });
         } else {
-          narrationAudio.src = audioSrc;
+          ambianceAudio.src = audioSrc;
+          ambianceAudio.loop = true;
         }
 
-        narrationAudio.currentTime = 0;
-        const playPromise = narrationAudio.play();
+        const playPromise = ambianceAudio.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
-            speakIndonesian('Selamat datang di pembelajaran ekosistem rantai makanan. Rantai makanan ini terdiri dari produsen, konsumen, dan pengurai. Sentuh masing-masing hewan untuk mempelajari peran ilmiahnya!');
+            playTone(523.25, 'sine', 0.25);
           });
         }
       } else {
-        if (icon) icon.textContent = 'volume_off';
-        if (btnText) btnText.textContent = 'Suara';
+        if (icon) icon.textContent = 'spa';
+        if (btnText) btnText.textContent = 'Suasana';
         if (btn) {
           btn.classList.add('bg-slate-100', 'text-slate-700');
-          btn.classList.remove('bg-purple-100', 'text-[#632ce5]');
+          btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-300');
         }
-        if (narrationAudio) {
-          narrationAudio.pause();
-          narrationAudio.currentTime = 0;
+        if (ambianceAudio) {
+          ambianceAudio.pause();
         }
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        showToast('Audio narasi dihentikan', 'volume_off');
+        showToast('Suasana alam dijeda', 'pause');
       }
     }
 
@@ -836,11 +817,8 @@
 
       document.getElementById('species-info-modal').classList.remove('hidden');
 
-      // Play chime feedback & voice narration
-      playTone(587.33, 'sine', 0.16);
-      if (audioPlaying) {
-        speakIndonesian(`${label}, berperan sebagai ${role}. ${speciesDescriptions[index] || ''}`);
-      }
+      // Play soothing chime feedback when exploring animal
+      playTone(587.33, 'sine', 0.18);
     }
 
     function closeSpeciesModal() {
