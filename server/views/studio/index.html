@@ -109,14 +109,14 @@
       </button>
     </div>
 
-    <!-- Bottom Group: Guide, Support, Settings (Screenshot 4) -->
+    <!-- Bottom Group: Guide, Support, Settings (Screenshot 4 - Dedicated Floating Popups) -->
     <div class="flex flex-col items-center gap-2 w-full px-2">
       <!-- Mempelajari -->
-      <button onclick="openTutorialModal()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Panduan Mempelajari Studio">
+      <button onclick="toggleTutorialPopup(event)" id="btn-tutorial-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Panduan Mempelajari Studio">
         <span class="material-symbols-outlined text-xl">menu_book</span>
       </button>
       <!-- Mendukung / Bantuan -->
-      <button onclick="openSupportModal()" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Pusat Bantuan & Dukungan">
+      <button onclick="toggleSupportPopup(event)" id="btn-support-toggle" class="w-10 h-10 rounded-xl text-slate-500 hover:text-[#632ce5] hover:bg-purple-50 flex items-center justify-center transition-all chunky-btn" title="Pusat Bantuan & Dukungan">
         <span class="material-symbols-outlined text-xl">help</span>
       </button>
       <!-- Pengaturan (With Popup Menu) -->
@@ -631,20 +631,84 @@
   </div>
 
   <!-- ─── 10. POPUP MENU PENGATURAN STUDIO (SCREENSHOT 4) ────────── -->
-  <div id="popup-settings-menu" class="hidden absolute bottom-14 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-2 w-64 space-y-1 select-none animate-in fade-in zoom-in-95 duration-150">
-    <button onclick="resetCameraView('iso'); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+  <div id="popup-settings-menu" class="hidden absolute bottom-4 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-2 w-64 space-y-1 select-none animate-in fade-in zoom-in-95 duration-150">
+    <button onclick="resetCameraView('iso'); closeAllPopups(); showToast('Kamera diatur ulang ke 3D ISO', 'videocam');" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
       <span class="material-symbols-outlined text-base">videocam</span> Atur Ulang Kamera
     </button>
-    <button onclick="toggleGridHelper(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button onclick="toggleGridHelper(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
       <span class="material-symbols-outlined text-base">grid_4x4</span> Tampilkan/Sembunyikan Garis
     </button>
-    <button onclick="toggleBoundingBox(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button onclick="toggleBoundingBox(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
       <span class="material-symbols-outlined text-base">deployed_code</span> Show / Hide Collider
     </button>
     <div class="h-[1px] bg-slate-100 my-1"></div>
-    <button onclick="openKeyboardShortcutsModal(); closeSettingsPopup();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
+    <button onclick="openKeyboardShortcutsModal(); closeAllPopups();" class="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-purple-50 hover:text-[#632ce5] flex items-center gap-2.5 transition-all text-left">
       <span class="material-symbols-outlined text-base">keyboard</span> Keyboard Shortcut
     </button>
+  </div>
+
+  <!-- ─── 10B. POPUP MENU MEMPELAJARI / TUTORIAL (FLOATING MENU) ──── -->
+  <div id="popup-tutorial-menu" class="hidden absolute bottom-20 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-80 space-y-3 select-none animate-in fade-in zoom-in-95 duration-150">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div class="flex items-center gap-2 text-xs font-black text-slate-800">
+        <span class="material-symbols-outlined text-purple-600 text-base">menu_book</span> Panduan Belajar Studio
+      </div>
+      <button onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+    <div class="space-y-2 text-xs">
+      <div class="flex items-start gap-2.5 bg-purple-50/60 p-2.5 rounded-xl border border-purple-100">
+        <span class="w-5 h-5 rounded-full bg-[#632ce5] text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 mt-0.5">1</span>
+        <div>
+          <h5 class="font-black text-slate-800">Pilih Preset Ekosistem</h5>
+          <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Pilih tema Sawah, Hutan, Laut, atau Darat di panel bawah.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-2.5 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 mt-0.5">2</span>
+        <div>
+          <h5 class="font-black text-slate-800">Tambah Elemen Baru</h5>
+          <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Klik menu di sidebar kiri untuk menambahkan 3D, Stiker 2D, Teks, atau Musik.</p>
+        </div>
+      </div>
+      <div class="flex items-start gap-2.5 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100">
+        <span class="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-[10px] flex-shrink-0 mt-0.5">3</span>
+        <div>
+          <h5 class="font-black text-slate-800">Bagikan & Scan AR</h5>
+          <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Klik "Bagikan" di pojok kanan atas untuk cetak Kartu QR AR atau sematkan ke Canva!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 10C. POPUP MENU MENDUKUNG / BANTUAN (FLOATING MENU) ─────── -->
+  <div id="popup-support-menu" class="hidden absolute bottom-12 left-20 z-40 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 w-72 space-y-2.5 select-none animate-in fade-in zoom-in-95 duration-150">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+      <div class="flex items-center gap-2 text-xs font-black text-slate-800">
+        <span class="material-symbols-outlined text-purple-600 text-base">help</span> Pusat Bantuan SD Edu
+      </div>
+      <button onclick="closeAllPopups()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+    </div>
+    <div class="space-y-1.5 text-xs">
+      <a href="https://wa.me/" target="_blank" class="w-full p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-black flex items-center gap-2.5 transition-all">
+        <span class="material-symbols-outlined text-emerald-600 text-base">chat</span> WhatsApp Bantuan Edu
+      </a>
+      <a href="mailto:support@alamverse.id" class="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#632ce5] font-black flex items-center gap-2.5 transition-all">
+        <span class="material-symbols-outlined text-slate-500 text-base">mail</span> Email: support@alamverse.id
+      </a>
+      <button onclick="showToast('Dokumentasi Guru SD sedang disiapkan ✨', 'school'); closeAllPopups();" class="w-full p-2.5 rounded-xl bg-slate-50 hover:bg-purple-50 text-slate-700 hover:text-[#632ce5] font-black flex items-center gap-2.5 transition-all text-left">
+        <span class="material-symbols-outlined text-slate-500 text-base">school</span> Panduan Mengajar di Kelas
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── IN-APP TOAST NOTIFICATION FLOATING BANNER ───────────────── -->
+  <div id="studio-toast" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 border border-slate-700/80 pointer-events-none transition-all">
+    <span id="toast-icon" class="material-symbols-outlined text-base text-amber-400">info</span>
+    <span id="toast-message">Pesan notifikasi</span>
   </div>
 
   <!-- ─── 11. MODAL KEYBOARD SHORTCUTS (SCREENSHOT 4) ────────────── -->
@@ -917,7 +981,7 @@
       const drawer = document.getElementById(drawerId);
       const isAlreadyOpen = drawer && !drawer.classList.contains('drawer-hidden');
       closeAllDrawers();
-      closeSettingsPopup();
+      closeAllPopups();
       if (drawer && !isAlreadyOpen) {
         drawer.classList.remove('drawer-hidden');
       }
@@ -927,34 +991,74 @@
       document.querySelectorAll('.drawer-slide').forEach(d => d.classList.add('drawer-hidden'));
     }
 
-    // ── Settings Popup Management ──
+    // ── Dedicated Floating Popups Management (Settings, Tutorial, Support) ──
     function toggleSettingsPopup(event) {
       if (event) event.stopPropagation();
       const popup = document.getElementById('popup-settings-menu');
-      if (popup) {
-        popup.classList.toggle('hidden');
+      const isHidden = popup.classList.contains('hidden');
+      closeAllPopups();
+      if (isHidden) popup.classList.remove('hidden');
+    }
+
+    function toggleTutorialPopup(event) {
+      if (event) event.stopPropagation();
+      const popup = document.getElementById('popup-tutorial-menu');
+      const isHidden = popup.classList.contains('hidden');
+      closeAllPopups();
+      if (isHidden) popup.classList.remove('hidden');
+    }
+
+    function toggleSupportPopup(event) {
+      if (event) event.stopPropagation();
+      const popup = document.getElementById('popup-support-menu');
+      const isHidden = popup.classList.contains('hidden');
+      closeAllPopups();
+      if (isHidden) popup.classList.remove('hidden');
+    }
+
+    function closeAllPopups() {
+      ['popup-settings-menu', 'popup-tutorial-menu', 'popup-support-menu'].forEach(id => {
+        const p = document.getElementById(id);
+        if (p) p.classList.add('hidden');
+      });
+    }
+
+    // Close popups when clicking anywhere on canvas
+    window.addEventListener('click', (e) => {
+      const sidebar = document.querySelector('aside');
+      const popups = ['popup-settings-menu', 'popup-tutorial-menu', 'popup-support-menu'];
+      const clickedInsidePopup = popups.some(id => {
+        const el = document.getElementById(id);
+        return el && el.contains(e.target);
+      });
+      const clickedInsideSidebar = sidebar && sidebar.contains(e.target);
+      if (!clickedInsidePopup && !clickedInsideSidebar) {
+        closeAllPopups();
+      }
+    });
+
+    // ── In-App Toast Notification Engine ──
+    function showToast(message, icon = 'info') {
+      const toast = document.getElementById('studio-toast');
+      const msgEl = document.getElementById('toast-message');
+      const iconEl = document.getElementById('toast-icon');
+      if (toast && msgEl) {
+        msgEl.textContent = message;
+        if (iconEl) iconEl.textContent = icon;
+        toast.classList.remove('hidden');
+        clearTimeout(window._toastTimeout);
+        window._toastTimeout = setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 2800);
       }
     }
 
-    function closeSettingsPopup() {
-      const popup = document.getElementById('popup-settings-menu');
-      if (popup) popup.classList.add('hidden');
-    }
-
     function toggleBoundingBox() {
-      alert('Mode Bounding Box Collider diaktifkan!');
+      showToast('Mode Bounding Box Collider diaktifkan ✨', 'deployed_code');
     }
 
     function openKeyboardShortcutsModal() {
       document.getElementById('modal-shortcuts').classList.remove('hidden');
-    }
-
-    function openTutorialModal() {
-      alert('🎓 Panduan AlamVerse AR Studio:\n1. Pilih Preset di bawah untuk memuat rantai makanan.\n2. Klik ikon 3D/Gambar/Teks di kiri untuk menambah objek.\n3. Tekan "Bagikan" untuk mendapatkan QR Marker & Tautan AR!');
-    }
-
-    function openSupportModal() {
-      alert('❓ Butuh bantuan? Hubungi tim support AlamVerse SD Edu melalui WhatsApp atau email resmi!');
     }
 
     function openShareModal() {
@@ -973,11 +1077,14 @@
       const input = document.getElementById('share-direct-url');
       input.select();
       navigator.clipboard.writeText(input.value);
-      alert('Tautan langsung AR berhasil disalin! 🚀');
+      showToast('Tautan langsung AR berhasil disalin! 🚀', 'content_copy');
     }
 
     function toggleGridHelper() {
-      if (gridHelper) gridHelper.visible = !gridHelper.visible;
+      if (gridHelper) {
+        gridHelper.visible = !gridHelper.visible;
+        showToast(gridHelper.visible ? 'Garis Grid Lantai Ditampilkan' : 'Garis Grid Lantai Disembunyikan', 'grid_4x4');
+      }
     }
 
     function resetCameraView(type) {
@@ -994,17 +1101,17 @@
     }
 
     function playSampleAudio(name) {
-      alert(`Memutar audio: "${name}" ✨`);
+      showToast(`Memutar audio BGM: "${name}" 🎵`, 'music_note');
     }
 
     function insertStickerToScene(name) {
-      alert(`Stiker "${name}" siap ditempatkan di posisi 3D!`);
+      showToast(`Stiker "${name}" siap ditempatkan di 3D Scene! ✨`, 'image');
       closeAllDrawers();
     }
 
-    function undoAction() { console.log('Undo'); }
-    function redoAction() { console.log('Redo'); }
-    function saveProject() { alert('Projek berhasil disimpan! ✨'); }
+    function undoAction() { showToast('Urungkan aksi (Undo)', 'undo'); }
+    function redoAction() { showToast('Ulangi aksi (Redo)', 'redo'); }
+    function saveProject() { showToast('Projek berhasil disimpan! ✨', 'check_circle'); }
 
     window.addEventListener('DOMContentLoaded', initStudio);
   </script>
